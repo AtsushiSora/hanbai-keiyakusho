@@ -8,6 +8,7 @@
 - `contract.js`: 契約書入力、プレビュー、印刷、端末内履歴
 - `contract-auth.bundle.js`: 管理者ログイン用のビルド済みJS
 - `netlify/functions/contracts.ts`: 契約一覧、保存、削除API
+- `TEST_GUIDE.md`: テスト手順書
 
 ## Netlifyで使う場合
 
