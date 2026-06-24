@@ -1,0 +1,104 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>契約内容の確認｜オーダーオート</title>
+    <meta name="robots" content="noindex,nofollow" />
+    <meta
+      name="description"
+      content="オーダーオートの車両契約内容を確認し、電子署名と同意を行うページです。"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="consent.js" defer></script>
+  </head>
+  <body>
+    <header class="site-header" aria-label="サイトヘッダー">
+      <a class="brand" href="consent.html" aria-label="オーダーオート 契約確認">
+        <span class="brand-mark" aria-hidden="true">
+          <img src="assets/logo-mark.png" alt="" />
+        </span>
+        <span>
+          <strong>オーダーオート　契約確認</strong>
+          <small>電子同意ページ</small>
+        </span>
+      </a>
+      <nav class="nav" aria-label="メインナビゲーション">
+        <a href="tel:08029128616">電話確認</a>
+      </nav>
+      <a class="header-call" href="tel:08029128616">080-2912-8616</a>
+    </header>
+
+    <main class="page-main consent-main">
+      <section class="consent-layout">
+        <div class="consent-card">
+          <p class="eyebrow">Agreement</p>
+          <h1>契約内容の確認</h1>
+          <p id="consent-lead">
+            メールで届いた確認URLと、別途案内された開封パスコードを使って契約内容を確認してください。
+          </p>
+
+          <section class="consent-unlock" id="consent-unlock">
+            <h2>開封パスコード</h2>
+            <p>
+              パスコードは確認URLとは別に案内されます。同じメールに記載されていない場合は、電話・SMS・別メールをご確認ください。
+            </p>
+            <label class="customer-name-label">
+              パスコード
+              <input id="consent-passcode-input" type="password" autocomplete="one-time-code" />
+            </label>
+            <button class="button button-primary" type="button" id="unlock-consent">
+              契約内容を開く
+            </button>
+          </section>
+
+          <div id="consent-error" class="save-status" data-tone="warning" hidden>
+            契約データを読み込めませんでした。URL、パスコード、有効期限を確認してください。
+          </div>
+
+          <section class="consent-summary" id="consent-summary" hidden>
+            <h2>契約概要</h2>
+            <dl class="document-dl" id="summary-list"></dl>
+          </section>
+
+          <section class="consent-summary" id="consent-check-section" hidden>
+            <h2>重要事項</h2>
+            <div id="customer-consents" class="consent-list"></div>
+          </section>
+
+          <section class="consent-summary" id="customer-sign-section" hidden>
+            <h2>電子署名</h2>
+            <label class="customer-name-label">
+              氏名
+              <input id="customer-name" autocomplete="name" />
+            </label>
+            <canvas id="customer-signature" width="760" height="220" aria-label="電子署名欄"></canvas>
+            <div class="toolbar-actions">
+              <button class="button button-outline" type="button" id="clear-customer-signature">
+                署名クリア
+              </button>
+              <button class="button button-primary" type="button" id="complete-consent">
+                同意して完了メールを作成
+              </button>
+            </div>
+            <p class="form-note">
+              この静的版では、同意結果をメールでオーダーオートへ送信します。送信前にメール本文を確認してください。
+            </p>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <footer class="site-footer">
+      <div class="container footer-inner">
+        <div>
+          <p><strong>オーダーオート　おまかせ廃車</strong></p>
+          <p>広島県広島市佐伯区皆賀1-10-20。電話：080-2912-8616。</p>
+        </div>
+        <nav class="footer-links" aria-label="補足ページ">
+          <a href="tel:08029128616">電話確認</a>
+        </nav>
+      </div>
+    </footer>
+  </body>
+</html>

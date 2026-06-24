@@ -1,0 +1,337 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>契約作成システム｜オーダーオート</title>
+    <meta
+      name="description"
+      content="オーダーオートの車両売買契約書・車両無償引取契約書を作成、印刷、タブレット署名、メール送信できる契約作成システムです。"
+    />
+    <meta name="robots" content="noindex,nofollow" />
+    <link rel="stylesheet" href="styles.css" />
+    <script src="admin-auth.js"></script>
+    <script>
+      window.OrderAutoAdminAuth.requireAuth();
+    </script>
+    <script src="contract.js" defer></script>
+  </head>
+  <body>
+    <header class="site-header" aria-label="サイトヘッダー">
+      <a class="brand" href="contract.html" aria-label="オーダーオート　契約作成 ホーム">
+        <span class="brand-mark" aria-hidden="true">
+          <img src="assets/logo-mark.png" alt="" />
+        </span>
+        <span>
+          <strong>オーダーオート　契約作成</strong>
+          <small>車両売買・無償引取</small>
+        </span>
+      </a>
+      <nav class="nav" aria-label="メインナビゲーション">
+        <a href="admin.html">管理ログイン</a>
+        <a href="#contract-app">契約作成</a>
+      </nav>
+      <button class="header-call header-button" type="button" id="admin-logout">ログアウト</button>
+    </header>
+
+    <main class="page-main contract-main">
+      <section class="contract-hero">
+        <div class="container contract-hero-inner">
+          <div>
+            <p class="eyebrow">Contract System</p>
+            <h1>契約情報を入力して、紙・タブレット・メールで完結。</h1>
+            <p>
+              買取金額ありの車両売買契約と、買取金額0円の車両無償引取契約に対応します。入力内容はこの端末に保存され、印刷用の契約書に反映されます。
+            </p>
+          </div>
+          <div class="contract-flow-summary" aria-label="完結方法">
+            <div>
+              <strong>紙で印刷</strong>
+              <span>PDF印刷・署名押印</span>
+            </div>
+            <div>
+              <strong>タブレット署名</strong>
+              <span>画面署名・印刷/メール</span>
+            </div>
+            <div>
+              <strong>メール完結</strong>
+              <span>確認URL用の文面作成</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="contract-app" class="contract-app" aria-label="契約作成システム">
+        <div class="contract-shell">
+          <aside class="contract-sidebar" aria-label="契約一覧">
+            <div class="contract-sidebar-head">
+              <div>
+                <p class="eyebrow">Contracts</p>
+                <h2>契約一覧</h2>
+              </div>
+              <button class="mini-button" type="button" id="new-contract">新規</button>
+            </div>
+            <div class="backup-actions" aria-label="バックアップ操作">
+              <button class="mini-button" type="button" id="export-contracts">JSON出力</button>
+              <button class="mini-button" type="button" id="import-contracts">JSON取込</button>
+              <input id="import-contract-file" type="file" accept="application/json,.json" hidden />
+            </div>
+            <label class="contract-search">
+              <span>検索</span>
+              <input id="contract-search" type="search" placeholder="氏名・車名・契約番号" />
+            </label>
+            <div class="status-tabs" aria-label="ステータス絞り込み">
+              <button type="button" class="active" data-filter="all">すべて</button>
+              <button type="button" data-filter="下書き">下書き</button>
+              <button type="button" data-filter="署名待ち">署名待ち</button>
+              <button type="button" data-filter="送信済み">送信済み</button>
+              <button type="button" data-filter="完了">完了</button>
+            </div>
+            <div id="contract-list" class="contract-list" aria-live="polite"></div>
+          </aside>
+
+          <div class="contract-workspace">
+            <div class="workspace-toolbar">
+              <div>
+                <p class="eyebrow">Editor</p>
+                <h2 id="editor-title">新規契約作成</h2>
+              </div>
+              <div class="toolbar-actions">
+                <button class="button button-outline" type="button" id="save-contract">下書き保存</button>
+                <button class="button button-outline" type="button" id="cloud-save-contract">Netlify保存</button>
+                <button class="button button-primary" type="button" id="print-contract">印刷</button>
+              </div>
+            </div>
+
+            <div class="contract-grid">
+              <form id="contract-form" class="contract-form-panel">
+                <fieldset>
+                  <legend>契約区分</legend>
+                  <div class="choice-grid">
+                    <label>
+                      <input type="radio" name="contractType" value="sale" checked />
+                      <span>買取金額あり</span>
+                    </label>
+                    <label>
+                      <input type="radio" name="contractType" value="free" />
+                      <span>買取金額0円 / 無償引取</span>
+                    </label>
+                  </div>
+                </fieldset>
+
+                <fieldset>
+                  <legend>完結方法</legend>
+                  <div class="choice-grid three">
+                    <label>
+                      <input type="radio" name="completionMethod" value="paper" checked />
+                      <span>紙で印刷</span>
+                    </label>
+                    <label>
+                      <input type="radio" name="completionMethod" value="tablet" />
+                      <span>タブレット署名</span>
+                    </label>
+                    <label>
+                      <input type="radio" name="completionMethod" value="email" />
+                      <span>メール電子同意</span>
+                    </label>
+                  </div>
+                </fieldset>
+
+                <fieldset>
+                  <legend>売主情報</legend>
+                  <div class="form-grid">
+                    <label>氏名<input name="sellerName" autocomplete="name" required /></label>
+                    <label>フリガナ<input name="sellerKana" /></label>
+                    <label class="full">住所<input name="sellerAddress" autocomplete="street-address" /></label>
+                    <label>電話番号<input name="sellerPhone" autocomplete="tel" /></label>
+                    <label>メールアドレス<input name="sellerEmail" type="email" autocomplete="email" /></label>
+                    <label>生年月日<input name="sellerBirthdate" type="date" /></label>
+                    <label>本人確認書類
+                      <select name="identityType">
+                        <option value="">選択してください</option>
+                        <option>運転免許証</option>
+                        <option>マイナンバーカード</option>
+                        <option>健康保険証</option>
+                        <option>その他</option>
+                      </select>
+                    </label>
+                  </div>
+                </fieldset>
+
+                <fieldset>
+                  <legend>車両情報</legend>
+                  <div class="form-grid">
+                    <label>車名<input name="carName" /></label>
+                    <label>グレード<input name="carGrade" /></label>
+                    <label>年式<input name="carYear" /></label>
+                    <label>登録番号<input name="plateNumber" /></label>
+                    <label class="full">車台番号<input name="chassisNumber" /></label>
+                    <label>走行距離<input name="mileage" placeholder="例：120000km" /></label>
+                    <label>車検満了日<input name="inspectionDate" type="date" /></label>
+                    <label>色<input name="carColor" /></label>
+                    <label>修復歴
+                      <select name="repairHistory">
+                        <option>不明</option>
+                        <option>無</option>
+                        <option>有</option>
+                      </select>
+                    </label>
+                    <label>不具合
+                      <select name="defect">
+                        <option>不明</option>
+                        <option>無</option>
+                        <option>有</option>
+                      </select>
+                    </label>
+                    <label>自走可否
+                      <select name="drivable">
+                        <option>不明</option>
+                        <option>可</option>
+                        <option>不可</option>
+                      </select>
+                    </label>
+                    <label>鍵の本数<input name="keyCount" type="number" min="0" /></label>
+                    <label class="full">備考<textarea name="vehicleNote" rows="3"></textarea></label>
+                  </div>
+                </fieldset>
+
+                <fieldset>
+                  <legend>金額・引取情報</legend>
+                  <div class="form-grid">
+                    <label>買取金額<input name="purchaseAmount" type="number" min="0" step="1000" /></label>
+                    <label>支払方法
+                      <select name="paymentMethod">
+                        <option>振込</option>
+                        <option>現金</option>
+                        <option>支払いなし</option>
+                      </select>
+                    </label>
+                    <label>支払予定日<input name="paymentDate" type="date" /></label>
+                    <label>引取予定日<input name="pickupDate" type="date" /></label>
+                    <label class="full">引取場所<input name="pickupPlace" /></label>
+                    <label>銀行名<input name="bankName" /></label>
+                    <label>支店名<input name="branchName" /></label>
+                    <label>口座種別
+                      <select name="accountType">
+                        <option>普通</option>
+                        <option>当座</option>
+                      </select>
+                    </label>
+                    <label>口座番号<input name="accountNumber" inputmode="numeric" /></label>
+                    <label class="full">口座名義<input name="accountHolder" /></label>
+                  </div>
+                </fieldset>
+
+                <fieldset>
+                  <legend>重要事項確認</legend>
+                  <div id="consent-list" class="consent-list"></div>
+                </fieldset>
+
+                <fieldset>
+                  <legend>必要書類</legend>
+                  <div class="check-grid">
+                    <label><input type="checkbox" name="documents" value="車検証" />車検証</label>
+                    <label><input type="checkbox" name="documents" value="自賠責保険証" />自賠責保険証</label>
+                    <label><input type="checkbox" name="documents" value="リサイクル券" />リサイクル券</label>
+                    <label><input type="checkbox" name="documents" value="印鑑証明書" />印鑑証明書</label>
+                    <label><input type="checkbox" name="documents" value="委任状" />委任状</label>
+                    <label><input type="checkbox" name="documents" value="譲渡証明書" />譲渡証明書</label>
+                    <label><input type="checkbox" name="documents" value="本人確認書類" />本人確認書類</label>
+                    <label><input type="checkbox" name="documents" value="鍵" />鍵</label>
+                  </div>
+                </fieldset>
+              </form>
+
+              <aside class="preview-panel" aria-label="契約書プレビュー">
+                <div class="preview-actions">
+                  <div>
+                    <p class="preview-label">PDFプレビュー</p>
+                    <strong id="preview-status">下書き</strong>
+                  </div>
+                  <button class="mini-button" type="button" id="complete-contract">完了にする</button>
+                </div>
+                <p id="cloud-save-status" class="save-status" role="status" aria-live="polite">
+                  この端末に保存中。Netlify保存で管理画面にも送信できます。
+                </p>
+                <div id="contract-preview" class="contract-document"></div>
+
+                <section class="signature-panel" id="signature-panel">
+                  <div class="signature-head">
+                    <div>
+                      <p class="preview-label">タブレット署名</p>
+                      <strong>売主署名</strong>
+                    </div>
+                    <button class="mini-button" type="button" id="clear-signature">クリア</button>
+                  </div>
+                  <canvas id="signature-canvas" width="760" height="220" aria-label="署名欄"></canvas>
+                  <button class="button button-primary" type="button" id="save-signature">署名を保存</button>
+                </section>
+
+                <section class="email-panel" id="email-panel">
+                  <div>
+                    <p class="preview-label">メール電子同意</p>
+                    <strong>送信用文面</strong>
+                  </div>
+                  <label>確認URL
+                    <input id="email-url" type="url" placeholder="https://example.com/contract/..." />
+                  </label>
+                  <label>開封パスコード
+                    <input id="consent-passcode" type="text" readonly placeholder="確認URL生成で作成されます" />
+                  </label>
+                  <div class="toolbar-actions">
+                    <button class="button button-outline" type="button" id="generate-consent-url">
+                      暗号化URL生成
+                    </button>
+                    <button class="button button-outline" type="button" id="copy-consent-url">
+                      URLコピー
+                    </button>
+                    <button class="button button-outline" type="button" id="copy-consent-passcode">
+                      パスコードコピー
+                    </button>
+                  </div>
+                  <p class="security-note">
+                    確認URLは暗号化されています。パスコードは同じメールに入れず、電話・SMS・別メールなどで別送してください。
+                  </p>
+                  <label>メール本文
+                    <textarea id="email-body" rows="8" readonly></textarea>
+                  </label>
+                  <button class="button button-outline" type="button" id="open-email">メール作成</button>
+                </section>
+              </aside>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <form name="contract-record" method="POST" data-netlify="true" netlify-honeypot="bot-field" hidden>
+      <input type="hidden" name="form-name" value="contract-record" />
+      <input name="bot-field" />
+      <input name="contractId" />
+      <input name="status" />
+      <input name="contractType" />
+      <input name="completionMethod" />
+      <input name="sellerName" />
+      <input name="sellerPhone" />
+      <input name="sellerEmail" />
+      <input name="carName" />
+      <input name="plateNumber" />
+      <input name="purchaseAmount" />
+      <textarea name="contractJson"></textarea>
+      <textarea name="previewText"></textarea>
+    </form>
+
+    <footer class="site-footer">
+      <div class="container footer-inner">
+        <div>
+          <p><strong>オーダーオート　おまかせ廃車</strong></p>
+          <p>広島県広島市佐伯区皆賀1-10-20。電話：080-2912-8616。契約作成データは、このブラウザ内とNetlify Formsに保存できます。</p>
+        </div>
+        <nav class="footer-links" aria-label="補足ページ">
+          <a href="admin.html">管理ログイン</a>
+          <a href="contract.html">契約作成</a>
+        </nav>
+      </div>
+    </footer>
+  </body>
+</html>

@@ -1,0 +1,292 @@
+const ORDER_AUTO_EMAIL = "sora29128616@gmail.com";
+const ORDER_AUTO = {
+  name: "オーダーオート",
+  representative: "空 篤志",
+  address: "広島県広島市佐伯区皆賀1-10-20",
+  phone: "080-2912-8616",
+};
+
+const CONSENT_TEXTS = {
+  sale: [
+    "契約内容を確認しました",
+    "車両情報に間違いありません",
+    "買取金額に同意します",
+    "還付金等は買取金額に含まれることに同意します",
+  ],
+  free: [
+    "契約内容を確認しました",
+    "買取金額が0円であることに同意します",
+    "引取後に買取代金を請求しません",
+    "重量税・自賠責・リサイクル券・自動車税の還付または返戻金を請求しません",
+  ],
+};
+
+let loadedContract = null;
+let isDrawing = false;
+const DEFAULT_CRYPTO_ITERATIONS = 200000;
+
+function base64UrlToBytes(value) {
+  const base64 = value.replaceAll("-", "+").replaceAll("_", "/");
+  const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, "=");
+  return Uint8Array.from(atob(padded), (char) => char.charCodeAt(0));
+}
+
+function decodeEnvelope() {
+  const params = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+  const encoded = params.get("payload");
+  if (!encoded) return null;
+
+  const bytes = base64UrlToBytes(encoded);
+  return JSON.parse(new TextDecoder().decode(bytes));
+}
+
+async function deriveDecryptionKey(passcode, salt, iterations) {
+  const material = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(passcode),
+    "PBKDF2",
+    false,
+    ["deriveKey"],
+  );
+
+  return crypto.subtle.deriveKey(
+    {
+      name: "PBKDF2",
+      salt,
+      iterations: iterations || DEFAULT_CRYPTO_ITERATIONS,
+      hash: "SHA-256",
+    },
+    material,
+    { name: "AES-GCM", length: 256 },
+    false,
+    ["decrypt"],
+  );
+}
+
+async function decryptEnvelope(envelope, passcode) {
+  const salt = base64UrlToBytes(envelope.salt);
+  const iv = base64UrlToBytes(envelope.iv);
+  const ciphertext = base64UrlToBytes(envelope.ciphertext);
+  const key = await deriveDecryptionKey(passcode, salt, envelope.iterations);
+  const plaintext = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ciphertext);
+  return JSON.parse(new TextDecoder().decode(plaintext));
+}
+
+function formatDateTime(date = new Date()) {
+  return new Intl.DateTimeFormat("ja-JP", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    minute: "2-digit",
+  }).format(date);
+}
+
+function yen(value) {
+  const number = Number(value);
+  if (!Number.isFinite(number) || number <= 0) return "0円";
+  return `${number.toLocaleString("ja-JP")}円`;
+}
+
+function text(value, fallback = "未入力") {
+  const cleaned = String(value ?? "").trim();
+  return cleaned || fallback;
+}
+
+function escapeHtml(value) {
+  return String(value ?? "")
+    .replaceAll("&", "&amp;")
+    .replaceAll("<", "&lt;")
+    .replaceAll(">", "&gt;")
+    .replaceAll('"', "&quot;")
+    .replaceAll("'", "&#039;");
+}
+
+function summaryRow(label, value) {
+  return `<div><dt>${escapeHtml(label)}</dt><dd>${escapeHtml(text(value))}</dd></div>`;
+}
+
+function contractTypeLabel(type) {
+  return type === "free" ? "買取金額0円 / 無償引取" : "買取金額あり";
+}
+
+function renderContract() {
+  if (!loadedContract?.data) {
+    document.querySelector("#consent-error").hidden = false;
+    return;
+  }
+
+  const data = loadedContract.data;
+  const amount = data.contractType === "free" ? "0円" : yen(data.purchaseAmount);
+  document.querySelector("#customer-name").value = data.sellerName || "";
+  document.querySelector("#summary-list").innerHTML = [
+    summaryRow("契約番号", loadedContract.id),
+    summaryRow("契約区分", contractTypeLabel(data.contractType)),
+    summaryRow("売主氏名", data.sellerName),
+    summaryRow("電話番号", data.sellerPhone),
+    summaryRow("メール", data.sellerEmail),
+    summaryRow("車名", data.carName),
+    summaryRow("登録番号", data.plateNumber),
+    summaryRow("車台番号", data.chassisNumber),
+    summaryRow("走行距離", data.mileage),
+    summaryRow("買取金額", amount),
+    summaryRow("引取予定日", data.pickupDate),
+    summaryRow("引取場所", data.pickupPlace),
+    summaryRow("事業者", `${ORDER_AUTO.name} / 代表 ${ORDER_AUTO.representative}`),
+    summaryRow("所在地", ORDER_AUTO.address),
+  ].join("");
+
+  const items = CONSENT_TEXTS[data.contractType || "sale"];
+  document.querySelector("#customer-consents").innerHTML = items
+    .map((item) => {
+      return `<label><input type="checkbox" name="customerConsent" value="${escapeHtml(item)}" />${escapeHtml(item)}</label>`;
+    })
+    .join("");
+
+  document.querySelector("#consent-summary").hidden = false;
+  document.querySelector("#consent-check-section").hidden = false;
+  document.querySelector("#customer-sign-section").hidden = false;
+  document.querySelector("#consent-unlock").hidden = true;
+  document.querySelector("#consent-error").hidden = true;
+}
+
+async function unlockConsent() {
+  const passcode = document.querySelector("#consent-passcode-input").value.trim();
+  if (!passcode) {
+    document.querySelector("#consent-error").textContent = "開封パスコードを入力してください。";
+    document.querySelector("#consent-error").hidden = false;
+    return;
+  }
+
+  try {
+    const envelope = decodeEnvelope();
+    if (!envelope?.ciphertext || !envelope?.salt || !envelope?.iv) {
+      throw new Error("Missing encrypted payload");
+    }
+
+    loadedContract = await decryptEnvelope(envelope, passcode);
+
+    if (loadedContract.expiresAt && Date.now() > loadedContract.expiresAt) {
+      throw new Error("Expired contract URL");
+    }
+
+    renderContract();
+  } catch (error) {
+    loadedContract = null;
+    document.querySelector("#consent-error").textContent =
+      "契約データを開けませんでした。URL、パスコード、有効期限を確認してください。";
+    document.querySelector("#consent-error").hidden = false;
+  }
+}
+
+function checkedConsents() {
+  return Array.from(document.querySelectorAll('[name="customerConsent"]:checked')).map(
+    (item) => item.value,
+  );
+}
+
+function allConsentsChecked() {
+  const all = document.querySelectorAll('[name="customerConsent"]');
+  return all.length > 0 && Array.from(all).every((item) => item.checked);
+}
+
+function setupSignature() {
+  const canvas = document.querySelector("#customer-signature");
+  const context = canvas.getContext("2d");
+  context.lineWidth = 4;
+  context.lineCap = "round";
+  context.strokeStyle = "#17211f";
+
+  function point(event) {
+    const rect = canvas.getBoundingClientRect();
+    const touch = event.touches?.[0];
+    const clientX = touch ? touch.clientX : event.clientX;
+    const clientY = touch ? touch.clientY : event.clientY;
+    return {
+      x: ((clientX - rect.left) / rect.width) * canvas.width,
+      y: ((clientY - rect.top) / rect.height) * canvas.height,
+    };
+  }
+
+  function start(event) {
+    event.preventDefault();
+    isDrawing = true;
+    const next = point(event);
+    context.beginPath();
+    context.moveTo(next.x, next.y);
+  }
+
+  function move(event) {
+    if (!isDrawing) return;
+    event.preventDefault();
+    const next = point(event);
+    context.lineTo(next.x, next.y);
+    context.stroke();
+  }
+
+  function stop() {
+    isDrawing = false;
+  }
+
+  canvas.addEventListener("mousedown", start);
+  canvas.addEventListener("mousemove", move);
+  window.addEventListener("mouseup", stop);
+  canvas.addEventListener("touchstart", start, { passive: false });
+  canvas.addEventListener("touchmove", move, { passive: false });
+  window.addEventListener("touchend", stop);
+
+  document.querySelector("#clear-customer-signature").addEventListener("click", () => {
+    context.clearRect(0, 0, canvas.width, canvas.height);
+  });
+}
+
+function completeConsent() {
+  if (!loadedContract?.data) return;
+
+  if (!allConsentsChecked()) {
+    alert("重要事項をすべて確認してください。");
+    return;
+  }
+
+  const name = document.querySelector("#customer-name").value.trim();
+  if (!name) {
+    alert("氏名を入力してください。");
+    return;
+  }
+
+  const data = loadedContract.data;
+  const completedAt = formatDateTime();
+  const amount = data.contractType === "free" ? "0円" : yen(data.purchaseAmount);
+  const body = [
+    "契約内容を確認し、電子同意しました。",
+    "",
+    `契約番号：${text(loadedContract.id)}`,
+    `同意日時：${completedAt}`,
+    `氏名：${name}`,
+    `契約区分：${contractTypeLabel(data.contractType)}`,
+    `車両：${text(data.carName)} ${text(data.plateNumber)}`,
+    `金額：${amount}`,
+    "",
+    "確認した重要事項：",
+    ...checkedConsents().map((item) => `・${item}`),
+    "",
+    "このメールは、お客様が契約確認ページで同意操作を行った記録として送信しています。",
+  ].join("\n");
+
+  const params = new URLSearchParams({
+    subject: `契約同意完了 ${text(loadedContract.id)}`,
+    body,
+  });
+  window.location.href = `mailto:${ORDER_AUTO_EMAIL}?${params.toString()}`;
+}
+
+document.addEventListener("DOMContentLoaded", () => {
+  setupSignature();
+  document.querySelector("#unlock-consent").addEventListener("click", unlockConsent);
+  document.querySelector("#consent-passcode-input").addEventListener("keydown", (event) => {
+    if (event.key === "Enter") {
+      unlockConsent();
+    }
+  });
+  document.querySelector("#complete-consent").addEventListener("click", completeConsent);
+});
