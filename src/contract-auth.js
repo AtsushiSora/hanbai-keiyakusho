@@ -1,10 +1,14 @@
 import { getUser, handleAuthCallback, login, logout, onAuthChange } from "@netlify/identity";
 
+const ENABLE_TEST_LOGIN = true;
+const testLoginStorageKey = "orderAutoTestLogin";
+
 const loginPanel = document.querySelector("#loginPanel");
 const loginForm = document.querySelector("#adminLoginForm");
 const authStatus = document.querySelector("#authStatus");
 const adminUserLabel = document.querySelector("#adminUserLabel");
 const logoutButton = document.querySelector("#adminLogoutButton");
+const testLoginButton = document.querySelector("#testLoginButton");
 const refreshServerContractsButton = document.querySelector("#refreshServerContractsButton");
 const serverContractSelect = document.querySelector("#serverContractSelect");
 const loadServerContractButton = document.querySelector("#loadServerContractButton");
@@ -14,11 +18,18 @@ const serverContractStatus = document.querySelector("#serverContractStatus");
 
 let currentUser = null;
 let serverContracts = [];
+let isTestLogin = false;
 
 initAdminAuth();
 
 async function initAdminAuth() {
   setAuthStatus("ログイン状態を確認しています。");
+  setupTestLoginButton();
+
+  if (ENABLE_TEST_LOGIN && sessionStorage.getItem(testLoginStorageKey) === "1") {
+    activateTestLogin();
+    return;
+  }
 
   try {
     await handleAuthCallback();
@@ -61,7 +72,12 @@ loginForm?.addEventListener("submit", async (event) => {
 });
 
 logoutButton?.addEventListener("click", async () => {
-  await logout();
+  if (isTestLogin) {
+    sessionStorage.removeItem(testLoginStorageKey);
+  } else {
+    await logout();
+  }
+  isTestLogin = false;
   currentUser = null;
   serverContracts = [];
   renderServerContracts();
@@ -76,6 +92,17 @@ serverContractSelect?.addEventListener("change", () => setServerButtonsDisabled(
 
 async function applyAuthState() {
   document.body.classList.remove("auth-loading");
+
+  if (isTestLogin) {
+    document.body.classList.add("is-admin-authenticated");
+    loginPanel.hidden = true;
+    adminUserLabel.textContent = "テスト用ログイン中";
+    serverContracts = [];
+    renderServerContracts();
+    setAuthStatus("");
+    setServerStatus("テスト用ログイン中です。サーバー保存・契約一覧はNetlifyログイン時のみ利用できます。");
+    return;
+  }
 
   if (!currentUser) {
     document.body.classList.remove("is-admin-authenticated");
@@ -99,6 +126,13 @@ async function applyAuthState() {
 }
 
 async function loadServerContracts() {
+  if (isTestLogin) {
+    serverContracts = [];
+    renderServerContracts();
+    setServerStatus("テスト用ログイン中はサーバー契約一覧を利用できません。");
+    return;
+  }
+
   if (!currentUser) {
     return;
   }
@@ -141,6 +175,11 @@ function renderServerContracts(selectedId = "") {
 }
 
 async function saveServerContract() {
+  if (isTestLogin) {
+    setServerStatus("テスト用ログイン中はサーバー保存できません。印刷・PDF保存や端末内履歴で確認してください。");
+    return;
+  }
+
   if (!currentUser || !window.contractTool) {
     return;
   }
@@ -171,6 +210,11 @@ async function saveServerContract() {
 }
 
 async function loadSelectedServerContract() {
+  if (isTestLogin) {
+    setServerStatus("テスト用ログイン中はサーバー契約の読み込みはできません。");
+    return;
+  }
+
   const selectedId = serverContractSelect?.value;
   if (!selectedId || !window.contractTool) {
     setServerStatus("読み込む契約を選択してください。");
@@ -194,6 +238,11 @@ async function loadSelectedServerContract() {
 }
 
 async function deleteSelectedServerContract() {
+  if (isTestLogin) {
+    setServerStatus("テスト用ログイン中はサーバー契約の削除はできません。");
+    return;
+  }
+
   const selectedId = serverContractSelect?.value;
   if (!selectedId) {
     setServerStatus("削除する契約を選択してください。");
@@ -218,6 +267,27 @@ async function deleteSelectedServerContract() {
 
   await loadServerContracts();
   setServerStatus("契約を削除しました。");
+}
+
+function setupTestLoginButton() {
+  if (!testLoginButton) {
+    return;
+  }
+
+  testLoginButton.hidden = !ENABLE_TEST_LOGIN;
+  testLoginButton.addEventListener("click", () => {
+    sessionStorage.setItem(testLoginStorageKey, "1");
+    activateTestLogin();
+  });
+}
+
+async function activateTestLogin() {
+  isTestLogin = true;
+  currentUser = {
+    email: "test-admin@example.local",
+    token: { access_token: "test-login" },
+  };
+  await applyAuthState();
 }
 
 function authHeaders() {
