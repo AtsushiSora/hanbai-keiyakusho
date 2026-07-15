@@ -2011,29 +2011,15 @@ pre {
   line-height: 1.55;
 }
 
-.contract-home-page .contract-workspace,
-.contract-home-page .contract-preview-section,
 .contract-create-page .contract-menu-section,
-.contract-list-page .contract-menu-section,
-.contract-list-page .contract-preview-section {
+.contract-list-page .contract-menu-section {
   display: none;
 }
 
-.contract-list-page .contract-layout {
+.contract-list-layout {
+  display: grid;
   grid-template-columns: minmax(0, 760px);
   justify-content: center;
-}
-
-.contract-list-page .contract-form,
-.contract-list-page .contract-actions,
-.contract-list-page .security-panel,
-.contract-list-page .signature-panel,
-.contract-list-page .email-panel {
-  display: none;
-}
-
-.contract-list-page .contract-side {
-  position: static;
 }
 
 .contract-workspace {
@@ -2113,11 +2099,8 @@ pre {
 .server-contract-panel,
 .contract-editor-panel,
 .contract-form,
-.contract-actions,
 .contract-history-panel,
-.security-panel,
-.signature-panel,
-.email-panel {
+.security-panel {
   padding: 24px;
   background: #fff;
   border: 1px solid var(--line);
@@ -2205,26 +2188,11 @@ pre {
   margin-top: 0;
 }
 
-.contract-method-options {
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-}
-
 .contract-side {
   position: sticky;
   top: 104px;
   display: grid;
   gap: 16px;
-}
-
-.contract-actions {
-  display: grid;
-  gap: 10px;
-}
-
-.contract-actions .primary-link,
-.contract-actions .secondary-button {
-  width: 100%;
-  text-align: center;
 }
 
 .secondary-button.danger {
@@ -2248,8 +2216,7 @@ pre {
   font-size: 0.88rem;
 }
 
-.contract-history-head,
-.signature-panel-head {
+.contract-history-head {
   display: flex;
   align-items: start;
   justify-content: space-between;
@@ -2258,18 +2225,14 @@ pre {
 }
 
 .contract-history-panel h2,
-.security-panel h2,
-.signature-panel h2,
-.email-panel h2 {
+.security-panel h2 {
   margin: 0;
   color: var(--blue-dark);
   font-size: 1.2rem;
 }
 
 .contract-history-panel p,
-.security-panel p,
-.signature-panel p,
-.email-panel p {
+.security-panel p {
   margin: 0 0 14px;
   color: var(--muted);
   font-weight: 700;
@@ -2295,217 +2258,6 @@ pre {
   color: var(--blue-dark);
   font-size: 0.86rem;
   font-weight: 900;
-}
-
-#signatureCanvas {
-  width: 100%;
-  aspect-ratio: 720 / 220;
-  touch-action: none;
-  background:
-    linear-gradient(#fff, #fff) padding-box,
-    repeating-linear-gradient(0deg, transparent 0 34px, rgba(15, 103, 189, 0.08) 35px 36px);
-  border: 1px solid #ccd9e8;
-  border-radius: var(--radius);
-}
-
-.email-panel .consent {
-  margin: 0;
-}
-
-.contract-preview-section {
-  padding-top: 26px;
-  background: #fff;
-}
-
-.contract-preview-note {
-  margin: 0;
-  color: var(--muted);
-  font-size: 0.9rem;
-  font-weight: 800;
-}
-
-.contract-document {
-  width: min(100%, 980px);
-  margin: 0 auto;
-  padding: clamp(24px, 4vw, 48px);
-  color: #172033;
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  box-shadow: 0 16px 42px rgba(27, 60, 97, 0.1);
-}
-
-.contract-doc-head {
-  display: flex;
-  align-items: end;
-  justify-content: space-between;
-  gap: 18px;
-  padding-bottom: 18px;
-  border-bottom: 2px solid #172033;
-}
-
-.contract-doc-head p {
-  margin: 0;
-  font-size: clamp(1.45rem, 3vw, 2.05rem);
-  font-weight: 900;
-  line-height: 1.3;
-}
-
-.contract-doc-head small {
-  min-width: max-content;
-  color: #33435a;
-  font-weight: 800;
-}
-
-.contract-intro {
-  margin: 18px 0 20px;
-  font-weight: 700;
-}
-
-.contract-doc-section {
-  margin-top: 18px;
-}
-
-.contract-doc-section h3,
-.contract-sign-section h3 {
-  margin: 0 0 8px;
-  color: #0d3764;
-  font-size: 1rem;
-}
-
-.contract-doc-section p,
-.contract-sign-section p {
-  margin: 0;
-  color: #263247;
-  font-size: 0.92rem;
-  font-weight: 600;
-}
-
-.contract-doc-table {
-  width: 100%;
-  border-collapse: collapse;
-  font-size: 0.9rem;
-}
-
-.contract-doc-table th,
-.contract-doc-table td {
-  padding: 8px 10px;
-  border: 1px solid #ccd9e8;
-  text-align: left;
-  vertical-align: top;
-}
-
-.contract-doc-table th {
-  width: 28%;
-  color: #0d3764;
-  background: #f2f8ff;
-  font-weight: 900;
-}
-
-.contract-doc-table.amount tr:last-child td {
-  color: var(--orange-dark);
-  font-size: 1.04rem;
-  font-weight: 900;
-}
-
-.contract-dl {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 0;
-  margin: 0 0 10px;
-  border-top: 1px solid #ccd9e8;
-  border-left: 1px solid #ccd9e8;
-}
-
-.contract-dl div {
-  display: grid;
-  grid-template-columns: 128px minmax(0, 1fr);
-  min-width: 0;
-  border-right: 1px solid #ccd9e8;
-  border-bottom: 1px solid #ccd9e8;
-}
-
-.contract-dl dt,
-.contract-dl dd {
-  margin: 0;
-  padding: 8px 10px;
-  font-size: 0.9rem;
-}
-
-.contract-dl dt {
-  color: #0d3764;
-  background: #f2f8ff;
-  font-weight: 900;
-}
-
-.contract-dl dd {
-  color: #263247;
-  font-weight: 700;
-}
-
-.contract-sign-section {
-  margin-top: 28px;
-  padding-top: 18px;
-  border-top: 2px solid #172033;
-}
-
-.signature-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  gap: 26px;
-  margin-top: 18px;
-}
-
-.signature-grid > div {
-  min-height: 218px;
-  padding: 18px;
-  border: 1px solid #ccd9e8;
-  border-radius: var(--radius);
-}
-
-.signature-grid p {
-  margin-top: 6px;
-}
-
-.signature-label {
-  margin-top: 14px !important;
-  color: #0d3764 !important;
-  font-weight: 900 !important;
-}
-
-.signature-line {
-  display: block;
-  height: 62px;
-  border-bottom: 1px solid #172033;
-}
-
-.signature-image {
-  display: block;
-  width: 100%;
-  height: 78px;
-  object-fit: contain;
-  object-position: left center;
-  border-bottom: 1px solid #172033;
-}
-
-.email-consent-record {
-  display: grid;
-  gap: 4px;
-  margin: 14px 0 4px;
-  padding: 12px 14px;
-  background: #f8fbff;
-  border: 1px solid #ccd9e8;
-  border-radius: var(--radius);
-}
-
-.email-consent-record strong {
-  color: var(--blue-dark);
-}
-
-.email-consent-record span,
-.email-consent-record small {
-  color: #33435a;
-  font-weight: 700;
 }
 
 .home-compact {
@@ -2953,9 +2705,6 @@ pre {
   .contract-hero-inner,
   .contract-editor-panel,
   .contract-layout,
-  .contract-method-options,
-  .contract-dl,
-  .signature-grid,
   .proposal-layout,
   .contact-layout,
   .form-grid {
@@ -2979,18 +2728,6 @@ pre {
   .contract-editor-actions .secondary-button {
     width: 100%;
     min-width: 0;
-  }
-
-  .contract-doc-head {
-    display: grid;
-  }
-
-  .contract-doc-head small {
-    min-width: 0;
-  }
-
-  .contract-dl div {
-    grid-template-columns: 108px minmax(0, 1fr);
   }
 
   .compact-hero {
@@ -3269,100 +3006,5 @@ pre {
     display: grid;
     gap: 8px;
     margin-top: 12px;
-  }
-}
-
-@media print {
-  @page {
-    size: A4;
-    margin: 12mm;
-  }
-
-  body {
-    background: #fff;
-    -webkit-print-color-adjust: exact;
-    print-color-adjust: exact;
-  }
-
-  .site-header,
-  .contract-hero,
-  .contract-workspace,
-  .contract-preview-section .section-heading {
-    display: none !important;
-  }
-
-  .contract-preview-section,
-  .section {
-    padding: 0 !important;
-    background: #fff !important;
-  }
-
-  .section-inner {
-    width: 100% !important;
-  }
-
-  .contract-document {
-    width: 100%;
-    margin: 0;
-    padding: 0;
-    border: 0;
-    border-radius: 0;
-    box-shadow: none;
-  }
-
-  .contract-doc-head {
-    padding-bottom: 10px;
-  }
-
-  .contract-doc-table th,
-  .contract-dl dt {
-    background: #f2f8ff !important;
-  }
-
-  .contract-doc-head p {
-    font-size: 20pt;
-  }
-
-  .contract-doc-section {
-    break-inside: avoid;
-    margin-top: 10px;
-  }
-
-  .contract-doc-section h3,
-  .contract-sign-section h3 {
-    font-size: 10.5pt;
-  }
-
-  .contract-doc-section p,
-  .contract-sign-section p,
-  .contract-doc-table,
-  .contract-dl dt,
-  .contract-dl dd {
-    font-size: 9pt;
-  }
-
-  .contract-doc-table th,
-  .contract-doc-table td,
-  .contract-dl dt,
-  .contract-dl dd {
-    padding: 5px 7px;
-  }
-
-  .signature-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 12px;
-  }
-
-  .signature-grid > div {
-    min-height: 156px;
-    padding: 10px;
-  }
-
-  .signature-line {
-    height: 46px;
-  }
-
-  .signature-image {
-    height: 58px;
   }
 }

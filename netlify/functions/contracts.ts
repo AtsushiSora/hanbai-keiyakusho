@@ -10,8 +10,6 @@ declare const Netlify: {
 
 type ContractPayload = {
   data?: Record<string, string>;
-  signatureImage?: string;
-  emailConsentChecked?: boolean;
 };
 
 type ContractRecord = ContractPayload & {
@@ -163,12 +161,9 @@ function normalizePayload(payload: ContractPayload): ContractPayload {
   const data = Object.fromEntries(
     Object.entries(payload?.data || {}).map(([key, value]) => [key, String(value || "").slice(0, 5000)]),
   );
-  const signatureImage = String(payload?.signatureImage || "");
 
   return {
     data,
-    signatureImage: signatureImage.startsWith("data:image/png;base64,") ? signatureImage.slice(0, 1_500_000) : "",
-    emailConsentChecked: Boolean(payload?.emailConsentChecked),
   };
 }
 

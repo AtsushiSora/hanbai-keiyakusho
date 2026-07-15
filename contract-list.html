@@ -6,14 +6,14 @@
     <title>契約一覧｜オーダーオート</title>
     <meta name="description" content="オーダーオートの車両販売契約書を入力フォームから帳票型PDFへ転記し、PDF保存・印刷できる契約作成システムです。" />
     <meta name="robots" content="noindex, nofollow" />
-    <link rel="stylesheet" href="styles.css?v=contract8" />
+    <link rel="stylesheet" href="styles.css?v=contract9" />
   </head>
   <body class="admin-page contract-page sales-contract-system contract-list-page auth-loading">
     <header class="site-header admin-header">
-      <a class="brand" href="contract.html" aria-label="オーダーオート　契約作成 ホーム">
+      <a class="brand" href="contract.html" aria-label="オーダーオート 契約作成 ホーム">
         <span class="brand-mark" aria-hidden="true"><img src="assets/brand-logo.png" alt="" /></span>
         <span>
-          <strong>オーダーオート　契約作成</strong>
+          <strong>オーダーオート 契約作成</strong>
           <small>車両販売</small>
         </span>
       </a>
@@ -64,324 +64,30 @@
         </div>
       </section>
 
-      <section class="section contract-menu-section admin-only" aria-label="契約書メニュー">
-        <div class="section-inner contract-menu-panel">
-          <div>
-            <p class="section-kicker">Contract System</p>
-            <h2>契約書メニュー</h2>
+      <section class="section contract-workspace admin-only">
+        <div class="section-inner contract-list-layout">
+          <div class="server-contract-panel" id="list">
+            <div class="contract-history-head">
+              <div>
+                <p class="section-kicker">SERVER LIST</p>
+                <h2>保存済み契約一覧</h2>
+              </div>
+            </div>
+            <p>管理者ログイン中のみ、クラウド上の保存済み契約を読み込みます。</p>
+            <a class="secondary-button list-create-link" href="contract-create.html">契約書作成ページへ</a>
+            <select id="serverContractSelect" aria-label="サーバー保存済み契約">
+              <option value="">保存済み契約はありません</option>
+            </select>
+            <div class="server-contract-actions">
+              <button class="secondary-button" type="button" id="loadServerContractButton">選択した契約を開く</button>
+              <button class="secondary-button danger" type="button" id="deleteServerContractButton">サーバーから削除</button>
+            </div>
+            <div class="contract-save-status" id="serverContractStatus" aria-live="polite"></div>
           </div>
-          <div class="top-action-grid">
-            <a class="top-action-card" href="contract-create.html">
-              <span>契約書作成</span>
-              <small>買主・車両・金額を入力して帳票PDFを作成</small>
-            </a>
-            <a class="top-action-card" href="contract-list.html">
-              <span>契約一覧</span>
-              <small>保存済み契約の読み込み・上書き・削除</small>
-            </a>
-            <a class="top-action-card" href="sales-template.html">
-              <span>帳票型PDF</span>
-              <small>写真ベースの帳票へ直接入力・PDF印刷</small>
-            </a>
-          </div>
-        </div>
-      </section>
-
-      <section class="section contract-workspace admin-only" id="create">
-        <div class="section-inner contract-layout">
-          <form class="contract-form" id="contractForm" autocomplete="off" spellcheck="false">
-            <fieldset>
-              <legend>完結方法</legend>
-              <div class="method-options contract-method-options">
-                <label class="method-option">
-                  <input type="radio" name="completionMode" value="paper" checked />
-                  <span>紙でサイン</span>
-                </label>
-                <label class="method-option">
-                  <input type="radio" name="completionMode" value="tablet" />
-                  <span>タブレット署名</span>
-                </label>
-                <label class="method-option">
-                  <input type="radio" name="completionMode" value="email" />
-                  <span>メール完結</span>
-                </label>
-              </div>
-              <p class="method-guide" id="contractModeGuide">
-                PDFを印刷し、買主と売主が手書きサインして保管する運用です。
-              </p>
-            </fieldset>
-
-            <fieldset>
-              <legend>買主情報</legend>
-              <div class="form-grid">
-                <label>
-                  <span>氏名</span>
-                  <input name="buyerName" type="text" placeholder="例）山田 太郎" />
-                </label>
-                <label>
-                  <span>電話番号</span>
-                  <input name="buyerPhone" type="tel" placeholder="例）090-0000-0000" />
-                </label>
-                <label>
-                  <span>メールアドレス</span>
-                  <input name="buyerEmail" type="email" placeholder="例）buyer@example.com" />
-                </label>
-                <label>
-                  <span>契約日</span>
-                  <input name="contractDate" type="date" />
-                </label>
-              </div>
-              <label class="full">
-                <span>住所</span>
-                <input name="buyerAddress" type="text" placeholder="例）広島県広島市..." />
-              </label>
-            </fieldset>
-
-            <fieldset>
-              <legend>車両情報</legend>
-              <div class="form-grid">
-                <label>
-                  <span>車名</span>
-                  <input name="vehicleName" type="text" placeholder="例）スズキ ワゴンR" />
-                </label>
-                <label>
-                  <span>グレード</span>
-                  <input name="vehicleGrade" type="text" />
-                </label>
-                <label>
-                  <span>年式</span>
-                  <input name="vehicleYear" type="text" placeholder="例）2018年" />
-                </label>
-                <label>
-                  <span>型式</span>
-                  <input name="vehicleModel" type="text" />
-                </label>
-                <label>
-                  <span>車台番号</span>
-                  <input name="vehicleVin" type="text" />
-                </label>
-                <label>
-                  <span>登録番号</span>
-                  <input name="vehiclePlate" type="text" />
-                </label>
-                <label>
-                  <span>走行距離</span>
-                  <input name="vehicleMileage" type="text" placeholder="例）82,000km" />
-                </label>
-                <label>
-                  <span>車検満了日</span>
-                  <input name="inspectionDate" type="text" placeholder="例）令和8年5月" />
-                </label>
-                <label>
-                  <span>車体色</span>
-                  <input name="vehicleColor" type="text" />
-                </label>
-                <label>
-                  <span>修復歴</span>
-                  <select name="repairHistory">
-                    <option value="">未選択</option>
-                    <option>なし</option>
-                    <option>あり</option>
-                    <option>不明</option>
-                  </select>
-                </label>
-              </div>
-            </fieldset>
-
-            <fieldset>
-              <legend>金額</legend>
-              <div class="form-grid">
-                <label>
-                  <span>車両本体価格</span>
-                  <input name="basePrice" inputmode="numeric" type="text" placeholder="例）300000" />
-                </label>
-                <label>
-                  <span>諸費用</span>
-                  <input name="fees" inputmode="numeric" type="text" />
-                </label>
-                <label>
-                  <span>税金・保険料等</span>
-                  <input name="taxes" inputmode="numeric" type="text" />
-                </label>
-                <label>
-                  <span>リサイクル預託金</span>
-                  <input name="recycleFee" inputmode="numeric" type="text" />
-                </label>
-                <label>
-                  <span>値引き</span>
-                  <input name="discount" inputmode="numeric" type="text" />
-                </label>
-                <label>
-                  <span>総支払額</span>
-                  <input name="totalPrice" inputmode="numeric" type="text" placeholder="未入力なら自動計算" />
-                </label>
-              </div>
-            </fieldset>
-
-            <fieldset>
-              <legend>支払条件・納車</legend>
-              <div class="form-grid">
-                <label>
-                  <span>支払方法</span>
-                  <select name="paymentMethod">
-                    <option>現金</option>
-                    <option>銀行振込</option>
-                    <option>ローン</option>
-                    <option>その他</option>
-                  </select>
-                </label>
-                <label>
-                  <span>支払期限</span>
-                  <input name="paymentDue" type="date" />
-                </label>
-                <label>
-                  <span>頭金</span>
-                  <input name="downPayment" inputmode="numeric" type="text" />
-                </label>
-                <label>
-                  <span>残金</span>
-                  <input name="balance" inputmode="numeric" type="text" />
-                </label>
-                <label>
-                  <span>納車予定日</span>
-                  <input name="deliveryDate" type="date" />
-                </label>
-                <label>
-                  <span>納車場所</span>
-                  <input name="deliveryPlace" type="text" />
-                </label>
-              </div>
-              <label class="full">
-                <span>振込先</span>
-                <input name="bankAccount" type="text" placeholder="銀行名・支店・口座番号など" />
-              </label>
-            </fieldset>
-
-            <fieldset>
-              <legend>保証・特記事項</legend>
-              <div class="form-grid">
-                <label>
-                  <span>保証</span>
-                  <select name="warrantyType">
-                    <option>保証なし</option>
-                    <option>保証あり</option>
-                    <option>別紙保証書による</option>
-                  </select>
-                </label>
-                <label>
-                  <span>保証期間</span>
-                  <input name="warrantyPeriod" type="text" placeholder="例）納車日から1か月" />
-                </label>
-              </div>
-              <label class="full">
-                <span>保証内容</span>
-                <textarea name="warrantyDetail" rows="3"></textarea>
-              </label>
-              <label class="full">
-                <span>特記事項</span>
-                <textarea name="specialNotes" rows="4" placeholder="現状販売、追加整備、納車条件など"></textarea>
-              </label>
-            </fieldset>
-          </form>
-
-          <aside class="contract-side">
-            <div class="server-contract-panel" id="list">
-              <div class="contract-history-head">
-                <div>
-                  <p class="section-kicker">SERVER LIST</p>
-                  <h2>保存済み契約一覧</h2>
-                </div>
-              </div>
-              <p>管理者ログイン中のみ、Netlify上の保存済み契約を読み込みます。</p>
-              <a class="secondary-button list-create-link" href="contract-create.html">契約書作成ページへ</a>
-              <select id="serverContractSelect" aria-label="サーバー保存済み契約">
-                <option value="">保存済み契約はありません</option>
-              </select>
-              <div class="server-contract-actions">
-                <button class="secondary-button" type="button" id="loadServerContractButton">選択した契約を開く</button>
-                <button class="primary-link" type="button" id="saveServerContractButton">サーバーに保存</button>
-                <button class="secondary-button danger" type="button" id="deleteServerContractButton">サーバーから削除</button>
-              </div>
-              <div class="contract-save-status" id="serverContractStatus" aria-live="polite"></div>
-            </div>
-
-            <div class="contract-actions">
-              <button class="primary-link" type="button" id="printContractButton">帳票型PDFで印刷</button>
-              <button class="secondary-button" type="button" id="saveRecordButton">契約履歴に保存</button>
-              <button class="secondary-button" type="button" id="downloadHtmlButton">契約書HTMLを保存</button>
-              <button class="secondary-button" type="button" id="copySummaryButton">内容をコピー</button>
-              <a class="secondary-button" id="emailContractLink" href="#">メール下書き</a>
-              <button class="secondary-button" type="button" id="newContractButton">新規作成</button>
-            </div>
-
-            <div class="contract-history-panel">
-              <div class="contract-history-head">
-                <div>
-                  <p class="section-kicker">HISTORY</p>
-                  <h2>契約履歴</h2>
-                </div>
-                <button class="secondary-button compact" type="button" id="deleteRecordButton">削除</button>
-              </div>
-              <p>この端末のブラウザ内に保存します。正式な控えはPDF保存または印刷で保管してください。</p>
-              <select id="contractHistorySelect" aria-label="保存済み契約履歴">
-                <option value="">保存済み履歴はありません</option>
-              </select>
-              <button class="secondary-button danger" type="button" id="clearAllRecordsButton">履歴を全削除</button>
-              <div class="contract-save-status" id="contractSaveStatus" aria-live="polite"></div>
-            </div>
-
-            <div class="security-panel">
-              <p class="section-kicker">SECURITY</p>
-              <h2>個人情報の保護</h2>
-              <ul>
-                <li>入力中の下書きはブラウザの一時保存のみで、履歴保存ボタンを押すまで永続保存しません。</li>
-                <li>共有端末では、作業後に「新規作成」または履歴削除を行ってください。</li>
-                <li>正式な控えはPDF保存または紙で保管し、不要になった履歴は削除してください。</li>
-              </ul>
-            </div>
-
-            <div class="signature-panel" id="signaturePanel">
-              <div class="signature-panel-head">
-                <div>
-                  <p class="section-kicker">SIGNATURE</p>
-                  <h2>タブレット署名</h2>
-                </div>
-                <button class="secondary-button compact" type="button" id="clearSignatureButton">消去</button>
-              </div>
-              <p>買主が画面上に手書きサインすると、契約書プレビューへ反映されます。</p>
-              <canvas id="signatureCanvas" width="720" height="220" aria-label="買主署名欄"></canvas>
-            </div>
-
-            <div class="email-panel" id="emailPanel">
-              <p class="section-kicker">EMAIL FLOW</p>
-              <h2>メール完結の記録</h2>
-              <p>
-                静的サイトではPDF添付の自動送信は行わず、契約内容の要約メールを作成します。PDFは印刷・PDF保存後に添付してください。
-              </p>
-              <label class="consent">
-                <input type="checkbox" id="emailConsentChecked" />
-                <span>買主からメール返信または同意記録を受領済み</span>
-              </label>
-            </div>
-          </aside>
-        </div>
-      </section>
-
-      <section class="section contract-preview-section admin-only">
-        <div class="section-inner">
-          <div class="section-heading row">
-            <div>
-              <p class="section-kicker">PREVIEW</p>
-              <h2>契約書プレビュー</h2>
-            </div>
-            <p class="contract-preview-note">確認用プレビューです。正式印刷は帳票型PDFで行います。</p>
-          </div>
-          <article class="contract-document" id="contractDocument" aria-live="polite"></article>
         </div>
       </section>
     </main>
 
-    <script src="contract.js"></script>
     <script type="module" src="contract-auth.bundle.js"></script>
   </body>
 </html>

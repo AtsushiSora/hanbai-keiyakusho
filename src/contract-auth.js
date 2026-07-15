@@ -216,7 +216,7 @@ async function loadSelectedServerContract() {
   }
 
   const selectedId = serverContractSelect?.value;
-  if (!selectedId || !window.contractTool) {
+  if (!selectedId) {
     setServerStatus("読み込む契約を選択してください。");
     return;
   }
@@ -233,6 +233,22 @@ async function loadSelectedServerContract() {
   }
 
   const result = await response.json();
+  if (document.body.classList.contains("contract-list-page")) {
+    try {
+      sessionStorage.setItem("orderAutoContractDraft", JSON.stringify(result.contract?.data || {}));
+    } catch {
+      setServerStatus("契約情報を作成ページへ渡せませんでした。");
+      return;
+    }
+    window.location.href = "contract-create.html";
+    return;
+  }
+
+  if (!window.contractTool) {
+    setServerStatus("契約書作成ページで読み込んでください。");
+    return;
+  }
+
   window.contractTool.loadRecordPayload(result.contract);
   setServerStatus("契約情報をフォームに読み込みました。");
 }
@@ -337,8 +353,12 @@ function setAuthControlsDisabled(disabled) {
 }
 
 function setServerButtonsDisabled(disabled) {
-  loadServerContractButton.disabled = disabled;
-  deleteServerContractButton.disabled = disabled;
+  if (loadServerContractButton) {
+    loadServerContractButton.disabled = disabled;
+  }
+  if (deleteServerContractButton) {
+    deleteServerContractButton.disabled = disabled;
+  }
 }
 
 function escapeHtml(value) {
