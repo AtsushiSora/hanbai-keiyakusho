@@ -3,35 +3,36 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>契約書作成ツール | オーダーオート</title>
-    <meta name="description" content="自動車売買契約書を入力、印刷、タブレット署名、メール確認用に作成する管理ツールです。" />
+    <title>契約作成システム｜オーダーオート</title>
+    <meta name="description" content="オーダーオートの車両販売契約書を作成、印刷、タブレット署名、メール確認できる契約作成システムです。" />
     <meta name="robots" content="noindex, nofollow" />
-    <link rel="stylesheet" href="styles.css?v=contract2" />
+    <link rel="stylesheet" href="styles.css?v=contract3" />
   </head>
-  <body class="admin-page contract-page auth-loading">
+  <body class="admin-page contract-page sales-contract-system auth-loading">
     <header class="site-header admin-header">
-      <a class="brand" href="contract.html" aria-label="契約書作成ツールへ">
+      <a class="brand" href="contract.html" aria-label="オーダーオート　契約作成 ホーム">
         <span class="brand-mark" aria-hidden="true"><img src="assets/brand-logo.png" alt="" /></span>
         <span>
-          <strong>オーダーオート</strong>
-          <small>契約書作成ツール</small>
+          <strong>オーダーオート　契約作成</strong>
+          <small>車両販売</small>
         </span>
       </a>
       <div class="contract-header-actions">
-        <a class="secondary-link" href="contract.html">契約書トップ</a>
+        <a class="secondary-link" href="#top">トップ</a>
+        <a class="secondary-link" href="#create">契約書作成</a>
+        <a class="secondary-link" href="#list">契約一覧</a>
         <a class="secondary-link" href="sales-sheet.html">帳票型PDF</a>
-        <a class="secondary-link" href="contract.html">再読み込み</a>
       </div>
     </header>
 
-    <main class="contract-main">
-      <section class="contract-hero">
+    <main class="contract-main" id="top">
+      <section class="contract-hero" aria-label="販売契約作成システム">
         <div class="section-inner contract-hero-inner">
           <div>
-            <p class="section-kicker">CONTRACT BUILDER</p>
-            <h1>自動車売買契約書を入力して作成</h1>
+            <p class="section-kicker">Contract System</p>
+            <h1>契約情報を入力して、紙・タブレット・メールで完結。</h1>
             <p>
-              買主情報、車両情報、金額、支払条件を入力すると、紙印刷、タブレット署名、メール確認用の契約書を同じ内容から作成できます。
+              買主情報、車両情報、販売金額、支払条件を入力して、販売契約書と帳票型PDFを作成します。
             </p>
           </div>
           <div class="contract-flow-summary" aria-label="完結方法">
@@ -79,7 +80,30 @@
         </div>
       </section>
 
-      <section class="section contract-workspace admin-only">
+      <section class="section contract-menu-section admin-only" aria-label="契約書メニュー">
+        <div class="section-inner contract-menu-panel">
+          <div>
+            <p class="section-kicker">Contract System</p>
+            <h2>契約書メニュー</h2>
+          </div>
+          <div class="top-action-grid">
+            <a class="top-action-card" href="#create">
+              <span>契約書作成</span>
+              <small>買主・車両・金額を入力して販売契約書を作成</small>
+            </a>
+            <a class="top-action-card" href="#list">
+              <span>契約一覧</span>
+              <small>保存済み契約の読み込み・上書き・削除</small>
+            </a>
+            <a class="top-action-card" href="sales-sheet.html">
+              <span>帳票型PDF</span>
+              <small>見積書風レイアウトで上書き保存・PDF印刷</small>
+            </a>
+          </div>
+        </div>
+      </section>
+
+      <section class="section contract-workspace admin-only" id="create">
         <div class="section-inner contract-layout">
           <form class="contract-form" id="contractForm" autocomplete="off" spellcheck="false">
             <fieldset>
@@ -277,7 +301,7 @@
           </form>
 
           <aside class="contract-side">
-            <div class="server-contract-panel">
+            <div class="server-contract-panel" id="list">
               <div class="contract-history-head">
                 <div>
                   <p class="section-kicker">SERVER LIST</p>
