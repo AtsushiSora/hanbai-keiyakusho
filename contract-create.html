@@ -6,7 +6,7 @@
     <title>契約書作成｜オーダーオート</title>
     <meta name="description" content="オーダーオートの車両販売契約書を入力フォームからPDF保存・印刷・メール・LINE送信用に作成できる契約作成システムです。" />
     <meta name="robots" content="noindex, nofollow" />
-    <link rel="stylesheet" href="styles.css?v=contract12" />
+    <link rel="stylesheet" href="styles.css?v=contract13" />
   </head>
   <body class="admin-page contract-page sales-contract-system contract-create-page auth-loading">
     <header class="site-header admin-header">
@@ -98,7 +98,7 @@
             <button class="secondary-button" type="button" id="newContractButton">入力クリア</button>
             <button class="secondary-button" type="button" id="saveRecordButton">下書き保存</button>
             <button class="secondary-button" type="button" id="saveServerContractButton">クラウド保存</button>
-            <button class="secondary-button" type="button" id="contactContractButton">メール・LINE契約</button>
+            <a class="secondary-button" href="assets/sales-contract-template.pdf" download="sales-contract-template.pdf">店控えベースPDF</a>
             <button class="secondary-button" type="button" id="savePdfButton">PDF保存</button>
             <button class="primary-link" type="button" id="printContractButton">PDF印刷</button>
           </div>
@@ -106,32 +106,8 @@
 
         <div class="section-inner contract-layout">
           <form class="contract-form" id="contractForm" autocomplete="off" spellcheck="false">
-            <fieldset>
-              <legend>買主情報</legend>
-              <div class="form-grid">
-                <label>
-                  <span>氏名</span>
-                  <input name="buyerName" type="text" placeholder="例）山田 太郎" />
-                </label>
-                <label>
-                  <span>電話番号</span>
-                  <input name="buyerPhone" type="tel" placeholder="例）090-0000-0000" />
-                </label>
-                <label>
-                  <span>メールアドレス</span>
-                  <input name="buyerEmail" type="email" placeholder="例）buyer@example.com" />
-                </label>
-                <label>
-                  <span>契約日</span>
-                  <input name="contractDate" type="date" />
-                </label>
-              </div>
-              <label class="full">
-                <span>住所</span>
-                <input name="buyerAddress" type="text" placeholder="例）広島県広島市..." />
-              </label>
-            </fieldset>
-
+            <input name="contractStatus" type="hidden" value="下書き" />
+            <input name="remoteStatus" type="hidden" value="下書き" />
             <fieldset>
               <legend>車両情報</legend>
               <div class="form-grid">
@@ -181,6 +157,32 @@
                   </select>
                 </label>
               </div>
+            </fieldset>
+
+            <fieldset>
+              <legend>買主情報</legend>
+              <div class="form-grid">
+                <label>
+                  <span>氏名</span>
+                  <input name="buyerName" type="text" placeholder="例）山田 太郎" />
+                </label>
+                <label>
+                  <span>電話番号</span>
+                  <input name="buyerPhone" type="tel" placeholder="例）090-0000-0000" />
+                </label>
+                <label>
+                  <span>メールアドレス</span>
+                  <input name="buyerEmail" type="email" placeholder="例）buyer@example.com" />
+                </label>
+                <label>
+                  <span>契約日</span>
+                  <input name="contractDate" type="date" />
+                </label>
+              </div>
+              <label class="full">
+                <span>住所</span>
+                <input name="buyerAddress" type="text" placeholder="例）広島県広島市..." />
+              </label>
             </fieldset>
 
             <fieldset>
@@ -279,49 +281,53 @@
             </fieldset>
           </form>
 
-          <aside class="contract-side">
-            <div class="server-contract-panel" id="list">
-              <div class="contract-history-head">
-                <div>
-                  <p class="section-kicker">SERVER LIST</p>
-                  <h2>保存済み契約一覧</h2>
+          <aside class="contract-preview-panel">
+            <div class="preview-panel-head">
+              <div>
+                <p class="section-kicker">PDF PREVIEW</p>
+                <h2>PDFプレビュー</h2>
+                <strong id="previewStatusLabel">下書き</strong>
+              </div>
+              <div class="preview-actions">
+                <div class="preview-tabs" role="tablist" aria-label="控え切替">
+                  <button class="active" type="button" id="customerCopyButton">お客様控え</button>
+                  <button type="button" id="shopCopyButton">店控え</button>
+                </div>
+                <button class="secondary-button compact" type="button" id="completeContractButton">完了にする</button>
+              </div>
+            </div>
+            <p class="preview-message" id="previewMessage">入力内容をPDFテンプレートに転記して保存・印刷できます。</p>
+            <div class="contract-save-status" id="serverContractStatus" aria-live="polite"></div>
+            <div class="pdf-preview-frame">
+              <span id="previewCopyLabel">お客様控え</span>
+              <img src="assets/sales-contract-template.jpg" alt="販売契約書PDFプレビュー" />
+            </div>
+            <div class="contract-preview-support">
+              <div class="server-contract-panel" id="list">
+                <p class="section-kicker">SERVER LIST</p>
+                <h2>保存済み契約一覧</h2>
+                <select id="serverContractSelect" aria-label="サーバー保存済み契約">
+                  <option value="">保存済み契約はありません</option>
+                </select>
+                <div class="server-contract-actions">
+                  <button class="secondary-button" type="button" id="loadServerContractButton">選択した契約を開く</button>
+                  <button class="secondary-button danger" type="button" id="deleteServerContractButton">サーバーから削除</button>
                 </div>
               </div>
-              <p>管理者ログイン中のみ、Netlify上の保存済み契約を読み込みます。</p>
-              <select id="serverContractSelect" aria-label="サーバー保存済み契約">
-                <option value="">保存済み契約はありません</option>
-              </select>
-              <div class="server-contract-actions">
-                <button class="secondary-button" type="button" id="loadServerContractButton">選択した契約を開く</button>
-                <button class="secondary-button danger" type="button" id="deleteServerContractButton">サーバーから削除</button>
-              </div>
-              <div class="contract-save-status" id="serverContractStatus" aria-live="polite"></div>
-            </div>
-
-            <div class="contract-history-panel">
-              <div class="contract-history-head">
-                <div>
-                  <p class="section-kicker">HISTORY</p>
-                  <h2>契約履歴</h2>
+              <div class="contract-history-panel">
+                <div class="contract-history-head">
+                  <div>
+                    <p class="section-kicker">HISTORY</p>
+                    <h2>契約履歴</h2>
+                  </div>
+                  <button class="secondary-button compact" type="button" id="deleteRecordButton">削除</button>
                 </div>
-                <button class="secondary-button compact" type="button" id="deleteRecordButton">削除</button>
+                <select id="contractHistorySelect" aria-label="保存済み契約履歴">
+                  <option value="">保存済み履歴はありません</option>
+                </select>
+                <button class="secondary-button danger" type="button" id="clearAllRecordsButton">履歴を全削除</button>
+                <div class="contract-save-status" id="contractSaveStatus" aria-live="polite"></div>
               </div>
-              <p>この端末のブラウザ内に保存します。正式な控えはPDF保存または印刷で保管してください。</p>
-              <select id="contractHistorySelect" aria-label="保存済み契約履歴">
-                <option value="">保存済み履歴はありません</option>
-              </select>
-              <button class="secondary-button danger" type="button" id="clearAllRecordsButton">履歴を全削除</button>
-              <div class="contract-save-status" id="contractSaveStatus" aria-live="polite"></div>
-            </div>
-
-            <div class="security-panel">
-              <p class="section-kicker">SECURITY</p>
-              <h2>個人情報の保護</h2>
-              <ul>
-                <li>入力中の下書きはブラウザの一時保存のみです。</li>
-                <li>共有端末では、作業後に「入力クリア」または履歴削除を行ってください。</li>
-                <li>正式な控えは帳票PDFの保存または印刷で保管してください。</li>
-              </ul>
             </div>
           </aside>
         </div>

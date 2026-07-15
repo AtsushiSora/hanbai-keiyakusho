@@ -2205,7 +2205,7 @@ pre {
 
 .contract-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.18fr) minmax(300px, 0.82fr);
+  grid-template-columns: minmax(0, 1fr) minmax(360px, 0.88fr);
   gap: 22px;
   align-items: start;
 }
@@ -2257,6 +2257,7 @@ pre {
 .contract-editor-panel,
 .contract-form,
 .contract-history-panel,
+.contract-preview-panel,
 .security-panel {
   padding: 24px;
   background: #fff;
@@ -2350,6 +2351,115 @@ pre {
   top: 104px;
   display: grid;
   gap: 16px;
+}
+
+.contract-preview-panel {
+  position: sticky;
+  top: 104px;
+  display: grid;
+  gap: 16px;
+}
+
+.preview-panel-head {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.preview-panel-head h2 {
+  margin: 0;
+  color: #17211f;
+  font-size: 1.18rem;
+}
+
+.preview-panel-head strong {
+  display: block;
+  margin-top: 4px;
+  color: #17211f;
+  font-size: 1.05rem;
+  font-weight: 900;
+}
+
+.preview-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.preview-tabs {
+  display: inline-grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 4px;
+  padding: 4px;
+  background: #edf4ef;
+  border: 1px solid rgba(15, 122, 77, 0.18);
+  border-radius: var(--radius);
+}
+
+.preview-tabs button {
+  min-height: 42px;
+  padding: 0 14px;
+  color: #5d6a66;
+  background: transparent;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 900;
+}
+
+.preview-tabs button.active {
+  color: var(--contract-green-dark, #0a4f35);
+  background: #fff;
+  box-shadow: 0 4px 14px rgba(20, 66, 116, 0.08);
+}
+
+.preview-message {
+  margin: 0;
+  padding: 12px 14px;
+  color: var(--contract-green-dark, #0a4f35);
+  background: #f0fbf5;
+  border: 1px solid rgba(15, 122, 77, 0.2);
+  border-radius: var(--radius);
+  font-weight: 900;
+}
+
+.pdf-preview-frame {
+  position: relative;
+  overflow: auto;
+  max-height: 72svh;
+  padding: 16px;
+  background: #f4f7f4;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+}
+
+.pdf-preview-frame span {
+  position: absolute;
+  top: 26px;
+  right: 28px;
+  z-index: 1;
+  color: #17211f;
+  background: rgba(255, 255, 255, 0.86);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.78rem;
+  font-weight: 900;
+}
+
+.pdf-preview-frame img {
+  display: block;
+  width: 100%;
+  min-width: 520px;
+  height: auto;
+  background: #fff;
+  box-shadow: 0 14px 28px rgba(23, 33, 31, 0.12);
+}
+
+.contract-preview-support {
+  display: none;
 }
 
 .secondary-button.danger {
@@ -3096,6 +3206,10 @@ pre {
     position: static;
   }
 
+  .contract-preview-panel {
+    position: static;
+  }
+
   .contract-editor-actions {
     display: grid;
     grid-template-columns: 1fr;
@@ -3104,6 +3218,17 @@ pre {
   .contract-editor-actions .primary-link,
   .contract-editor-actions .secondary-button {
     width: 100%;
+    min-width: 0;
+  }
+
+  .preview-panel-head,
+  .preview-actions,
+  .preview-tabs {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .pdf-preview-frame img {
     min-width: 0;
   }
 

@@ -1,13 +1,18 @@
 const form = document.querySelector("#contractForm");
 const printContractButton = document.querySelector("#printContractButton");
 const savePdfButton = document.querySelector("#savePdfButton");
-const contactContractButton = document.querySelector("#contactContractButton");
 const saveRecordButton = document.querySelector("#saveRecordButton");
 const newContractButton = document.querySelector("#newContractButton");
 const contractHistorySelect = document.querySelector("#contractHistorySelect");
 const deleteRecordButton = document.querySelector("#deleteRecordButton");
 const clearAllRecordsButton = document.querySelector("#clearAllRecordsButton");
 const contractSaveStatus = document.querySelector("#contractSaveStatus");
+const previewStatusLabel = document.querySelector("#previewStatusLabel");
+const previewMessage = document.querySelector("#previewMessage");
+const previewCopyLabel = document.querySelector("#previewCopyLabel");
+const customerCopyButton = document.querySelector("#customerCopyButton");
+const shopCopyButton = document.querySelector("#shopCopyButton");
+const completeContractButton = document.querySelector("#completeContractButton");
 const salesTemplateImportKey = "orderAutoSalesTemplateImport";
 
 removePersistentDraft();
@@ -20,12 +25,14 @@ form?.addEventListener("input", saveDraft);
 form?.addEventListener("change", saveDraft);
 printContractButton?.addEventListener("click", () => openSalesTemplate(true));
 savePdfButton?.addEventListener("click", () => openSalesTemplate(false));
-contactContractButton?.addEventListener("click", openContactContract);
 saveRecordButton?.addEventListener("click", saveContractRecord);
 newContractButton?.addEventListener("click", startNewContract);
 contractHistorySelect?.addEventListener("change", loadSelectedContractRecord);
 deleteRecordButton?.addEventListener("click", deleteSelectedContractRecord);
 clearAllRecordsButton?.addEventListener("click", clearAllContractRecords);
+customerCopyButton?.addEventListener("click", () => setPreviewCopy("お客様控え"));
+shopCopyButton?.addEventListener("click", () => setPreviewCopy("店控え"));
+completeContractButton?.addEventListener("click", completeContract);
 
 function setDefaultDate() {
   const dateField = form?.elements.contractDate;
@@ -59,11 +66,6 @@ function openSalesTemplate(autoPrint = true) {
   }
 
   window.location.href = autoPrint ? "sales-template.html?print=1" : "sales-template.html?save=1";
-}
-
-function openContactContract() {
-  saveDraft();
-  window.location.href = "contract-contact.html";
 }
 
 function mapContractToSalesTemplate(data) {
@@ -189,6 +191,7 @@ function startNewContract() {
     contractHistorySelect.value = "";
   }
   setDefaultDate();
+  setContractStatus("下書き");
   saveDraft();
   updateSaveStatus("新規作成を開始しました。");
 }
@@ -268,6 +271,7 @@ function applyContractData(data) {
       field.value = value;
     }
   });
+  updatePreviewStatus();
 }
 
 function createContractSummary(data) {
@@ -283,6 +287,9 @@ function updateSaveStatus(message) {
   if (contractSaveStatus) {
     contractSaveStatus.textContent = message;
   }
+  if (previewMessage && message) {
+    previewMessage.textContent = message;
+  }
 }
 
 function saveDraft() {
@@ -292,6 +299,7 @@ function saveDraft() {
 
   try {
     sessionStorage.setItem("orderAutoContractDraft", JSON.stringify(Object.fromEntries(new FormData(form).entries())));
+    updatePreviewStatus();
   } catch {
     // 入力中の下書き保存に失敗しても契約作成は続けられる。
   }
@@ -305,12 +313,53 @@ function restoreDraft() {
   try {
     const draft = JSON.parse(sessionStorage.getItem("orderAutoContractDraft") || "{}");
     applyContractData(draft);
+    updatePreviewStatus();
   } catch {
     try {
       sessionStorage.removeItem("orderAutoContractDraft");
     } catch {
       // noop
     }
+  }
+}
+
+function setPreviewCopy(label) {
+  if (previewCopyLabel) {
+    previewCopyLabel.textContent = label;
+  }
+  customerCopyButton?.classList.toggle("active", label === "お客様控え");
+  shopCopyButton?.classList.toggle("active", label === "店控え");
+  if (previewMessage) {
+    previewMessage.textContent = `${label}のプレビューを表示しています。PDF保存・PDF印刷で帳票を作成できます。`;
+  }
+}
+
+function completeContract() {
+  setContractStatus("完了");
+  saveDraft();
+  updateSaveStatus("契約ステータスを完了にしました。必要に応じてクラウド保存してください。");
+  if (previewMessage) {
+    previewMessage.textContent = "完了にしました。正式な控えはPDF保存または印刷で保管してください。";
+  }
+}
+
+function setContractStatus(status) {
+  if (!form) {
+    return;
+  }
+  if (form.elements.contractStatus) {
+    form.elements.contractStatus.value = status;
+  }
+  if (form.elements.remoteStatus) {
+    form.elements.remoteStatus.value = status;
+  }
+  updatePreviewStatus();
+}
+
+function updatePreviewStatus() {
+  const status = form?.elements.contractStatus?.value || form?.elements.remoteStatus?.value || "下書き";
+  if (previewStatusLabel) {
+    previewStatusLabel.textContent = status;
   }
 }
 
