@@ -607,12 +607,34 @@ function deleteLocalTestContract(id) {
 }
 
 function calculateTotal(data) {
-  const total = toNumber(data.basePrice)
-    + toNumber(data.fees)
-    + toNumber(data.taxes)
-    + toNumber(data.recycleFee)
-    - toNumber(data.discount);
+  const total = getVehicleTotal(data) + getExpenseTotal(data) - toNumber(data.discount);
   return total > 0 ? String(total) : "";
+}
+
+function getVehicleTotal(data) {
+  const vehicleBase = toNumber(data.storeDeliveryPrice) || toNumber(data.basePrice);
+  return vehicleBase
+    + toNumber(data.dealerOptionPrice)
+    + toNumber(data.makerOptionPrice)
+    + toNumber(data.customPrice);
+}
+
+function getExpenseTotal(data) {
+  const summaryExpenses = toNumber(data.taxInsurance || data.taxes)
+    + toNumber(data.salesExpense || data.fees)
+    + toNumber(data.otherExpense)
+    + toNumber(data.optionalExpense);
+  const detailedExpenses = toNumber(data.autoTaxAmount)
+    + toNumber(data.weightTax)
+    + toNumber(data.liabilityInsurance)
+    + toNumber(data.inspectionRegisterFee)
+    + toNumber(data.parkingCertificateFee)
+    + toNumber(data.autoTaxAdjustment)
+    + toNumber(data.liabilityAdjustment)
+    + toNumber(data.fundManagementFee)
+    + toNumber(data.parkingActualFee)
+    + toNumber(data.recycleDeposit || data.recycleFee);
+  return summaryExpenses || detailedExpenses;
 }
 
 function formatPrice(value) {

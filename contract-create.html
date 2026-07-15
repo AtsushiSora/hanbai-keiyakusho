@@ -108,12 +108,92 @@
           <form class="contract-form" id="contractForm" autocomplete="off" spellcheck="false">
             <input name="contractStatus" type="hidden" value="下書き" />
             <input name="remoteStatus" type="hidden" value="下書き" />
+            <input name="fees" type="hidden" />
+            <input name="taxes" type="hidden" />
+            <input name="recycleFee" type="hidden" />
+            <input name="warrantyType" type="hidden" />
+            <input name="downPayment" type="hidden" />
+            <fieldset>
+              <legend>基本情報</legend>
+              <div class="form-grid">
+                <label>
+                  <span>契約日</span>
+                  <input name="contractDate" type="date" />
+                </label>
+                <label>
+                  <span>見積日</span>
+                  <input name="estimateDate" type="date" />
+                </label>
+                <label>
+                  <span>有効期限</span>
+                  <input name="validUntil" type="date" />
+                </label>
+                <label>
+                  <span>契約番号・見積番号</span>
+                  <input name="estimateNo" type="text" />
+                </label>
+                <label>
+                  <span>管理番号</span>
+                  <input name="controlNo" type="text" />
+                </label>
+                <label>
+                  <span>新中区分</span>
+                  <select name="carType">
+                    <option>中古車</option>
+                    <option>新車</option>
+                  </select>
+                </label>
+              </div>
+            </fieldset>
+
+            <fieldset>
+              <legend>買主情報</legend>
+              <div class="form-grid">
+                <label>
+                  <span>氏名</span>
+                  <input name="buyerName" type="text" placeholder="例）山田 太郎" />
+                </label>
+                <label>
+                  <span>フリガナ</span>
+                  <input name="buyerKana" type="text" />
+                </label>
+                <label>
+                  <span>郵便番号</span>
+                  <input name="buyerZip" type="text" placeholder="例）731-0000" />
+                </label>
+                <label>
+                  <span>生年月日</span>
+                  <input name="buyerBirthday" type="text" placeholder="例）平成1年1月1日" />
+                </label>
+                <label>
+                  <span>電話番号</span>
+                  <input name="buyerPhone" type="tel" placeholder="例）090-0000-0000" />
+                </label>
+                <label>
+                  <span>携帯番号</span>
+                  <input name="buyerMobile" type="tel" />
+                </label>
+                <label>
+                  <span>メールアドレス</span>
+                  <input name="buyerEmail" type="email" placeholder="例）buyer@example.com" />
+                </label>
+                <label>
+                  <span>勤務先</span>
+                  <input name="buyerWorkplace" type="text" />
+                </label>
+              </div>
+              <label class="full">
+                <span>住所</span>
+                <input name="buyerAddress" type="text" placeholder="例）広島県広島市..." />
+              </label>
+            </fieldset>
+
             <fieldset>
               <legend>車両情報</legend>
               <div class="form-grid">
                 <label>
-                  <span>車名</span>
-                  <input name="vehicleName" type="text" placeholder="例）スズキ ワゴンR" />
+                  <span>車種名</span>
+                  <input name="vehicleName" type="text" placeholder="例）トヨタ ノア" />
                 </label>
                 <label>
                   <span>グレード</span>
@@ -121,11 +201,19 @@
                 </label>
                 <label>
                   <span>年式</span>
-                  <input name="vehicleYear" type="text" placeholder="例）2018年" />
+                  <input name="vehicleYear" type="text" placeholder="例）平成29年01月" />
                 </label>
                 <label>
                   <span>型式</span>
                   <input name="vehicleModel" type="text" />
+                </label>
+                <label>
+                  <span>フル型式</span>
+                  <input name="fullModel" type="text" />
+                </label>
+                <label>
+                  <span>車検証型式</span>
+                  <input name="modelCode" type="text" />
                 </label>
                 <label>
                   <span>車台番号</span>
@@ -136,12 +224,28 @@
                   <input name="vehiclePlate" type="text" />
                 </label>
                 <label>
+                  <span>排気量</span>
+                  <input name="engineSize" type="text" placeholder="例）1,800CC" />
+                </label>
+                <label>
                   <span>走行距離</span>
                   <input name="vehicleMileage" type="text" placeholder="例）82,000km" />
                 </label>
                 <label>
                   <span>車検満了日</span>
                   <input name="inspectionDate" type="text" placeholder="例）令和8年5月" />
+                </label>
+                <label>
+                  <span>ミッション</span>
+                  <input name="mission" type="text" placeholder="例）CVT" />
+                </label>
+                <label>
+                  <span>ドア数</span>
+                  <input name="doorCount" type="text" />
+                </label>
+                <label>
+                  <span>乗車定員</span>
+                  <input name="capacity" type="text" />
                 </label>
                 <label>
                   <span>車体色</span>
@@ -157,66 +261,160 @@
                   </select>
                 </label>
               </div>
-            </fieldset>
-
-            <fieldset>
-              <legend>買主情報</legend>
-              <div class="form-grid">
-                <label>
-                  <span>氏名</span>
-                  <input name="buyerName" type="text" placeholder="例）山田 太郎" />
-                </label>
-                <label>
-                  <span>電話番号</span>
-                  <input name="buyerPhone" type="tel" placeholder="例）090-0000-0000" />
-                </label>
-                <label>
-                  <span>メールアドレス</span>
-                  <input name="buyerEmail" type="email" placeholder="例）buyer@example.com" />
-                </label>
-                <label>
-                  <span>契約日</span>
-                  <input name="contractDate" type="date" />
-                </label>
-              </div>
               <label class="full">
-                <span>住所</span>
-                <input name="buyerAddress" type="text" placeholder="例）広島県広島市..." />
+                <span>装備品</span>
+                <textarea name="equipment" rows="3" placeholder="ナビ、TV、ETC、スマートキーなど"></textarea>
               </label>
             </fieldset>
 
             <fieldset>
-              <legend>金額</legend>
+              <legend>保証・状態</legend>
               <div class="form-grid">
                 <label>
-                  <span>車両本体価格</span>
-                  <input name="basePrice" inputmode="numeric" type="text" placeholder="例）300000" />
+                  <span>保証</span>
+                  <select name="warranty">
+                    <option>なし</option>
+                    <option>付き</option>
+                    <option>別紙保証書による</option>
+                  </select>
                 </label>
                 <label>
-                  <span>諸費用</span>
-                  <input name="fees" inputmode="numeric" type="text" />
+                  <span>保証期間</span>
+                  <input name="warrantyPeriod" type="text" placeholder="例）1か月" />
                 </label>
                 <label>
-                  <span>税金・保険料等</span>
-                  <input name="taxes" inputmode="numeric" type="text" />
+                  <span>保証距離</span>
+                  <input name="warrantyMileage" type="text" placeholder="例）1,000km" />
                 </label>
                 <label>
-                  <span>リサイクル預託金</span>
-                  <input name="recycleFee" inputmode="numeric" type="text" />
+                  <span>定期点検実施状況</span>
+                  <input name="inspectionStatus" type="text" />
+                </label>
+              </div>
+              <label class="full">
+                <span>修復歴詳細</span>
+                <input name="repairDetail" type="text" />
+              </label>
+              <label class="full">
+                <span>保証内容</span>
+                <textarea name="warrantyDetail" rows="3"></textarea>
+              </label>
+              <label class="full">
+                <span>特記事項</span>
+                <textarea name="specialNotes" rows="4" placeholder="現状販売、追加整備、納車条件など"></textarea>
+              </label>
+            </fieldset>
+
+            <fieldset>
+              <legend>販売価格</legend>
+              <div class="form-grid">
+                <label>
+                  <span>車両価格</span>
+                  <input name="basePrice" inputmode="numeric" type="text" placeholder="例）1905535" />
+                </label>
+                <label>
+                  <span>車両店頭引渡価格</span>
+                  <input name="storeDeliveryPrice" inputmode="numeric" type="text" placeholder="未入力なら車両価格" />
+                </label>
+                <label>
+                  <span>販売店オプション</span>
+                  <input name="dealerOptionPrice" inputmode="numeric" type="text" />
+                </label>
+                <label>
+                  <span>メーカーオプション</span>
+                  <input name="makerOptionPrice" inputmode="numeric" type="text" />
+                </label>
+                <label>
+                  <span>加装・加修</span>
+                  <input name="customPrice" inputmode="numeric" type="text" />
+                </label>
+                <label>
+                  <span>税金・保険等</span>
+                  <input name="taxInsurance" inputmode="numeric" type="text" />
+                </label>
+                <label>
+                  <span>販売諸費用</span>
+                  <input name="salesExpense" inputmode="numeric" type="text" />
+                </label>
+                <label>
+                  <span>その他諸費用</span>
+                  <input name="otherExpense" inputmode="numeric" type="text" />
+                </label>
+                <label>
+                  <span>任意諸費用</span>
+                  <input name="optionalExpense" inputmode="numeric" type="text" />
                 </label>
                 <label>
                   <span>値引き</span>
                   <input name="discount" inputmode="numeric" type="text" />
                 </label>
                 <label>
-                  <span>総支払額</span>
+                  <span>支払総額</span>
                   <input name="totalPrice" inputmode="numeric" type="text" placeholder="未入力なら自動計算" />
+                </label>
+                <label>
+                  <span>内消費税</span>
+                  <input name="includedTax" inputmode="numeric" type="text" />
                 </label>
               </div>
             </fieldset>
 
             <fieldset>
-              <legend>支払条件・納車</legend>
+              <legend>諸費用明細</legend>
+              <div class="form-grid">
+                <label>
+                  <span>自動車税 月数</span>
+                  <input name="autoTaxMonth" type="text" />
+                </label>
+                <label>
+                  <span>自動車税</span>
+                  <input name="autoTaxAmount" inputmode="numeric" type="text" />
+                </label>
+                <label>
+                  <span>重量税</span>
+                  <input name="weightTax" inputmode="numeric" type="text" />
+                </label>
+                <label>
+                  <span>自賠責保険 月数</span>
+                  <input name="liabilityInsuranceMonth" type="text" />
+                </label>
+                <label>
+                  <span>自賠責保険</span>
+                  <input name="liabilityInsurance" inputmode="numeric" type="text" />
+                </label>
+                <label>
+                  <span>検査・登録手続</span>
+                  <input name="inspectionRegisterFee" inputmode="numeric" type="text" />
+                </label>
+                <label>
+                  <span>車庫証明手続</span>
+                  <input name="parkingCertificateFee" inputmode="numeric" type="text" />
+                </label>
+                <label>
+                  <span>自動車税未経過相当額</span>
+                  <input name="autoTaxAdjustment" inputmode="numeric" type="text" />
+                </label>
+                <label>
+                  <span>自賠責未経過相当額</span>
+                  <input name="liabilityAdjustment" inputmode="numeric" type="text" />
+                </label>
+                <label>
+                  <span>資金管理料金</span>
+                  <input name="fundManagementFee" inputmode="numeric" type="text" />
+                </label>
+                <label>
+                  <span>検査登録費用</span>
+                  <input name="parkingActualFee" inputmode="numeric" type="text" />
+                </label>
+                <label>
+                  <span>リサイクル預託相当額</span>
+                  <input name="recycleDeposit" inputmode="numeric" type="text" />
+                </label>
+              </div>
+            </fieldset>
+
+            <fieldset>
+              <legend>支払条件</legend>
               <div class="form-grid">
                 <label>
                   <span>支払方法</span>
@@ -232,8 +430,16 @@
                   <input name="paymentDue" type="date" />
                 </label>
                 <label>
+                  <span>現金金額</span>
+                  <input name="cashPayment" inputmode="numeric" type="text" />
+                </label>
+                <label>
+                  <span>申込金</span>
+                  <input name="applicationMoney" inputmode="numeric" type="text" />
+                </label>
+                <label>
                   <span>頭金</span>
-                  <input name="downPayment" inputmode="numeric" type="text" />
+                  <input name="loanDownPayment" inputmode="numeric" type="text" />
                 </label>
                 <label>
                   <span>残金</span>
@@ -255,28 +461,162 @@
             </fieldset>
 
             <fieldset>
-              <legend>保証・特記事項</legend>
+              <legend>下取情報</legend>
               <div class="form-grid">
                 <label>
-                  <span>保証</span>
-                  <select name="warrantyType">
-                    <option>保証なし</option>
-                    <option>保証あり</option>
-                    <option>別紙保証書による</option>
+                  <span>下取有無</span>
+                  <select name="hasTradeIn">
+                    <option>なし</option>
+                    <option>あり</option>
                   </select>
                 </label>
                 <label>
-                  <span>保証期間</span>
-                  <input name="warrantyPeriod" type="text" placeholder="例）納車日から1か月" />
+                  <span>下取車両価格</span>
+                  <input name="tradePrice" inputmode="numeric" type="text" />
+                </label>
+                <label>
+                  <span>未払自動車税</span>
+                  <input name="unpaidAutoTax" inputmode="numeric" type="text" />
+                </label>
+                <label>
+                  <span>下取車残債</span>
+                  <input name="tradeDebt" inputmode="numeric" type="text" />
+                </label>
+                <label>
+                  <span>下取車 年式</span>
+                  <input name="tradeVehicleYear" type="text" />
+                </label>
+                <label>
+                  <span>下取車 車種名</span>
+                  <input name="tradeVehicleName" type="text" />
+                </label>
+                <label>
+                  <span>下取車 グレード</span>
+                  <input name="tradeVehicleGrade" type="text" />
+                </label>
+                <label>
+                  <span>下取車 車検証型式</span>
+                  <input name="tradeModelCode" type="text" />
+                </label>
+                <label>
+                  <span>下取車 登録番号</span>
+                  <input name="tradePlateNo" type="text" />
+                </label>
+                <label>
+                  <span>下取車 車台番号</span>
+                  <input name="tradeVin" type="text" />
+                </label>
+                <label>
+                  <span>下取車 車検満了日</span>
+                  <input name="tradeInspectionDate" type="text" />
+                </label>
+                <label>
+                  <span>下取車 走行距離</span>
+                  <input name="tradeMileage" type="text" />
+                </label>
+                <label>
+                  <span>下取車 車体色</span>
+                  <input name="tradeBodyColor" type="text" />
                 </label>
               </div>
               <label class="full">
-                <span>保証内容</span>
-                <textarea name="warrantyDetail" rows="3"></textarea>
+                <span>下取備考</span>
+                <textarea name="tradeMemo" rows="3"></textarea>
+              </label>
+            </fieldset>
+
+            <fieldset>
+              <legend>ローン・割賦</legend>
+              <div class="form-grid">
+                <label>
+                  <span>ローン有無</span>
+                  <select name="hasLoan">
+                    <option>なし</option>
+                    <option>あり</option>
+                  </select>
+                </label>
+                <label>
+                  <span>割賦元金</span>
+                  <input name="loanPrincipal" inputmode="numeric" type="text" />
+                </label>
+                <label>
+                  <span>割賦手数料</span>
+                  <input name="loanFee" inputmode="numeric" type="text" />
+                </label>
+                <label>
+                  <span>支払回数</span>
+                  <input name="loanPaymentCount" inputmode="numeric" type="text" />
+                </label>
+                <label>
+                  <span>初回支払額</span>
+                  <input name="loanFirstPayment" inputmode="numeric" type="text" />
+                </label>
+                <label>
+                  <span>2回目以降支払額</span>
+                  <input name="loanMonthlyPayment" inputmode="numeric" type="text" />
+                </label>
+                <label>
+                  <span>ボーナス時支払額</span>
+                  <input name="loanBonusPayment" inputmode="numeric" type="text" />
+                </label>
+                <label>
+                  <span>プランA</span>
+                  <input name="loanPlanA" type="text" />
+                </label>
+                <label>
+                  <span>プランB</span>
+                  <input name="loanPlanB" type="text" />
+                </label>
+              </div>
+            </fieldset>
+
+            <fieldset>
+              <legend>リサイクル預託金</legend>
+              <div class="form-grid">
+                <label>
+                  <span>リサイクル預託区分</span>
+                  <input name="recycleStatus" type="text" placeholder="例）預託済" />
+                </label>
+                <label>
+                  <span>資金管理料</span>
+                  <input name="recycleManagementFee" inputmode="numeric" type="text" />
+                </label>
+                <label>
+                  <span>シュレッダーダスト料金</span>
+                  <input name="shredderFee" inputmode="numeric" type="text" />
+                </label>
+                <label>
+                  <span>エアバッグ類料金</span>
+                  <input name="airbagFee" inputmode="numeric" type="text" />
+                </label>
+                <label>
+                  <span>フロン類料金</span>
+                  <input name="fluorocarbonFee" inputmode="numeric" type="text" />
+                </label>
+                <label>
+                  <span>情報管理料金</span>
+                  <input name="recycleInfoFee" inputmode="numeric" type="text" />
+                </label>
+                <label>
+                  <span>リサイクル合計</span>
+                  <input name="depositTotal" inputmode="numeric" type="text" placeholder="未入力なら自動計算" />
+                </label>
+              </div>
+            </fieldset>
+
+            <fieldset>
+              <legend>備考・問い合わせ</legend>
+              <label class="full">
+                <span>お客様への案内・特記事項</span>
+                <textarea name="notice" rows="4"></textarea>
               </label>
               <label class="full">
-                <span>特記事項</span>
-                <textarea name="specialNotes" rows="4" placeholder="現状販売、追加整備、納車条件など"></textarea>
+                <span>お問い合わせ先</span>
+                <textarea name="contactMemo" rows="3" placeholder="店舗名、担当者、電話番号など"></textarea>
+              </label>
+              <label class="full">
+                <span>備考・販売店メモ</span>
+                <textarea name="memo" rows="4"></textarea>
               </label>
             </fieldset>
           </form>

@@ -35,9 +35,14 @@ shopCopyButton?.addEventListener("click", () => setPreviewCopy("店控え"));
 completeContractButton?.addEventListener("click", completeContract);
 
 function setDefaultDate() {
-  const dateField = form?.elements.contractDate;
-  if (dateField && !dateField.value) {
-    dateField.value = new Date().toISOString().slice(0, 10);
+  const today = new Date().toISOString().slice(0, 10);
+  const contractDateField = form?.elements.contractDate;
+  const estimateDateField = form?.elements.estimateDate;
+  if (contractDateField && !contractDateField.value) {
+    contractDateField.value = today;
+  }
+  if (estimateDateField && !estimateDateField.value) {
+    estimateDateField.value = today;
   }
 }
 
@@ -48,6 +53,8 @@ function getData() {
 
   const data = Object.fromEntries(new FormData(form).entries());
   data.totalPrice = data.totalPrice || calculateTotal(data);
+  data.depositTotal = data.depositTotal || calculateRecycleTotal(data);
+  data.includedTax = data.includedTax || calculateIncludedTax(data.totalPrice);
   return data;
 }
 
@@ -70,30 +77,73 @@ function openSalesTemplate(autoPrint = true) {
 
 function mapContractToSalesTemplate(data) {
   return {
-    estimateDate: data.contractDate || new Date().toISOString().slice(0, 10),
-    carType: "中古車",
+    estimateDate: data.estimateDate || data.contractDate || new Date().toISOString().slice(0, 10),
+    validUntil: data.validUntil || "",
+    estimateNo: data.estimateNo || "",
+    controlNo: data.controlNo || "",
+    carType: data.carType || "中古車",
+    buyerKana: data.buyerKana || "",
     buyerName: data.buyerName || "",
+    buyerZip: data.buyerZip || "",
+    buyerBirthday: data.buyerBirthday || "",
     buyerPhone: data.buyerPhone || "",
+    buyerMobile: data.buyerMobile || "",
     buyerEmail: data.buyerEmail || "",
+    buyerWorkplace: data.buyerWorkplace || "",
     buyerAddress: data.buyerAddress || "",
+    notice: data.notice || data.specialNotes || "",
+    warranty: buildWarrantyText(data),
+    inspectionStatus: data.inspectionStatus || "",
+    repairHistory: buildRepairText(data),
     vehicleName: data.vehicleName || "",
     vehicleGrade: data.vehicleGrade || "",
     vehicleYear: data.vehicleYear || "",
-    fullModel: data.vehicleModel || "",
-    modelCode: data.vehicleModel || "",
+    fullModel: data.fullModel || data.vehicleModel || "",
+    modelCode: data.modelCode || data.vehicleModel || "",
     vin: data.vehicleVin || "",
+    engineSize: data.engineSize || "",
     mileage: data.vehicleMileage || "",
     inspectionDate: data.inspectionDate || "",
     plateNo: data.vehiclePlate || "",
+    mission: data.mission || "",
+    doorCount: data.doorCount || "",
+    capacity: data.capacity || "",
     bodyColor: data.vehicleColor || "",
-    repairHistory: data.repairHistory || "",
+    equipment: data.equipment || "",
     basePrice: data.basePrice || "",
-    storeDeliveryPrice: data.basePrice || "",
-    taxInsurance: data.taxes || "",
-    salesExpense: data.fees || "",
-    recycleDeposit: data.recycleFee || "",
-    cashPayment: data.totalPrice || calculateTotal(data) || "",
-    memo: data.specialNotes || "",
+    storeDeliveryPrice: data.storeDeliveryPrice || data.basePrice || "",
+    dealerOptionPrice: data.dealerOptionPrice || "",
+    makerOptionPrice: data.makerOptionPrice || "",
+    customPrice: data.customPrice || "",
+    taxInsurance: data.taxInsurance || data.taxes || "",
+    salesExpense: data.salesExpense || data.fees || "",
+    otherExpense: data.otherExpense || "",
+    optionalExpense: data.optionalExpense || "",
+    includedTax: data.includedTax || calculateIncludedTax(data.totalPrice || calculateTotal(data)),
+    autoTaxMonth: data.autoTaxMonth || "",
+    autoTaxAmount: data.autoTaxAmount || "",
+    weightTax: data.weightTax || "",
+    liabilityInsuranceMonth: data.liabilityInsuranceMonth || "",
+    liabilityInsurance: data.liabilityInsurance || "",
+    inspectionRegisterFee: data.inspectionRegisterFee || "",
+    parkingCertificateFee: data.parkingCertificateFee || "",
+    autoTaxAdjustment: data.autoTaxAdjustment || "",
+    liabilityAdjustment: data.liabilityAdjustment || "",
+    fundManagementFee: data.fundManagementFee || "",
+    parkingActualFee: data.parkingActualFee || "",
+    recycleDeposit: data.recycleDeposit || data.recycleFee || "",
+    depositTotal: data.depositTotal || calculateRecycleTotal(data),
+    cashPayment: data.cashPayment || data.totalPrice || calculateTotal(data) || "",
+    loanDownPayment: data.loanDownPayment || data.downPayment || "",
+    loanFee: data.loanFee || "",
+    tradePrice: data.tradePrice || "",
+    unpaidAutoTax: data.unpaidAutoTax || "",
+    tradeDebt: data.tradeDebt || "",
+    paymentMethod: data.paymentMethod || "",
+    paymentDue: data.paymentDue || "",
+    bankAccount: data.bankAccount || "",
+    contactMemo: data.contactMemo || "",
+    memo: data.memo || data.specialNotes || "",
   };
 }
 
@@ -385,13 +435,65 @@ function removePersistentDraft() {
 }
 
 function calculateTotal(data) {
-  const total =
-    parseAmount(data.basePrice) +
-    parseAmount(data.fees) +
-    parseAmount(data.taxes) +
-    parseAmount(data.recycleFee) -
-    parseAmount(data.discount);
+  const total = getVehicleTotal(data) + getExpenseTotal(data) - parseAmount(data.discount);
   return total > 0 ? String(total) : "";
+}
+
+function getVehicleTotal(data) {
+  const vehicleBase = parseAmount(data.storeDeliveryPrice) || parseAmount(data.basePrice);
+  return vehicleBase
+    + parseAmount(data.dealerOptionPrice)
+    + parseAmount(data.makerOptionPrice)
+    + parseAmount(data.customPrice);
+}
+
+function getExpenseTotal(data) {
+  const summaryExpenses =
+    parseAmount(data.taxInsurance || data.taxes)
+    + parseAmount(data.salesExpense || data.fees)
+    + parseAmount(data.otherExpense)
+    + parseAmount(data.optionalExpense);
+  const detailedExpenses =
+    parseAmount(data.autoTaxAmount)
+    + parseAmount(data.weightTax)
+    + parseAmount(data.liabilityInsurance)
+    + parseAmount(data.inspectionRegisterFee)
+    + parseAmount(data.parkingCertificateFee)
+    + parseAmount(data.autoTaxAdjustment)
+    + parseAmount(data.liabilityAdjustment)
+    + parseAmount(data.fundManagementFee)
+    + parseAmount(data.parkingActualFee)
+    + parseAmount(data.recycleDeposit || data.recycleFee);
+  return summaryExpenses || detailedExpenses;
+}
+
+function calculateRecycleTotal(data) {
+  const total =
+    parseAmount(data.recycleManagementFee)
+    + parseAmount(data.shredderFee)
+    + parseAmount(data.airbagFee)
+    + parseAmount(data.fluorocarbonFee)
+    + parseAmount(data.recycleInfoFee);
+  return total > 0 ? String(total) : "";
+}
+
+function calculateIncludedTax(totalPrice) {
+  const total = parseAmount(totalPrice);
+  if (!total) {
+    return "";
+  }
+  return String(Math.floor(total / 11));
+}
+
+function buildWarrantyText(data) {
+  const warranty = data.warranty || data.warrantyType || "";
+  const period = data.warrantyPeriod ? `${data.warrantyPeriod}` : "";
+  const mileage = data.warrantyMileage ? `${data.warrantyMileage}` : "";
+  return [warranty, period, mileage].filter(Boolean).join(" / ");
+}
+
+function buildRepairText(data) {
+  return [data.repairHistory, data.repairDetail].filter(Boolean).join(" / ");
 }
 
 function parseAmount(value) {
