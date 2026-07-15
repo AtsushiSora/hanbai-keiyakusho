@@ -1883,20 +1883,6 @@ pre {
   font-weight: 700;
 }
 
-.contract-flow-summary {
-  display: grid;
-  gap: 10px;
-}
-
-.contract-flow-summary span {
-  padding: 12px 14px;
-  color: #0c3f7a;
-  background: rgba(255, 255, 255, 0.94);
-  border: 1px solid rgba(255, 255, 255, 0.58);
-  border-radius: var(--radius);
-  font-weight: 900;
-}
-
 .sales-contract-system {
   --contract-green: #0f7a4d;
   --contract-green-dark: #0a4f35;
@@ -1955,11 +1941,6 @@ pre {
 .sales-contract-system .contract-menu-panel .section-kicker {
   color: var(--contract-amber);
   text-transform: uppercase;
-}
-
-.sales-contract-system .contract-flow-summary span {
-  color: #0d2d23;
-  background: rgba(255, 255, 255, 0.92);
 }
 
 .sales-contract-system.is-admin-authenticated .contract-auth-section {
