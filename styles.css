@@ -2248,14 +2248,28 @@ pre {
   font-weight: 700;
 }
 
-.contact-contract-layout {
+.contract-hero-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  justify-content: flex-end;
+}
+
+.remote-contract-page {
   display: grid;
-  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.85fr);
-  gap: 22px;
+  gap: 18px;
+}
+
+.remote-contract-grid {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.86fr) minmax(320px, 1.14fr);
+  gap: 18px;
   align-items: start;
 }
 
-.contact-message-panel {
+.remote-flow-panel,
+.remote-send-panel,
+.consent-card {
   display: grid;
   gap: 16px;
   padding: 24px;
@@ -2265,30 +2279,182 @@ pre {
   box-shadow: 0 14px 36px rgba(20, 66, 116, 0.1);
 }
 
-.contact-message-panel h2 {
-  margin: 0;
-  color: #17211f;
-  font-size: 1.35rem;
+.remote-send-panel {
+  align-content: start;
 }
 
-.contact-message-panel textarea {
-  width: 100%;
-  min-height: 460px;
-  padding: 16px;
+.remote-selected-contract {
+  display: grid;
+  gap: 10px;
+}
+
+.remote-empty-state {
+  display: grid;
+  gap: 12px;
+  align-items: start;
+}
+
+.remote-empty-state p {
+  margin: 0;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.remote-contract-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 14px;
+  border: 1px solid rgba(15, 122, 77, 0.22);
+  border-radius: var(--radius);
+  background: #fff;
+}
+
+.remote-contract-item.active {
+  border-color: var(--contract-green, #0f7a4d);
+  box-shadow: inset 4px 0 0 var(--contract-green, #0f7a4d);
+}
+
+.remote-contract-item div,
+.remote-step-head {
+  display: grid;
+  gap: 4px;
+}
+
+.remote-contract-item span,
+.remote-contract-item small,
+.remote-step-head span {
+  color: var(--muted);
+  font-weight: 700;
+}
+
+.remote-contract-item strong,
+.remote-step-head strong {
+  color: var(--contract-green-dark, #0a4f35);
+}
+
+.remote-step-head strong {
+  font-size: 1.12rem;
+}
+
+.remote-action-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.remote-send-panel label {
+  display: grid;
+  gap: 8px;
   color: #17211f;
-  background: #f7fbf8;
-  border: 1px solid rgba(15, 122, 77, 0.28);
+  font-weight: 900;
+}
+
+.remote-send-panel input,
+.remote-send-panel textarea,
+.consent-card input {
+  width: 100%;
+  padding: 14px;
+  color: #17211f;
+  background: #fff;
+  border: 1px solid var(--line);
   border-radius: var(--radius);
   font: inherit;
-  font-size: 0.95rem;
-  font-weight: 700;
-  line-height: 1.75;
+  font-weight: 800;
+}
+
+.remote-send-panel textarea {
+  min-height: 340px;
+  line-height: 1.7;
   resize: vertical;
 }
 
-.contact-security-panel {
-  padding: 18px;
-  box-shadow: none;
+.consent-layout {
+  background: #eef5f1;
+}
+
+.consent-card {
+  max-width: 920px;
+}
+
+.consent-card h1,
+.consent-card h2,
+.consent-card p {
+  margin: 0;
+}
+
+.consent-card h1 {
+  color: #17211f;
+  font-size: clamp(1.8rem, 4vw, 2.55rem);
+}
+
+.consent-card h2 {
+  color: var(--contract-green-dark, #0a4f35);
+  font-size: 1.24rem;
+}
+
+.consent-unlock,
+.consent-summary {
+  display: grid;
+  gap: 14px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+
+.consent-summary dl {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+}
+
+.consent-summary dl div {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  gap: 12px;
+  padding: 10px 12px;
+  background: #f7fbf8;
+  border: 1px solid rgba(15, 122, 77, 0.18);
+  border-radius: 8px;
+}
+
+.consent-summary dt {
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.consent-summary dd {
+  margin: 0;
+  color: #17211f;
+  font-weight: 800;
+}
+
+.consent-check-list {
+  display: grid;
+  gap: 10px;
+}
+
+.consent-check-list label {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  color: #17211f;
+  font-weight: 900;
+}
+
+#customerSignature {
+  width: 100%;
+  height: 220px;
+  background: #fff;
+  border: 1px solid rgba(15, 122, 77, 0.28);
+  border-radius: var(--radius);
+  touch-action: none;
+}
+
+.field-error-message,
+.contract-save-status.warning {
+  color: #b72d2d;
+  font-weight: 900;
 }
 
 .contract-history-panel select {
@@ -2623,7 +2789,7 @@ pre {
   .auth-layout,
   .contract-hero-inner,
   .contract-layout,
-  .contact-contract-layout,
+  .remote-contract-grid,
   .proposal-layout,
   .contact-layout,
   .compact-hero-inner,
@@ -2749,7 +2915,9 @@ pre {
   .contract-hero-inner,
   .contract-editor-panel,
   .contract-layout,
-  .contact-contract-layout,
+  .remote-contract-grid,
+  .remote-action-grid,
+  .remote-contract-item,
   .proposal-layout,
   .contact-layout,
   .form-grid {

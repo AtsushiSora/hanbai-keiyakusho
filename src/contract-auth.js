@@ -12,6 +12,7 @@ const testLoginButton = document.querySelector("#testLoginButton");
 const refreshServerContractsButton = document.querySelector("#refreshServerContractsButton");
 const serverContractSelect = document.querySelector("#serverContractSelect");
 const loadServerContractButton = document.querySelector("#loadServerContractButton");
+const loadRemoteContractButton = document.querySelector("#loadRemoteContractButton");
 const saveServerContractButton = document.querySelector("#saveServerContractButton");
 const deleteServerContractButton = document.querySelector("#deleteServerContractButton");
 const serverContractStatus = document.querySelector("#serverContractStatus");
@@ -87,6 +88,7 @@ logoutButton?.addEventListener("click", async () => {
 refreshServerContractsButton?.addEventListener("click", loadServerContracts);
 saveServerContractButton?.addEventListener("click", saveServerContract);
 loadServerContractButton?.addEventListener("click", loadSelectedServerContract);
+loadRemoteContractButton?.addEventListener("click", () => loadSelectedServerContract("remote"));
 deleteServerContractButton?.addEventListener("click", deleteSelectedServerContract);
 serverContractSelect?.addEventListener("change", () => setServerButtonsDisabled(!serverContractSelect.value));
 
@@ -209,7 +211,7 @@ async function saveServerContract() {
   setServerStatus("契約をサーバーに保存しました。");
 }
 
-async function loadSelectedServerContract() {
+async function loadSelectedServerContract(targetPage = "create") {
   if (isTestLogin) {
     setServerStatus("テスト用ログイン中はサーバー契約の読み込みはできません。");
     return;
@@ -233,6 +235,17 @@ async function loadSelectedServerContract() {
   }
 
   const result = await response.json();
+  if (targetPage === "remote") {
+    try {
+      sessionStorage.setItem("orderAutoContractDraft", JSON.stringify(result.contract?.data || {}));
+    } catch {
+      setServerStatus("契約情報をメール・LINE契約ページへ渡せませんでした。");
+      return;
+    }
+    window.location.href = "contract-contact.html";
+    return;
+  }
+
   if (document.body.classList.contains("contract-list-page")) {
     try {
       sessionStorage.setItem("orderAutoContractDraft", JSON.stringify(result.contract?.data || {}));
@@ -355,6 +368,9 @@ function setAuthControlsDisabled(disabled) {
 function setServerButtonsDisabled(disabled) {
   if (loadServerContractButton) {
     loadServerContractButton.disabled = disabled;
+  }
+  if (loadRemoteContractButton) {
+    loadRemoteContractButton.disabled = disabled;
   }
   if (deleteServerContractButton) {
     deleteServerContractButton.disabled = disabled;

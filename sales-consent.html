@@ -1,0 +1,79 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>販売契約内容の確認｜オーダーオート</title>
+    <meta name="description" content="オーダーオートの車両販売契約内容を確認し、電子署名と同意を行うページです。" />
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="stylesheet" href="styles.css?v=contract11" />
+  </head>
+  <body class="contract-page sales-contract-system consent-page">
+    <header class="site-header admin-header">
+      <a class="brand" href="sales-consent.html" aria-label="オーダーオート 契約確認">
+        <span class="brand-mark" aria-hidden="true"><img src="assets/brand-logo.png" alt="" /></span>
+        <span>
+          <strong>オーダーオート 契約確認</strong>
+          <small>車両販売</small>
+        </span>
+      </a>
+      <div class="contract-header-actions">
+        <a class="secondary-link" href="tel:08029128616">電話確認</a>
+      </div>
+    </header>
+
+    <main class="contract-main">
+      <section class="section consent-layout">
+        <div class="section-inner consent-card">
+          <p class="section-kicker">Agreement</p>
+          <h1>契約内容の確認</h1>
+          <p>メール・LINEで届いた確認URLと、別途案内された開封パスコードを使って契約内容を確認してください。</p>
+
+          <section class="consent-unlock" id="consentUnlock">
+            <h2>開封パスコード</h2>
+            <p>パスコードは確認URLとは別に案内されます。電話・SMS・別メール・LINEなどをご確認ください。</p>
+            <label>
+              <span>パスコード</span>
+              <input id="consentPasscodeInput" type="password" autocomplete="one-time-code" />
+            </label>
+            <button class="primary-link" type="button" id="unlockConsentButton">契約内容を開く</button>
+          </section>
+
+          <p class="contract-save-status warning" id="consentError" hidden>契約データを読み込めませんでした。</p>
+
+          <section class="consent-summary" id="consentSummary" hidden>
+            <h2>契約概要</h2>
+            <dl id="summaryList"></dl>
+          </section>
+
+          <section class="consent-summary" id="consentChecks" hidden>
+            <h2>重要事項</h2>
+            <div class="consent-check-list">
+              <label><input type="checkbox" name="customerConsent" value="契約内容を確認しました" />契約内容を確認しました</label>
+              <label><input type="checkbox" name="customerConsent" value="車両情報に間違いありません" />車両情報に間違いありません</label>
+              <label><input type="checkbox" name="customerConsent" value="総支払額と支払条件に同意します" />総支払額と支払条件に同意します</label>
+              <label><input type="checkbox" name="customerConsent" value="保証内容・特記事項を確認しました" />保証内容・特記事項を確認しました</label>
+            </div>
+            <p class="field-error-message" id="consentChecksError" hidden>すべて確認してください。</p>
+          </section>
+
+          <section class="consent-summary" id="customerSignSection" hidden>
+            <h2>電子署名</h2>
+            <label>
+              <span>氏名</span>
+              <input id="customerName" autocomplete="name" />
+            </label>
+            <canvas id="customerSignature" width="760" height="220" aria-label="電子署名欄"></canvas>
+            <p class="field-error-message" id="signatureError" hidden>氏名と電子署名を入力してください。</p>
+            <div class="remote-action-grid">
+              <button class="secondary-button" type="button" id="clearSignatureButton">署名クリア</button>
+              <button class="primary-link" type="button" id="completeConsentButton">同意して完了メールを作成</button>
+            </div>
+          </section>
+        </div>
+      </section>
+    </main>
+
+    <script src="sales-consent.js"></script>
+  </body>
+</html>
