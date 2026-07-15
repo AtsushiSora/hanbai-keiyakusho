@@ -6,7 +6,7 @@
     <title>契約一覧｜オーダーオート</title>
     <meta name="description" content="オーダーオートの車両販売契約書を入力フォームからPDF保存・印刷・メール・LINE送信用に作成できる契約作成システムです。" />
     <meta name="robots" content="noindex, nofollow" />
-    <link rel="stylesheet" href="styles.css?v=contract11" />
+    <link rel="stylesheet" href="styles.css?v=contract12" />
   </head>
   <body class="admin-page contract-page sales-contract-system contract-list-page auth-loading">
     <header class="site-header admin-header">
@@ -66,23 +66,46 @@
 
       <section class="section contract-workspace admin-only">
         <div class="section-inner contract-list-layout">
-          <div class="server-contract-panel" id="list">
-            <div class="contract-history-head">
+          <div class="server-contract-panel contract-list-panel" id="list">
+            <div class="contract-list-head">
               <div>
-                <p class="section-kicker">SERVER LIST</p>
-                <h2>保存済み契約一覧</h2>
+                <p class="section-kicker">CONTRACTS</p>
+                <h2>契約一覧</h2>
+              </div>
+              <div class="contract-list-head-actions">
+                <a class="secondary-button compact" href="contract.html">TOPに戻る</a>
+                <a class="secondary-button compact" href="contract-create.html">追加</a>
               </div>
             </div>
-            <p>管理者ログイン中のみ、クラウド上の保存済み契約を読み込みます。</p>
-            <a class="secondary-button list-create-link" href="contract-create.html">契約書作成ページへ</a>
-            <select id="serverContractSelect" aria-label="サーバー保存済み契約">
+
+            <div class="backup-actions" aria-label="バックアップ操作">
+              <button class="secondary-button compact" type="button" id="exportContractsButton">JSON出力</button>
+              <button class="secondary-button compact" type="button" id="importContractsButton">JSON取込</button>
+              <input id="importContractsFile" type="file" accept="application/json,.json" hidden />
+            </div>
+
+            <label class="contract-search">
+              <span>検索</span>
+              <input id="contractListSearch" type="search" placeholder="名字・名前・車名・契約番号" />
+            </label>
+
+            <div class="status-tabs" id="contractStatusTabs" aria-label="ステータス絞り込み">
+              <button type="button" class="active" data-filter="all">すべて</button>
+              <button type="button" data-filter="下書き">下書き</button>
+              <button type="button" data-filter="署名待ち">署名待ち</button>
+              <button type="button" data-filter="送信済み">送信済み</button>
+              <button type="button" data-filter="完了">完了</button>
+            </div>
+
+            <select class="contract-list-select" id="serverContractSelect" aria-label="サーバー保存済み契約">
               <option value="">保存済み契約はありません</option>
             </select>
-            <div class="server-contract-actions">
+            <div class="server-contract-actions list-legacy-actions">
               <button class="secondary-button" type="button" id="loadServerContractButton">選択した契約を開く</button>
               <button class="secondary-button" type="button" id="loadRemoteContractButton">メール・LINE契約へ</button>
               <button class="secondary-button danger" type="button" id="deleteServerContractButton">サーバーから削除</button>
             </div>
+            <div class="contract-card-list" id="contractCardList" aria-live="polite"></div>
             <div class="contract-save-status" id="serverContractStatus" aria-live="polite"></div>
           </div>
         </div>

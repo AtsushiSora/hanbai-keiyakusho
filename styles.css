@@ -2018,8 +2018,165 @@ pre {
 
 .contract-list-layout {
   display: grid;
-  grid-template-columns: minmax(0, 760px);
+  grid-template-columns: minmax(0, 1fr);
   justify-content: center;
+}
+
+.contract-list-panel {
+  display: grid;
+  gap: 16px;
+}
+
+.contract-list-head {
+  display: flex;
+  align-items: start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.contract-list-head h2 {
+  margin: 0;
+  color: #17211f;
+  font-size: 1.5rem;
+}
+
+.contract-list-head-actions,
+.backup-actions,
+.contract-card-actions,
+.status-tabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.backup-actions {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.backup-actions .secondary-button,
+.contract-list-head-actions .secondary-button {
+  width: auto;
+  margin: 0;
+  color: var(--contract-green-dark, #0a4f35);
+}
+
+.contract-search {
+  display: grid;
+  gap: 8px;
+  color: var(--muted);
+  font-weight: 900;
+}
+
+.contract-search input {
+  width: 100%;
+  min-height: 54px;
+  padding: 0 16px;
+  color: #17211f;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  font: inherit;
+  font-weight: 800;
+}
+
+.status-tabs button {
+  min-height: 42px;
+  padding: 0 13px;
+  color: #5d6a66;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  cursor: pointer;
+  font: inherit;
+  font-weight: 900;
+}
+
+.status-tabs button.active {
+  color: #fff;
+  background: var(--contract-green, #0f7a4d);
+  border-color: var(--contract-green, #0f7a4d);
+}
+
+.contract-list-select,
+.list-legacy-actions {
+  display: none;
+}
+
+.contract-card-list {
+  display: grid;
+  gap: 12px;
+}
+
+.contract-list-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+  padding: 16px;
+  background: #fff;
+  border: 1px solid rgba(15, 122, 77, 0.18);
+  border-radius: var(--radius);
+}
+
+.contract-list-card.is-active {
+  border-color: var(--contract-green, #0f7a4d);
+  box-shadow: inset 4px 0 0 var(--contract-green, #0f7a4d);
+}
+
+.contract-card-main {
+  display: grid;
+  gap: 4px;
+}
+
+.contract-card-main strong {
+  color: #17211f;
+  font-size: 1.1rem;
+  font-weight: 900;
+}
+
+.contract-card-main span {
+  color: #5d6a66;
+  font-weight: 800;
+}
+
+.contract-status-chip {
+  display: inline-grid;
+  place-items: center;
+  min-height: 30px;
+  padding: 0 12px;
+  color: var(--contract-green-dark, #0a4f35);
+  background: #eaf6ef;
+  border-radius: 999px;
+  font-size: 0.84rem;
+  font-weight: 900;
+}
+
+.contract-card-actions {
+  justify-content: flex-end;
+  align-items: center;
+}
+
+.contract-card-actions .secondary-button {
+  width: auto;
+  min-height: 46px;
+  margin: 0;
+  padding-inline: 16px;
+}
+
+.contract-card-actions .danger {
+  color: #a32828;
+  background: #fff;
+  border-color: #f0b8b8;
+}
+
+.contract-list-empty {
+  padding: 18px;
+  color: var(--muted);
+  background: #fff;
+  border: 1px dashed var(--line);
+  border-radius: var(--radius);
+  font-weight: 900;
 }
 
 .contract-workspace {
@@ -2208,6 +2365,11 @@ pre {
   color: #fff;
   background: #b72d2d;
   border-color: #b72d2d;
+}
+
+.contract-card-actions .secondary-button.danger {
+  width: auto;
+  margin: 0;
 }
 
 .secondary-button.compact {
@@ -2918,6 +3080,8 @@ pre {
   .remote-contract-grid,
   .remote-action-grid,
   .remote-contract-item,
+  .contract-list-card,
+  .backup-actions,
   .proposal-layout,
   .contact-layout,
   .form-grid {

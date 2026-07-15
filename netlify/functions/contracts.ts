@@ -25,6 +25,7 @@ type ContractSummary = {
   buyerName: string;
   vehicleName: string;
   totalPrice: string;
+  status: string;
   savedAt: string;
   updatedAt: string;
 };
@@ -191,6 +192,7 @@ function toSummary(contract: ContractRecord): ContractSummary {
     buyerName: contract.data?.buyerName || "",
     vehicleName: contract.data?.vehicleName || "",
     totalPrice: formatYen(contract.data?.totalPrice || ""),
+    status: contract.data?.remoteStatus || contract.data?.contractStatus || "下書き",
     savedAt: contract.createdAt,
     updatedAt: contract.updatedAt,
   };
