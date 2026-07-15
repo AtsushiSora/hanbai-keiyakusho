@@ -1,0 +1,242 @@
+:root {
+  --green: #0f7a4d;
+  --green-dark: #0a4f35;
+  --ink: #17211f;
+  --paper: #fbfaf6;
+  --line: #dfe5df;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  color: var(--ink);
+  background: var(--paper);
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", "Yu Gothic",
+    "YuGothic", "Meiryo", sans-serif;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+.template-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 14px;
+  align-items: center;
+  padding: 12px 20px;
+  background: rgba(255, 255, 255, 0.96);
+  border-bottom: 1px solid var(--line);
+  box-shadow: 0 8px 26px rgba(26, 58, 39, 0.1);
+}
+
+.template-toolbar p,
+.template-toolbar h1 {
+  margin: 0;
+}
+
+.template-toolbar p {
+  color: var(--green);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.template-toolbar h1 {
+  font-size: 1.1rem;
+}
+
+.template-toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.template-toolbar select,
+.template-toolbar button,
+.template-button {
+  min-height: 38px;
+  border: 1px solid #b8cfc0;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.template-toolbar select {
+  min-width: 260px;
+  padding: 0 10px;
+}
+
+.template-toolbar button,
+.template-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 14px;
+  color: #fff;
+  background: var(--green-dark);
+  border-color: var(--green-dark);
+  font-weight: 800;
+  cursor: pointer;
+  text-decoration: none;
+}
+
+.template-toolbar button:nth-of-type(1),
+.template-toolbar button:nth-of-type(2),
+.template-toolbar button:nth-of-type(4),
+.template-button.secondary {
+  color: var(--green-dark);
+  background: #fff;
+}
+
+.template-status {
+  min-width: 170px;
+  color: #5b6a60;
+  font-size: 0.82rem;
+  text-align: right;
+}
+
+.template-page-wrap {
+  padding: 24px;
+  overflow-x: auto;
+}
+
+.pdf-template-form {
+  width: min(906px, 100%);
+  margin: 0 auto;
+}
+
+.pdf-template-sheet {
+  position: relative;
+  width: 906px;
+  max-width: 100%;
+  aspect-ratio: 906 / 1280;
+  margin: 0 auto;
+  background: #fff;
+  box-shadow: 0 18px 48px rgba(19, 44, 28, 0.18);
+}
+
+.pdf-template-sheet > img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  user-select: none;
+  pointer-events: none;
+}
+
+.tpl-field,
+.tpl-output {
+  position: absolute;
+  left: var(--x);
+  top: var(--y);
+  width: var(--w);
+  height: var(--h);
+  min-width: 0;
+  padding: 1px 3px;
+  color: #111;
+  background: rgba(255, 255, 255, 0.68);
+  border: 0;
+  outline: 0;
+  font-size: clamp(6px, 0.86vw, 11px);
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.tpl-field:focus {
+  background: rgba(255, 255, 220, 0.92);
+  outline: 1px solid var(--green);
+}
+
+textarea.tpl-field {
+  resize: none;
+}
+
+.tpl-field.small {
+  font-size: clamp(5px, 0.72vw, 9px);
+}
+
+.tpl-field.center {
+  text-align: center;
+}
+
+.tpl-field.amount,
+.tpl-output.amount {
+  text-align: right;
+}
+
+.tpl-output {
+  display: grid;
+  place-items: center end;
+  background: transparent;
+  font-size: clamp(7px, 0.95vw, 12px);
+  font-weight: 900;
+}
+
+.tpl-output.grand {
+  font-size: clamp(9px, 1.25vw, 16px);
+}
+
+@page {
+  size: A4 portrait;
+  margin: 0;
+}
+
+@media print {
+  body {
+    background: #fff;
+  }
+
+  .template-toolbar {
+    display: none;
+  }
+
+  .template-page-wrap {
+    padding: 0;
+    overflow: visible;
+  }
+
+  .pdf-template-form,
+  .pdf-template-sheet {
+    width: 210mm;
+    max-width: none;
+    height: 297mm;
+    margin: 0;
+    box-shadow: none;
+  }
+
+  .tpl-field,
+  .tpl-output {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .tpl-field {
+    background: transparent;
+  }
+}
+
+@media (max-width: 900px) {
+  .template-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .template-toolbar-actions {
+    justify-content: stretch;
+  }
+
+  .template-toolbar select,
+  .template-toolbar button,
+  .template-button {
+    flex: 1 1 150px;
+  }
+}

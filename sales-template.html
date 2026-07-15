@@ -1,0 +1,107 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>販売契約書PDFテンプレート | オーダーオート</title>
+    <meta name="description" content="添付写真をPDF化した販売契約書テンプレートに入力、上書き保存、印刷、PDF保存できます。" />
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="stylesheet" href="sales-template.css" />
+  </head>
+  <body>
+    <header class="template-toolbar">
+      <div>
+        <p>ORDER AUTO</p>
+        <h1>販売契約書PDFテンプレート</h1>
+      </div>
+      <div class="template-toolbar-actions">
+        <select id="recordSelect" aria-label="保存済み帳票">
+          <option value="">新規作成</option>
+        </select>
+        <button type="button" id="newButton">新規</button>
+        <button type="button" id="sampleButton">サンプル入力</button>
+        <button type="button" id="saveButton">上書き保存</button>
+        <button type="button" id="deleteButton">削除</button>
+        <a class="template-button secondary" href="assets/sales-contract-template.pdf" download="sales-contract-template.pdf">ベースPDF</a>
+        <button type="button" id="printButton">印刷・PDF保存</button>
+      </div>
+      <p class="template-status" id="sheetStatus" aria-live="polite"></p>
+    </header>
+
+    <main class="template-page-wrap">
+      <form class="pdf-template-form" id="salesSheetForm" autocomplete="off">
+        <section class="pdf-template-sheet" aria-label="販売契約書PDFテンプレート">
+          <img src="assets/sales-contract-template.jpg" alt="販売契約書テンプレート" />
+
+          <input class="tpl-field" style="--x: 79.5%; --y: 2.3%; --w: 15.4%; --h: 1.4%;" name="estimateDate" type="date" />
+          <input class="tpl-field" style="--x: 79.5%; --y: 3.9%; --w: 15.4%; --h: 1.4%;" name="validUntil" type="date" />
+          <input class="tpl-field" style="--x: 79.5%; --y: 5.5%; --w: 15.4%; --h: 1.4%;" name="estimateNo" />
+          <input class="tpl-field" style="--x: 79.5%; --y: 7.0%; --w: 15.4%; --h: 1.4%;" name="controlNo" />
+          <input class="tpl-field" style="--x: 79.5%; --y: 8.6%; --w: 15.4%; --h: 1.4%;" name="carType" />
+
+          <input class="tpl-field" style="--x: 13.0%; --y: 9.7%; --w: 28.5%; --h: 1.7%;" name="buyerKana" />
+          <input class="tpl-field" style="--x: 13.0%; --y: 11.8%; --w: 42.5%; --h: 3.0%;" name="buyerName" />
+          <input class="tpl-field" style="--x: 13.0%; --y: 16.0%; --w: 36.0%; --h: 3.6%;" name="buyerAddress" />
+          <input class="tpl-field" style="--x: 13.0%; --y: 15.0%; --w: 20.0%; --h: 1.5%;" name="buyerZip" />
+          <input class="tpl-field center" style="--x: 51.0%; --y: 16.3%; --w: 6.8%; --h: 3.2%;" name="buyerBirthday" />
+          <input class="tpl-field" style="--x: 13.0%; --y: 21.0%; --w: 39.0%; --h: 1.5%;" name="buyerPhone" />
+          <input class="tpl-field" style="--x: 55.0%; --y: 21.0%; --w: 10.0%; --h: 1.5%;" name="buyerMobile" />
+          <input class="tpl-field" style="--x: 13.0%; --y: 22.6%; --w: 45.0%; --h: 1.5%;" name="buyerEmail" />
+          <input class="tpl-field" style="--x: 13.0%; --y: 24.2%; --w: 45.0%; --h: 1.5%;" name="buyerWorkplace" />
+          <textarea class="tpl-field" style="--x: 59.0%; --y: 11.9%; --w: 36.8%; --h: 9.8%;" name="notice"></textarea>
+          <input class="tpl-field" style="--x: 72.0%; --y: 22.0%; --w: 23.0%; --h: 1.5%;" name="warranty" />
+          <input class="tpl-field" style="--x: 72.0%; --y: 23.6%; --w: 23.0%; --h: 1.5%;" name="inspectionStatus" />
+          <input class="tpl-field" style="--x: 72.0%; --y: 25.2%; --w: 23.0%; --h: 1.5%;" name="repairHistory" />
+
+          <input class="tpl-field" style="--x: 12.5%; --y: 29.0%; --w: 20.5%; --h: 2.2%;" name="vehicleName" />
+          <input class="tpl-field" style="--x: 41.5%; --y: 29.0%; --w: 17.0%; --h: 2.2%;" name="vehicleGrade" />
+          <input class="tpl-field" style="--x: 65.5%; --y: 29.0%; --w: 11.5%; --h: 1.6%;" name="vehicleYear" />
+          <input class="tpl-field" style="--x: 84.8%; --y: 29.0%; --w: 10.0%; --h: 1.6%;" name="mission" />
+          <textarea class="tpl-field small" style="--x: 12.5%; --y: 31.8%; --w: 29.0%; --h: 3.6%;" name="equipment"></textarea>
+          <input class="tpl-field" style="--x: 50.0%; --y: 31.7%; --w: 18.0%; --h: 1.7%;" name="vin" />
+          <input class="tpl-field" style="--x: 65.5%; --y: 31.7%; --w: 11.5%; --h: 1.7%;" name="engineSize" />
+          <input class="tpl-field" style="--x: 84.8%; --y: 31.7%; --w: 10.0%; --h: 1.7%;" name="doorCount" />
+          <input class="tpl-field" style="--x: 12.5%; --y: 36.1%; --w: 29.0%; --h: 1.6%;" name="fullModel" />
+          <input class="tpl-field" style="--x: 50.0%; --y: 36.1%; --w: 18.0%; --h: 1.6%;" name="modelCode" />
+          <input class="tpl-field" style="--x: 65.5%; --y: 33.6%; --w: 11.5%; --h: 1.7%;" name="mileage" />
+          <input class="tpl-field" style="--x: 84.8%; --y: 33.6%; --w: 10.0%; --h: 1.7%;" name="capacity" />
+          <input class="tpl-field" style="--x: 65.5%; --y: 35.5%; --w: 11.5%; --h: 1.7%;" name="inspectionDate" />
+          <input class="tpl-field" style="--x: 65.5%; --y: 37.4%; --w: 11.5%; --h: 1.7%;" name="plateNo" />
+          <input class="tpl-field" style="--x: 84.8%; --y: 37.4%; --w: 10.0%; --h: 1.7%;" name="bodyColor" />
+
+          <input class="tpl-field amount" style="--x: 49.0%; --y: 39.7%; --w: 18.0%; --h: 1.5%;" name="basePrice" inputmode="numeric" />
+          <input class="tpl-field amount" style="--x: 49.0%; --y: 43.0%; --w: 18.0%; --h: 1.5%;" name="storeDeliveryPrice" inputmode="numeric" />
+          <input class="tpl-field amount" style="--x: 49.0%; --y: 47.5%; --w: 18.0%; --h: 1.5%;" name="customPrice" inputmode="numeric" />
+          <output class="tpl-output amount" id="vehicleTotal" style="--x: 49.0%; --y: 49.5%; --w: 18.0%; --h: 1.5%;">0</output>
+          <input class="tpl-field amount" style="--x: 49.0%; --y: 52.0%; --w: 18.0%; --h: 1.5%;" name="taxInsurance" inputmode="numeric" />
+          <input class="tpl-field amount" style="--x: 49.0%; --y: 54.2%; --w: 18.0%; --h: 1.5%;" name="salesExpense" inputmode="numeric" />
+          <input class="tpl-field amount" style="--x: 49.0%; --y: 56.3%; --w: 18.0%; --h: 1.5%;" name="otherExpense" inputmode="numeric" />
+          <output class="tpl-output amount" id="expenseTotal" style="--x: 49.0%; --y: 60.2%; --w: 18.0%; --h: 1.5%;">0</output>
+          <output class="tpl-output amount grand" id="paymentTotal" style="--x: 49.0%; --y: 62.6%; --w: 18.0%; --h: 1.6%;">0</output>
+          <input class="tpl-field amount" style="--x: 49.0%; --y: 64.8%; --w: 18.0%; --h: 1.5%;" name="includedTax" inputmode="numeric" />
+          <output class="tpl-output amount" id="tradeTotal" style="--x: 49.0%; --y: 73.8%; --w: 18.0%; --h: 1.5%;">0</output>
+          <output class="tpl-output amount grand" id="afterTradeTotal" style="--x: 49.0%; --y: 76.2%; --w: 18.0%; --h: 1.6%;">0</output>
+          <input class="tpl-field amount" style="--x: 49.0%; --y: 78.5%; --w: 18.0%; --h: 1.5%;" name="cashPayment" inputmode="numeric" />
+          <output class="tpl-output amount" id="paymentInputTotal" style="--x: 49.0%; --y: 86.5%; --w: 18.0%; --h: 1.5%;">0</output>
+
+          <input class="tpl-field" style="--x: 78.0%; --y: 41.0%; --w: 14.0%; --h: 1.5%;" name="optionName1" />
+          <input class="tpl-field amount" style="--x: 92.0%; --y: 41.0%; --w: 6.0%; --h: 1.5%;" name="optionPrice1" inputmode="numeric" />
+          <input class="tpl-field center" style="--x: 82.0%; --y: 77.5%; --w: 6.0%; --h: 1.5%;" name="autoTaxMonth" />
+          <input class="tpl-field amount" style="--x: 92.0%; --y: 77.5%; --w: 6.0%; --h: 1.5%;" name="autoTaxAmount" inputmode="numeric" />
+          <input class="tpl-field amount" style="--x: 92.0%; --y: 79.1%; --w: 6.0%; --h: 1.5%;" name="weightTax" inputmode="numeric" />
+          <input class="tpl-field center" style="--x: 82.0%; --y: 80.7%; --w: 6.0%; --h: 1.5%;" name="liabilityInsuranceMonth" />
+          <input class="tpl-field amount" style="--x: 92.0%; --y: 80.7%; --w: 6.0%; --h: 1.5%;" name="liabilityInsurance" inputmode="numeric" />
+          <input class="tpl-field amount" style="--x: 92.0%; --y: 82.4%; --w: 6.0%; --h: 1.5%;" name="inspectionRegisterFee" inputmode="numeric" />
+          <input class="tpl-field amount" style="--x: 92.0%; --y: 84.0%; --w: 6.0%; --h: 1.5%;" name="parkingCertificateFee" inputmode="numeric" />
+          <input class="tpl-field amount" style="--x: 92.0%; --y: 89.7%; --w: 6.0%; --h: 1.5%;" name="parkingActualFee" inputmode="numeric" />
+          <input class="tpl-field amount" style="--x: 92.0%; --y: 91.4%; --w: 6.0%; --h: 1.5%;" name="recycleDeposit" inputmode="numeric" />
+
+          <textarea class="tpl-field small" style="--x: 12.0%; --y: 86.3%; --w: 55.0%; --h: 9.0%;" name="contactMemo"></textarea>
+          <textarea class="tpl-field small" style="--x: 76.0%; --y: 89.0%; --w: 20.0%; --h: 7.0%;" name="memo"></textarea>
+        </section>
+      </form>
+    </main>
+
+    <script src="sales-sheet.js"></script>
+  </body>
+</html>
