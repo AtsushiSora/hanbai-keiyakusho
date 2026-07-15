@@ -88,6 +88,22 @@
       </section>
 
       <section class="section contract-workspace admin-only" id="create">
+        <div class="section-inner contract-editor-panel" aria-label="契約作成操作">
+          <div class="editor-panel-head">
+            <p class="section-kicker">EDITOR</p>
+            <h2>新規契約作成</h2>
+          </div>
+          <div class="contract-editor-actions">
+            <a class="secondary-button" href="contract.html">TOPに戻る</a>
+            <button class="secondary-button" type="button" id="newContractButton">入力クリア</button>
+            <button class="secondary-button" type="button" id="saveRecordButton">下書き保存</button>
+            <button class="secondary-button" type="button" id="saveServerContractButton">クラウド保存</button>
+            <a class="secondary-button" href="assets/sales-contract-template.pdf" download="sales-contract-template.pdf">店控えベースPDF</a>
+            <button class="secondary-button" type="button" id="savePdfButton">PDF保存</button>
+            <button class="primary-link" type="button" id="printContractButton">PDF印刷</button>
+          </div>
+        </div>
+
         <div class="section-inner contract-layout">
           <form class="contract-form" id="contractForm" autocomplete="off" spellcheck="false">
             <fieldset>
@@ -298,19 +314,9 @@
               </select>
               <div class="server-contract-actions">
                 <button class="secondary-button" type="button" id="loadServerContractButton">選択した契約を開く</button>
-                <button class="primary-link" type="button" id="saveServerContractButton">サーバーに保存</button>
                 <button class="secondary-button danger" type="button" id="deleteServerContractButton">サーバーから削除</button>
               </div>
               <div class="contract-save-status" id="serverContractStatus" aria-live="polite"></div>
-            </div>
-
-            <div class="contract-actions">
-              <button class="primary-link" type="button" id="printContractButton">帳票型PDFで印刷</button>
-              <button class="secondary-button" type="button" id="saveRecordButton">契約履歴に保存</button>
-              <button class="secondary-button" type="button" id="downloadHtmlButton">契約書HTMLを保存</button>
-              <button class="secondary-button" type="button" id="copySummaryButton">内容をコピー</button>
-              <a class="secondary-button" id="emailContractLink" href="#">メール下書き</a>
-              <button class="secondary-button" type="button" id="newContractButton">新規作成</button>
             </div>
 
             <div class="contract-history-panel">

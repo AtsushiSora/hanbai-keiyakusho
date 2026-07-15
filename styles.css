@@ -2067,8 +2067,51 @@ pre {
   align-items: start;
 }
 
+.contract-editor-panel {
+  display: grid;
+  grid-template-columns: 130px minmax(0, 1fr);
+  gap: 24px;
+  align-items: center;
+  margin-bottom: 22px;
+}
+
+.editor-panel-head p,
+.editor-panel-head h2 {
+  margin: 0;
+}
+
+.editor-panel-head h2 {
+  color: #17211f;
+  font-size: clamp(1.45rem, 2.8vw, 2.1rem);
+  line-height: 1.22;
+}
+
+.contract-editor-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+}
+
+.contract-editor-actions .primary-link,
+.contract-editor-actions .secondary-button {
+  min-width: 180px;
+  min-height: 62px;
+  padding-inline: 28px;
+  color: var(--contract-green-dark, var(--blue-dark));
+  border-color: rgba(15, 122, 77, 0.24);
+  font-size: clamp(1rem, 1.6vw, 1.22rem);
+}
+
+.contract-editor-actions .primary-link {
+  color: #fff;
+  background: var(--contract-green, var(--blue));
+  border-color: var(--contract-green, var(--blue));
+  box-shadow: 0 16px 34px rgba(15, 122, 77, 0.22);
+}
+
 .auth-card,
 .server-contract-panel,
+.contract-editor-panel,
 .contract-form,
 .contract-actions,
 .contract-history-panel,
@@ -2908,6 +2951,7 @@ pre {
   .top-action-grid,
   .auth-layout,
   .contract-hero-inner,
+  .contract-editor-panel,
   .contract-layout,
   .contract-method-options,
   .contract-dl,
@@ -2924,6 +2968,17 @@ pre {
 
   .contract-side {
     position: static;
+  }
+
+  .contract-editor-actions {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .contract-editor-actions .primary-link,
+  .contract-editor-actions .secondary-button {
+    width: 100%;
+    min-width: 0;
   }
 
   .contract-doc-head {

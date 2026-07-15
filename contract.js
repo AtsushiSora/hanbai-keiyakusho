@@ -20,6 +20,7 @@ const emailConsentChecked = document.querySelector("#emailConsentChecked");
 const signatureCanvas = document.querySelector("#signatureCanvas");
 const clearSignatureButton = document.querySelector("#clearSignatureButton");
 const printContractButton = document.querySelector("#printContractButton");
+const savePdfButton = document.querySelector("#savePdfButton");
 const saveRecordButton = document.querySelector("#saveRecordButton");
 const downloadHtmlButton = document.querySelector("#downloadHtmlButton");
 const copySummaryButton = document.querySelector("#copySummaryButton");
@@ -47,7 +48,8 @@ form?.addEventListener("input", handleContractChange);
 form?.addEventListener("change", handleContractChange);
 emailConsentChecked?.addEventListener("change", renderContract);
 clearSignatureButton?.addEventListener("click", clearSignature);
-printContractButton?.addEventListener("click", openSalesTemplateForPrint);
+printContractButton?.addEventListener("click", () => openSalesTemplateForPrint(true));
+savePdfButton?.addEventListener("click", () => openSalesTemplateForPrint(false));
 saveRecordButton?.addEventListener("click", saveContractRecord);
 downloadHtmlButton?.addEventListener("click", downloadContractHtml);
 copySummaryButton?.addEventListener("click", copyContractSummary);
@@ -396,12 +398,12 @@ function createContractSummary(data) {
   ].join("\n");
 }
 
-function openSalesTemplateForPrint() {
+function openSalesTemplateForPrint(autoPrint = true) {
   const data = getData();
   const templateData = mapContractToSalesTemplate(data);
   const payload = {
     data: templateData,
-    autoPrint: true,
+    autoPrint,
     importedAt: new Date().toISOString(),
   };
 
@@ -412,7 +414,7 @@ function openSalesTemplateForPrint() {
     return;
   }
 
-  window.location.href = "sales-template.html?print=1";
+  window.location.href = autoPrint ? "sales-template.html?print=1" : "sales-template.html?save=1";
 }
 
 function mapContractToSalesTemplate(data) {
