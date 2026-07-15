@@ -1,6 +1,7 @@
 const form = document.querySelector("#contractForm");
 const printContractButton = document.querySelector("#printContractButton");
 const savePdfButton = document.querySelector("#savePdfButton");
+const contactContractButton = document.querySelector("#contactContractButton");
 const saveRecordButton = document.querySelector("#saveRecordButton");
 const newContractButton = document.querySelector("#newContractButton");
 const contractHistorySelect = document.querySelector("#contractHistorySelect");
@@ -19,6 +20,7 @@ form?.addEventListener("input", saveDraft);
 form?.addEventListener("change", saveDraft);
 printContractButton?.addEventListener("click", () => openSalesTemplate(true));
 savePdfButton?.addEventListener("click", () => openSalesTemplate(false));
+contactContractButton?.addEventListener("click", openContactContract);
 saveRecordButton?.addEventListener("click", saveContractRecord);
 newContractButton?.addEventListener("click", startNewContract);
 contractHistorySelect?.addEventListener("change", loadSelectedContractRecord);
@@ -52,11 +54,16 @@ function openSalesTemplate(autoPrint = true) {
   try {
     sessionStorage.setItem(salesTemplateImportKey, JSON.stringify(payload));
   } catch {
-    updateSaveStatus("帳票型PDFへ転記できませんでした。ブラウザの保存設定を確認してください。");
+    updateSaveStatus("PDFテンプレートへ転記できませんでした。ブラウザの保存設定を確認してください。");
     return;
   }
 
   window.location.href = autoPrint ? "sales-template.html?print=1" : "sales-template.html?save=1";
+}
+
+function openContactContract() {
+  saveDraft();
+  window.location.href = "contract-contact.html";
 }
 
 function mapContractToSalesTemplate(data) {

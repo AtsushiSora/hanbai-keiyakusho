@@ -4,9 +4,9 @@
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>契約書作成｜オーダーオート</title>
-    <meta name="description" content="オーダーオートの車両販売契約書を入力フォームから帳票型PDFへ転記し、PDF保存・印刷できる契約作成システムです。" />
+    <meta name="description" content="オーダーオートの車両販売契約書を入力フォームからPDF保存・印刷・メール・LINE送信用に作成できる契約作成システムです。" />
     <meta name="robots" content="noindex, nofollow" />
-    <link rel="stylesheet" href="styles.css?v=contract9" />
+    <link rel="stylesheet" href="styles.css?v=contract10" />
   </head>
   <body class="admin-page contract-page sales-contract-system contract-create-page auth-loading">
     <header class="site-header admin-header">
@@ -21,7 +21,7 @@
         <a class="secondary-link" href="contract.html">トップ</a>
         <a class="secondary-link" href="contract-create.html">契約書作成</a>
         <a class="secondary-link" href="contract-list.html">契約一覧</a>
-        <a class="secondary-link" href="sales-template.html">帳票型PDF</a>
+        <a class="secondary-link" href="contract-contact.html">メール・LINE契約</a>
         <span class="admin-user-chip admin-only" id="adminUserLabel">ログイン中</span>
         <button class="secondary-link header-logout-button admin-only" type="button" id="adminLogoutButton">ログアウト</button>
       </div>
@@ -73,15 +73,15 @@
           <div class="top-action-grid">
             <a class="top-action-card" href="contract-create.html">
               <span>契約書作成</span>
-              <small>買主・車両・金額を入力して帳票PDFを作成</small>
+              <small>買主・車両・金額を入力して契約PDFを作成</small>
             </a>
             <a class="top-action-card" href="contract-list.html">
               <span>契約一覧</span>
               <small>保存済み契約の読み込み・上書き・削除</small>
             </a>
-            <a class="top-action-card" href="sales-template.html">
-              <span>帳票型PDF</span>
-              <small>写真ベースの帳票へ直接入力・PDF印刷</small>
+            <a class="top-action-card" href="contract-contact.html">
+              <span>メール・LINE契約</span>
+              <small>契約内容を確認文面にしてメール・LINEで送信</small>
             </a>
           </div>
         </div>
@@ -98,7 +98,7 @@
             <button class="secondary-button" type="button" id="newContractButton">入力クリア</button>
             <button class="secondary-button" type="button" id="saveRecordButton">下書き保存</button>
             <button class="secondary-button" type="button" id="saveServerContractButton">クラウド保存</button>
-            <a class="secondary-button" href="assets/sales-contract-template.pdf" download="sales-contract-template.pdf">店控えベースPDF</a>
+            <button class="secondary-button" type="button" id="contactContractButton">メール・LINE契約</button>
             <button class="secondary-button" type="button" id="savePdfButton">PDF保存</button>
             <button class="primary-link" type="button" id="printContractButton">PDF印刷</button>
           </div>

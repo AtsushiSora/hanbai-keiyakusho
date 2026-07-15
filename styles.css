@@ -2248,6 +2248,49 @@ pre {
   font-weight: 700;
 }
 
+.contact-contract-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) minmax(320px, 0.85fr);
+  gap: 22px;
+  align-items: start;
+}
+
+.contact-message-panel {
+  display: grid;
+  gap: 16px;
+  padding: 24px;
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: 0 14px 36px rgba(20, 66, 116, 0.1);
+}
+
+.contact-message-panel h2 {
+  margin: 0;
+  color: #17211f;
+  font-size: 1.35rem;
+}
+
+.contact-message-panel textarea {
+  width: 100%;
+  min-height: 460px;
+  padding: 16px;
+  color: #17211f;
+  background: #f7fbf8;
+  border: 1px solid rgba(15, 122, 77, 0.28);
+  border-radius: var(--radius);
+  font: inherit;
+  font-size: 0.95rem;
+  font-weight: 700;
+  line-height: 1.75;
+  resize: vertical;
+}
+
+.contact-security-panel {
+  padding: 18px;
+  box-shadow: none;
+}
+
 .contract-history-panel select {
   margin-top: 4px;
 }
@@ -2580,6 +2623,7 @@ pre {
   .auth-layout,
   .contract-hero-inner,
   .contract-layout,
+  .contact-contract-layout,
   .proposal-layout,
   .contact-layout,
   .compact-hero-inner,
@@ -2705,6 +2749,7 @@ pre {
   .contract-hero-inner,
   .contract-editor-panel,
   .contract-layout,
+  .contact-contract-layout,
   .proposal-layout,
   .contact-layout,
   .form-grid {

@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>メール・LINE契約｜オーダーオート</title>
+    <meta name="description" content="オーダーオートの車両販売契約内容をメール・LINEで確認するための送信用文面を作成します。" />
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="stylesheet" href="styles.css?v=contract10" />
+  </head>
+  <body class="admin-page contract-page sales-contract-system contract-contact-page auth-loading">
+    <header class="site-header admin-header">
+      <a class="brand" href="contract.html" aria-label="オーダーオート 契約作成 ホーム">
+        <span class="brand-mark" aria-hidden="true"><img src="assets/brand-logo.png" alt="" /></span>
+        <span>
+          <strong>オーダーオート 契約作成</strong>
+          <small>車両販売</small>
+        </span>
+      </a>
+      <div class="contract-header-actions">
+        <a class="secondary-link" href="contract.html">トップ</a>
+        <a class="secondary-link" href="contract-create.html">契約書作成</a>
+        <a class="secondary-link" href="contract-list.html">契約一覧</a>
+        <a class="secondary-link" href="contract-contact.html">メール・LINE契約</a>
+        <span class="admin-user-chip admin-only" id="adminUserLabel">ログイン中</span>
+        <button class="secondary-link header-logout-button admin-only" type="button" id="adminLogoutButton">ログアウト</button>
+      </div>
+    </header>
+
+    <main class="contract-main" id="top">
+      <section class="contract-hero" aria-label="メール・LINE契約">
+        <div class="section-inner contract-hero-inner">
+          <div>
+            <p class="section-kicker">Contract System</p>
+            <h1>メール・LINEで契約内容を確認。</h1>
+          </div>
+        </div>
+      </section>
+
+      <section class="section contract-auth-section">
+        <div class="section-inner auth-layout">
+          <article class="auth-card" id="loginPanel">
+            <p class="section-kicker">ADMIN LOGIN</p>
+            <h2>管理者ログイン</h2>
+            <p>契約書情報の入力・保存・一覧表示は、管理者ログイン後に利用できます。</p>
+            <div class="test-login-box">
+              <strong>テスト用</strong>
+              <p>ログイン登録なしで入力画面を確認できます。本番公開前に削除または無効化してください。</p>
+              <button class="secondary-button test-login-button" type="button" id="testLoginButton">テスト用ログイン</button>
+            </div>
+            <form id="adminLoginForm" autocomplete="off">
+              <label>
+                <span>メールアドレス</span>
+                <input name="email" type="email" autocomplete="username" required />
+              </label>
+              <label>
+                <span>パスワード</span>
+                <input name="password" type="password" autocomplete="current-password" required />
+              </label>
+              <button class="primary-link" type="submit">ログイン</button>
+            </form>
+            <p class="auth-status" id="authStatus" aria-live="polite">ログイン状態を確認しています。</p>
+          </article>
+        </div>
+      </section>
+
+      <section class="section contract-workspace admin-only">
+        <div class="section-inner contract-editor-panel" aria-label="メール・LINE契約操作">
+          <div class="editor-panel-head">
+            <p class="section-kicker">CONTACT</p>
+            <h2>送信用文面作成</h2>
+          </div>
+          <div class="contract-editor-actions">
+            <a class="secondary-button" href="contract.html">TOPに戻る</a>
+            <button class="secondary-button" type="button" id="backToCreateButton">契約書作成へ戻る</button>
+            <button class="secondary-button" type="button" id="contactPdfButton">PDF保存</button>
+            <button class="secondary-button" type="button" id="copyMailButton">メール文面コピー</button>
+            <button class="secondary-button" type="button" id="copyLineButton">LINE文面コピー</button>
+            <button class="secondary-button" type="button" id="openMailButton">メールを開く</button>
+            <button class="primary-link" type="button" id="openLineButton">LINEを開く</button>
+          </div>
+        </div>
+
+        <div class="section-inner contact-contract-layout">
+          <form class="contract-form contact-contract-form" id="contactForm" autocomplete="off" spellcheck="false">
+            <fieldset>
+              <legend>送信先</legend>
+              <div class="form-grid">
+                <label>
+                  <span>買主名</span>
+                  <input name="buyerName" type="text" />
+                </label>
+                <label>
+                  <span>メールアドレス</span>
+                  <input name="buyerEmail" type="email" />
+                </label>
+                <label>
+                  <span>電話番号</span>
+                  <input name="buyerPhone" type="tel" />
+                </label>
+                <label>
+                  <span>送信方法</span>
+                  <select name="contactMethod">
+                    <option>メール</option>
+                    <option>LINE</option>
+                    <option>メール・LINE両方</option>
+                  </select>
+                </label>
+              </div>
+            </fieldset>
+
+            <fieldset>
+              <legend>契約内容</legend>
+              <div class="form-grid">
+                <label>
+                  <span>車名</span>
+                  <input name="vehicleName" type="text" />
+                </label>
+                <label>
+                  <span>グレード</span>
+                  <input name="vehicleGrade" type="text" />
+                </label>
+                <label>
+                  <span>年式</span>
+                  <input name="vehicleYear" type="text" />
+                </label>
+                <label>
+                  <span>車台番号</span>
+                  <input name="vehicleVin" type="text" />
+                </label>
+                <label>
+                  <span>総支払額</span>
+                  <input name="totalPrice" inputmode="numeric" type="text" />
+                </label>
+                <label>
+                  <span>支払方法</span>
+                  <input name="paymentMethod" type="text" />
+                </label>
+                <label>
+                  <span>支払期限</span>
+                  <input name="paymentDue" type="date" />
+                </label>
+                <label>
+                  <span>納車予定日</span>
+                  <input name="deliveryDate" type="date" />
+                </label>
+              </div>
+              <label class="full">
+                <span>追記メッセージ</span>
+                <textarea name="contactNote" rows="4" placeholder="PDFを添付します、確認後に返信をお願いします、など"></textarea>
+              </label>
+            </fieldset>
+          </form>
+
+          <aside class="contact-message-panel">
+            <p class="section-kicker">MESSAGE</p>
+            <h2>送信用文面</h2>
+            <textarea id="contactMessage" readonly aria-label="メール・LINE送信用文面"></textarea>
+            <p class="contract-save-status" id="contactStatus" aria-live="polite"></p>
+            <div class="security-panel contact-security-panel">
+              <p class="section-kicker">CHECK</p>
+              <h2>送信前確認</h2>
+              <ul>
+                <li>契約書PDFを保存して、メールまたはLINEに添付してください。</li>
+                <li>お客様から「内容確認しました」などの返信を受けて保管してください。</li>
+                <li>正式な控えはPDF保存または印刷で保管してください。</li>
+              </ul>
+            </div>
+          </aside>
+        </div>
+      </section>
+    </main>
+
+    <script src="contract-contact.js"></script>
+    <script type="module" src="contract-auth.bundle.js"></script>
+  </body>
+</html>
