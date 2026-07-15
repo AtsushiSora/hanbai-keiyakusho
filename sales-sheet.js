@@ -11,13 +11,18 @@ const feeExtraRows = document.querySelector("#feeExtraRows");
 
 const storageKey = "orderAutoSalesSheetRecords";
 const draftKey = "orderAutoSalesSheetDraft";
+const importKey = "orderAutoSalesTemplateImport";
 let activeRecordId = "";
 
 createRepeatingRows();
 setDefaultValues();
 restoreDraft();
+const importedContract = consumeImportedContract();
 renderRecordOptions(activeRecordId);
 calculateTotals();
+if (importedContract?.autoPrint) {
+  schedulePrint();
+}
 
 form?.addEventListener("input", () => {
   saveDraft();
@@ -281,6 +286,42 @@ function restoreDraft() {
   } catch {
     removeStorage(draftKey);
   }
+}
+
+function consumeImportedContract() {
+  try {
+    const payload = JSON.parse(sessionStorage.getItem(importKey) || "{}");
+    sessionStorage.removeItem(importKey);
+    if (!payload?.data) {
+      return null;
+    }
+
+    activeRecordId = "";
+    form.reset();
+    setDefaultValues();
+    applyFormData(payload.data);
+    saveDraft();
+    setStatus("契約書作成ページの内容を帳票型PDFへ転記しました。");
+    return payload;
+  } catch {
+    removeStorage(importKey);
+    return null;
+  }
+}
+
+function schedulePrint() {
+  const image = document.querySelector(".pdf-template-sheet > img");
+  const print = () => {
+    setTimeout(() => window.print(), 350);
+  };
+
+  if (!image || image.complete) {
+    print();
+    return;
+  }
+
+  image.addEventListener("load", print, { once: true });
+  image.addEventListener("error", print, { once: true });
 }
 
 function calculateTotals() {

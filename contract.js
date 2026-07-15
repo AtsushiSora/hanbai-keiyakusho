@@ -29,6 +29,7 @@ const contractHistorySelect = document.querySelector("#contractHistorySelect");
 const deleteRecordButton = document.querySelector("#deleteRecordButton");
 const clearAllRecordsButton = document.querySelector("#clearAllRecordsButton");
 const contractSaveStatus = document.querySelector("#contractSaveStatus");
+const salesTemplateImportKey = "orderAutoSalesTemplateImport";
 
 let signatureImage = "";
 let isDrawing = false;
@@ -46,7 +47,7 @@ form?.addEventListener("input", handleContractChange);
 form?.addEventListener("change", handleContractChange);
 emailConsentChecked?.addEventListener("change", renderContract);
 clearSignatureButton?.addEventListener("click", clearSignature);
-printContractButton?.addEventListener("click", () => window.print());
+printContractButton?.addEventListener("click", openSalesTemplateForPrint);
 saveRecordButton?.addEventListener("click", saveContractRecord);
 downloadHtmlButton?.addEventListener("click", downloadContractHtml);
 copySummaryButton?.addEventListener("click", copyContractSummary);
@@ -373,7 +374,7 @@ function updateEmailLink(data) {
   const body = `${createContractSummary(data)}
 
 上記内容をご確認いただき、問題なければ「契約内容に同意します」とご返信ください。
-PDFを添付して送付する場合は、契約書作成画面から「印刷・PDF保存」で保存したPDFを添付してください。`;
+PDFを添付して送付する場合は、契約書作成画面から「帳票型PDFで印刷」で保存したPDFを添付してください。`;
 
   emailContractLink.href = `mailto:${encodeURIComponent(buyerEmail)}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(body)}`;
 }
@@ -393,6 +394,55 @@ function createContractSummary(data) {
     `代表者: ${seller.representative}`,
     `電話番号: ${seller.phone}`,
   ].join("\n");
+}
+
+function openSalesTemplateForPrint() {
+  const data = getData();
+  const templateData = mapContractToSalesTemplate(data);
+  const payload = {
+    data: templateData,
+    autoPrint: true,
+    importedAt: new Date().toISOString(),
+  };
+
+  try {
+    sessionStorage.setItem(salesTemplateImportKey, JSON.stringify(payload));
+  } catch {
+    updateSaveStatus("帳票型PDFへ転記できませんでした。ブラウザの保存設定を確認してください。");
+    return;
+  }
+
+  window.location.href = "sales-template.html?print=1";
+}
+
+function mapContractToSalesTemplate(data) {
+  return {
+    estimateDate: data.contractDate || new Date().toISOString().slice(0, 10),
+    carType: "中古車",
+    buyerName: data.buyerName || "",
+    buyerPhone: data.buyerPhone || "",
+    buyerEmail: data.buyerEmail || "",
+    buyerAddress: data.buyerAddress || "",
+    vehicleName: data.vehicleName || "",
+    vehicleGrade: data.vehicleGrade || "",
+    vehicleYear: data.vehicleYear || "",
+    fullModel: data.vehicleModel || "",
+    modelCode: data.vehicleModel || "",
+    vin: data.vehicleVin || "",
+    mileage: data.vehicleMileage || "",
+    inspectionDate: data.inspectionDate || "",
+    plateNo: data.vehiclePlate || "",
+    bodyColor: data.vehicleColor || "",
+    repairHistory: data.repairHistory || "",
+    basePrice: data.basePrice || "",
+    storeDeliveryPrice: data.basePrice || "",
+    taxInsurance: data.taxes || "",
+    salesExpense: data.fees || "",
+    recycleDeposit: data.recycleFee || "",
+    includedTax: "",
+    cashPayment: data.totalPrice || calculateTotal(data) || "",
+    memo: data.specialNotes || "",
+  };
 }
 
 async function copyContractSummary() {
