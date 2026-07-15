@@ -14,21 +14,40 @@
         <p>ORDER AUTO</p>
         <h1>販売契約書PDFテンプレート</h1>
       </div>
-      <div class="template-toolbar-actions">
-        <select id="recordSelect" aria-label="保存済み帳票">
-          <option value="">新規作成</option>
-        </select>
-        <button type="button" id="newButton">新規</button>
-        <button type="button" id="sampleButton">サンプル入力</button>
-        <button type="button" id="saveButton">上書き保存</button>
-        <button type="button" id="deleteButton">削除</button>
-        <a class="template-button secondary" href="assets/sales-contract-template.pdf" download="sales-contract-template.pdf">ベースPDF</a>
-        <button type="button" id="printButton">印刷・PDF保存</button>
-      </div>
-      <p class="template-status" id="sheetStatus" aria-live="polite"></p>
+      <nav class="template-nav" aria-label="契約システムナビゲーション">
+        <a href="contract.html">トップ</a>
+        <a href="contract-create.html">契約書作成</a>
+        <a href="contract-list.html">契約一覧</a>
+      </nav>
     </header>
 
     <main class="template-page-wrap">
+      <aside class="template-control-panel" aria-label="帳票操作">
+        <div>
+          <p>Editor</p>
+          <h2>帳票操作</h2>
+        </div>
+        <label>
+          <span>保存済み帳票</span>
+          <select id="recordSelect" aria-label="保存済み帳票">
+            <option value="">新規作成</option>
+          </select>
+        </label>
+        <div class="template-action-grid">
+          <button type="button" id="newButton">新規</button>
+          <button type="button" id="sampleButton">サンプル入力</button>
+          <button type="button" id="saveButton">上書き保存</button>
+          <button type="button" id="deleteButton">削除</button>
+          <a class="template-button secondary" href="assets/sales-contract-template.pdf" download="sales-contract-template.pdf">ベースPDF</a>
+          <button type="button" id="printButton">印刷・PDF保存</button>
+        </div>
+        <p class="template-status" id="sheetStatus" aria-live="polite"></p>
+        <div class="template-note">
+          <strong>使い方</strong>
+          <span>右側のPDFテンプレート上に直接入力し、上書き保存または印刷・PDF保存します。</span>
+        </div>
+      </aside>
+
       <form class="pdf-template-form" id="salesSheetForm" autocomplete="off">
         <section class="pdf-template-sheet" aria-label="販売契約書PDFテンプレート">
           <img src="assets/sales-contract-template.jpg" alt="販売契約書テンプレート" />
