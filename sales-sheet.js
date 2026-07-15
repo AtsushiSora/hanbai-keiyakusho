@@ -1,7 +1,6 @@
 const form = document.querySelector("#salesSheetForm");
 const recordSelect = document.querySelector("#recordSelect");
 const newButton = document.querySelector("#newButton");
-const sampleButton = document.querySelector("#sampleButton");
 const saveButton = document.querySelector("#saveButton");
 const deleteButton = document.querySelector("#deleteButton");
 const printButton = document.querySelector("#printButton");
@@ -34,7 +33,6 @@ form?.addEventListener("change", () => {
 });
 recordSelect?.addEventListener("change", loadSelectedRecord);
 newButton?.addEventListener("click", startNew);
-sampleButton?.addEventListener("click", fillSampleData);
 saveButton?.addEventListener("click", saveRecord);
 deleteButton?.addEventListener("click", deleteRecord);
 printButton?.addEventListener("click", () => window.print());
@@ -162,65 +160,6 @@ function deleteRecord() {
   activeRecordId = "";
   renderRecordOptions();
   setStatus("削除しました。");
-}
-
-function fillSampleData() {
-  const sample = {
-    documentTitle: "お見積書",
-    estimateDate: "2026-06-06",
-    validUntil: "2026-06-16",
-    estimateNo: "004021371",
-    controlNo: "26-1042",
-    carType: "中古車",
-    notice: "※検なし",
-    warranty: "なし",
-    inspectionStatus: "",
-    repairHistory: "無",
-    vehicleName: "トヨタ ノア",
-    vehicleGrade: "HYBRID Si",
-    vehicleYear: "平成29年01月",
-    mission: "CVT",
-    equipment: "AAC PS PW キーレス スマート 集中D 電動S TV ナビ 後DISP WエアB ABS ESC 1セグ 3列 フラット Wスルー Pガラス AW16",
-    vin: "ZWR80-0287554",
-    engineSize: "1,800CC",
-    doorCount: "5",
-    fullModel: "DAA-ZWR80W-APXSB",
-    modelCode: "DAA-ZWR80W",
-    mileage: "84,074Km",
-    capacity: "7人",
-    bodyColor: "ブラック",
-    basePrice: "1905535",
-    storeDeliveryPrice: "1905535",
-    customPrice: "40537",
-    taxInsurance: "67760",
-    salesExpense: "55598",
-    otherExpense: "29570",
-    includedTax: "181970",
-    cashPayment: "2099000",
-    optionName1: "車検整備費用（普通車）",
-    optionPrice1: "40537",
-    autoTaxMonth: "9ヶ月",
-    autoTaxAmount: "29600",
-    weightTax: "20000",
-    liabilityInsuranceMonth: "25ヶ月",
-    liabilityInsurance: "18160",
-    inspectionRegisterFee: "35432",
-    parkingCertificateFee: "20166",
-    parkingActualFee: "14800",
-    feeName1: "車庫証明費用",
-    feePrice1: "2300",
-    recycleDeposit: "12470",
-    contactMemo: "株式会社 ビットイン鯉城商事\nカーコンビニ倶楽部 五日市店\n〒731-5108\n広島県広島市佐伯区石内南1-4-1\nTEL 082-928-5511\nFAX 082-928-6432",
-    memo: "広島銀行 古市支店 普通 3015554\n広島信用金庫 五日市支店 当座 0602384\n広島市信用組合 商工センター支店 当座 0014188",
-  };
-
-  activeRecordId = "";
-  form.reset();
-  applyFormData(sample);
-  renderRecordOptions();
-  saveDraft();
-  calculateTotals();
-  setStatus("サンプルを入力しました。必要な内容に上書きして保存できます。");
 }
 
 function renderRecordOptions(selectedId = "") {
