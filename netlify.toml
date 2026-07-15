@@ -6,11 +6,6 @@
   directory = "netlify/functions"
   node_bundler = "esbuild"
 
-[[redirects]]
-  from = "/thanks"
-  to = "/thanks.html"
-  status = 200
-
 [[headers]]
   for = "/*"
   [headers.values]
@@ -23,6 +18,12 @@
 
 [[headers]]
   for = "/contract.html"
+  [headers.values]
+    Cache-Control = "no-store"
+    X-Robots-Tag = "noindex, nofollow, noarchive"
+
+[[headers]]
+  for = "/sales-sheet.html"
   [headers.values]
     Cache-Control = "no-store"
     X-Robots-Tag = "noindex, nofollow, noarchive"
