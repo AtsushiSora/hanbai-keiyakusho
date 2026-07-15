@@ -35,12 +35,6 @@
     X-Robots-Tag = "noindex, nofollow, noarchive"
 
 [[headers]]
-  for = "/sales-sheet.html"
-  [headers.values]
-    Cache-Control = "no-store"
-    X-Robots-Tag = "noindex, nofollow, noarchive"
-
-[[headers]]
   for = "/sales-template.html"
   [headers.values]
     Cache-Control = "no-store"
