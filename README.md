@@ -1,13 +1,13 @@
 # 販売契約書
 
-自動車売買契約書兼注文書を作成する管理者向けツールです。
+車両販売契約の入力内容を帳票型PDFへ転記し、PDF保存・印刷する管理者向けツールです。
 
 ## 使うファイル
 
 - `contract.html`: 契約書メニュー
 - `contract-create.html`: 契約書作成画面
 - `contract-list.html`: 契約一覧画面
-- `contract.js`: 契約書入力、プレビュー、印刷、端末内履歴
+- `contract.js`: 契約書入力、帳票型PDFへの転記、端末内履歴
 - `sales-template.html`: 添付写真をPDF化したテンプレートに入力する帳票型ページ
 - `sales-sheet.js`: 帳票型ページの保存、上書き、自動計算
 - `contract-auth.bundle.js`: 管理者ログイン用のビルド済みJS

@@ -85,9 +85,15 @@ function renderContract() {
 
   const data = getData();
   const mode = data.completionMode;
-  contractModeGuide.textContent = modeGuides[mode] || modeGuides.paper;
-  signaturePanel.hidden = mode !== "tablet";
-  emailPanel.hidden = mode !== "email";
+  if (contractModeGuide) {
+    contractModeGuide.textContent = modeGuides[mode] || modeGuides.paper;
+  }
+  if (signaturePanel) {
+    signaturePanel.hidden = mode !== "tablet";
+  }
+  if (emailPanel) {
+    emailPanel.hidden = mode !== "email";
+  }
   contractDocument.innerHTML = createContractHtml(data);
   updateEmailLink(data);
   updateSaveStatus("");
@@ -469,8 +475,6 @@ function saveContractRecord() {
     id: existingIndex >= 0 ? records[existingIndex].id : createRecordId(),
     savedAt: new Date().toISOString(),
     data,
-    signatureImage,
-    emailConsentChecked: Boolean(emailConsentChecked?.checked),
   };
 
   if (existingIndex >= 0) {
@@ -504,11 +508,6 @@ function loadSelectedContractRecord() {
   }
 
   applyContractData(record.data || {});
-  signatureImage = record.signatureImage || "";
-  if (emailConsentChecked) {
-    emailConsentChecked.checked = Boolean(record.emailConsentChecked);
-  }
-  restoreSignatureImageToCanvas(signatureImage);
   if (deleteRecordButton) {
     deleteRecordButton.disabled = false;
   }
@@ -558,11 +557,6 @@ function startNewContract() {
   }
 
   form.reset();
-  signatureImage = "";
-  clearSignatureCanvasOnly();
-  if (emailConsentChecked) {
-    emailConsentChecked.checked = false;
-  }
   if (contractHistorySelect) {
     contractHistorySelect.value = "";
   }
@@ -592,18 +586,11 @@ function createRecordId() {
 function getContractRecordPayload() {
   return {
     data: getData(),
-    signatureImage,
-    emailConsentChecked: Boolean(emailConsentChecked?.checked),
   };
 }
 
 function loadContractRecordPayload(record) {
   applyContractData(record?.data || {});
-  signatureImage = record?.signatureImage || "";
-  if (emailConsentChecked) {
-    emailConsentChecked.checked = Boolean(record?.emailConsentChecked);
-  }
-  restoreSignatureImageToCanvas(signatureImage);
   saveDraft();
   renderContract();
 }
