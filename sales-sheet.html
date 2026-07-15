@@ -19,6 +19,7 @@
           <option value="">新規作成</option>
         </select>
         <button type="button" id="newButton">新規</button>
+        <button type="button" id="sampleButton">サンプル入力</button>
         <button type="button" id="saveButton">上書き保存</button>
         <button type="button" id="deleteButton">削除</button>
         <button type="button" id="printButton">印刷・PDF保存</button>
@@ -29,7 +30,7 @@
     <main class="sheet-page-wrap">
       <form class="sales-sheet" id="salesSheetForm" autocomplete="off">
         <section class="sheet-title-band">
-          <h2>販売契約書兼注文書</h2>
+          <h2><input class="sheet-title-input" name="documentTitle" value="お見積書" aria-label="帳票タイトル" /></h2>
           <div class="seller-box">
             <strong>売主</strong>
             <span>オーダーオート</span>

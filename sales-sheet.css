@@ -88,7 +88,8 @@ textarea {
 }
 
 .sheet-toolbar button:nth-of-type(1),
-.sheet-toolbar button:nth-of-type(3) {
+.sheet-toolbar button:nth-of-type(2),
+.sheet-toolbar button:nth-of-type(4) {
   color: var(--sheet-dark);
   background: #fff;
 }
@@ -131,6 +132,17 @@ textarea {
   font-size: 1.7rem;
   text-align: center;
   border-bottom: 3px solid var(--sheet-dark);
+}
+
+.sheet-title-input {
+  width: 100%;
+  border: 0;
+  outline: 0;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  font-weight: 900;
+  text-align: center;
 }
 
 .seller-box {
