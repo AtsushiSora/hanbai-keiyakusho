@@ -3,12 +3,12 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>契約書メニュー｜オーダーオート</title>
+    <title>契約一覧｜オーダーオート</title>
     <meta name="description" content="オーダーオートの車両販売契約書を作成、印刷、タブレット署名、メール確認できる契約作成システムです。" />
     <meta name="robots" content="noindex, nofollow" />
     <link rel="stylesheet" href="styles.css?v=contract6" />
   </head>
-  <body class="admin-page contract-page sales-contract-system contract-home-page auth-loading">
+  <body class="admin-page contract-page sales-contract-system contract-list-page auth-loading">
     <header class="site-header admin-header">
       <a class="brand" href="contract.html" aria-label="オーダーオート　契約作成 ホーム">
         <span class="brand-mark" aria-hidden="true"><img src="assets/brand-logo.png" alt="" /></span>
@@ -298,6 +298,7 @@
                 </div>
               </div>
               <p>管理者ログイン中のみ、Netlify上の保存済み契約を読み込みます。</p>
+              <a class="secondary-button list-create-link" href="contract-create.html">契約書作成ページへ</a>
               <select id="serverContractSelect" aria-label="サーバー保存済み契約">
                 <option value="">保存済み契約はありません</option>
               </select>

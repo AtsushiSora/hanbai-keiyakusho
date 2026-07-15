@@ -2030,6 +2030,31 @@ pre {
   line-height: 1.55;
 }
 
+.contract-home-page .contract-workspace,
+.contract-home-page .contract-preview-section,
+.contract-create-page .contract-menu-section,
+.contract-list-page .contract-menu-section,
+.contract-list-page .contract-preview-section {
+  display: none;
+}
+
+.contract-list-page .contract-layout {
+  grid-template-columns: minmax(0, 760px);
+  justify-content: center;
+}
+
+.contract-list-page .contract-form,
+.contract-list-page .contract-actions,
+.contract-list-page .security-panel,
+.contract-list-page .signature-panel,
+.contract-list-page .email-panel {
+  display: none;
+}
+
+.contract-list-page .contract-side {
+  position: static;
+}
+
 .contract-workspace {
   padding-bottom: 34px;
 }
