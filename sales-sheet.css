@@ -1,0 +1,562 @@
+:root {
+  --sheet-green: #2fbf65;
+  --sheet-dark: #168a3d;
+  --sheet-soft: #dff9e5;
+  --sheet-line: #1d8c42;
+  --sheet-cream: #fff0d6;
+  --ink: #12201a;
+  --paper: #ffffff;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  color: var(--ink);
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", "Yu Gothic",
+    "YuGothic", "Meiryo", sans-serif;
+  background: #eef4f0;
+}
+
+button,
+input,
+select,
+textarea {
+  font: inherit;
+}
+
+.sheet-toolbar {
+  position: sticky;
+  top: 0;
+  z-index: 10;
+  display: grid;
+  grid-template-columns: auto 1fr auto;
+  gap: 14px;
+  align-items: center;
+  padding: 12px 20px;
+  background: rgba(255, 255, 255, 0.96);
+  border-bottom: 1px solid #d6e2da;
+  box-shadow: 0 8px 26px rgba(26, 58, 39, 0.1);
+}
+
+.sheet-toolbar p,
+.sheet-toolbar h1 {
+  margin: 0;
+}
+
+.sheet-toolbar p {
+  color: var(--sheet-dark);
+  font-size: 0.72rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+}
+
+.sheet-toolbar h1 {
+  font-size: 1.1rem;
+}
+
+.sheet-toolbar-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.sheet-toolbar select,
+.sheet-toolbar button {
+  min-height: 38px;
+  border: 1px solid #b8cfc0;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.sheet-toolbar select {
+  min-width: 260px;
+  padding: 0 10px;
+}
+
+.sheet-toolbar button {
+  padding: 0 14px;
+  color: #fff;
+  background: var(--sheet-dark);
+  border-color: var(--sheet-dark);
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.sheet-toolbar button:nth-of-type(1),
+.sheet-toolbar button:nth-of-type(3) {
+  color: var(--sheet-dark);
+  background: #fff;
+}
+
+.sheet-status {
+  min-width: 170px;
+  color: #5b6a60;
+  font-size: 0.82rem;
+  text-align: right;
+}
+
+.sheet-page-wrap {
+  padding: 24px;
+  overflow-x: auto;
+}
+
+.sales-sheet {
+  width: 1120px;
+  min-height: 1584px;
+  margin: 0 auto;
+  padding: 18px;
+  background: var(--paper);
+  border: 1px solid #cddbd1;
+  box-shadow: 0 18px 48px rgba(19, 44, 28, 0.18);
+}
+
+.sheet-title-band {
+  display: grid;
+  grid-template-columns: 1fr 300px;
+  align-items: start;
+  gap: 16px;
+  margin-bottom: 10px;
+}
+
+.sheet-title-band h2 {
+  align-self: end;
+  margin: 0;
+  padding: 10px 0 6px;
+  color: var(--sheet-dark);
+  font-size: 1.7rem;
+  text-align: center;
+  border-bottom: 3px solid var(--sheet-dark);
+}
+
+.seller-box {
+  display: grid;
+  gap: 1px;
+  border: 2px solid var(--sheet-line);
+}
+
+.seller-box strong,
+.seller-box span {
+  padding: 2px 8px;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  border-bottom: 1px solid var(--sheet-line);
+}
+
+.seller-box strong {
+  color: #fff;
+  background: var(--sheet-green);
+}
+
+.seller-box span:last-child {
+  border-bottom: 0;
+}
+
+.box,
+.sheet-grid {
+  border: 2px solid var(--sheet-line);
+}
+
+.sheet-grid,
+.box {
+  background: #fff;
+}
+
+.top-grid {
+  display: grid;
+  grid-template-columns: 1.55fr 0.74fr;
+  grid-template-areas:
+    "customer meta"
+    "customer notice"
+    "condition condition";
+  gap: 6px;
+  border: 0;
+}
+
+.customer-box {
+  grid-area: customer;
+  position: relative;
+  display: grid;
+  grid-template-columns: 72px 1fr 160px;
+  grid-template-areas:
+    "name kana kana"
+    "zip address birth"
+    "phone phone mobile"
+    "email email email"
+    "job job job";
+  padding-left: 26px;
+}
+
+.meta-box {
+  grid-area: meta;
+  display: grid;
+}
+
+.notice-box {
+  grid-area: notice;
+  min-height: 140px;
+}
+
+.condition-box {
+  grid-area: condition;
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+}
+
+.vertical-title {
+  display: grid;
+  place-items: center;
+  color: #063f20;
+  background: var(--sheet-green);
+  font-size: 0.82rem;
+  font-weight: 900;
+  writing-mode: vertical-rl;
+  text-orientation: upright;
+  line-height: 1.15;
+}
+
+.customer-box > .vertical-title,
+.vehicle-grid > .vertical-title,
+.price-section > .vertical-title,
+.loan-section > .vertical-title,
+.trade-detail-section > .vertical-title,
+.option-section > .vertical-title,
+.fee-section > .vertical-title,
+.terms-section > .vertical-title {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 26px;
+  border-right: 1px solid var(--sheet-line);
+}
+
+.cell,
+.row,
+.notice-box label,
+.contact-box,
+.memo-box {
+  display: grid;
+  min-height: 28px;
+  border-bottom: 1px solid var(--sheet-line);
+}
+
+.cell {
+  grid-template-columns: 82px 1fr;
+}
+
+.cell span,
+.row span,
+.notice-box span,
+.contact-box span,
+.memo-box span {
+  display: grid;
+  place-items: center start;
+  padding: 3px 7px;
+  background: var(--sheet-soft);
+  border-right: 1px solid var(--sheet-line);
+  font-size: 0.78rem;
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.cell input,
+.row input,
+.notice-box textarea,
+.contact-box textarea,
+.memo-box textarea {
+  width: 100%;
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  padding: 3px 6px;
+  background: transparent;
+  font-size: 0.86rem;
+}
+
+textarea {
+  resize: vertical;
+}
+
+.name-cell {
+  grid-area: name;
+}
+
+.kana-cell {
+  grid-area: kana;
+}
+
+.zip-cell {
+  grid-area: zip;
+}
+
+.address-cell {
+  grid-area: address;
+}
+
+.birth-cell {
+  grid-area: birth;
+}
+
+.phone-cell {
+  grid-area: phone;
+}
+
+.mobile-cell {
+  grid-area: mobile;
+}
+
+.email-cell {
+  grid-area: email;
+}
+
+.job-cell {
+  grid-area: job;
+  border-bottom: 0;
+}
+
+.vehicle-grid {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1.3fr 1fr 0.75fr 0.75fr;
+  gap: 0;
+  margin-top: 10px;
+  padding-left: 26px;
+}
+
+.vehicle-grid .cell {
+  border-right: 1px solid var(--sheet-line);
+}
+
+.sheet-columns {
+  display: grid;
+  grid-template-columns: 1fr 1.08fr;
+  gap: 10px;
+  margin-top: 10px;
+}
+
+.left-column,
+.right-column {
+  display: grid;
+  gap: 8px;
+  align-content: start;
+}
+
+.price-section,
+.loan-section,
+.trade-detail-section,
+.option-section,
+.fee-section,
+.terms-section {
+  position: relative;
+  padding-left: 26px;
+}
+
+.row {
+  grid-template-columns: 1fr 70px 130px;
+  align-items: stretch;
+}
+
+.row small {
+  display: grid;
+  place-items: center;
+  min-width: 0;
+  color: #24452e;
+  background: #f5fff7;
+  border-right: 1px solid var(--sheet-line);
+  font-size: 0.74rem;
+}
+
+.row output {
+  display: grid;
+  place-items: center end;
+  min-width: 0;
+  padding: 3px 8px;
+  font-weight: 900;
+}
+
+.row.total span,
+.row.total output {
+  color: #063f20;
+  background: var(--sheet-green);
+}
+
+.row.grand {
+  grid-template-columns: 1fr 200px;
+  background: var(--sheet-cream);
+}
+
+.row.grand span,
+.row.grand output {
+  background: var(--sheet-cream);
+  font-size: 1.05rem;
+}
+
+.row.grand output {
+  justify-content: end;
+}
+
+.trade-section .row,
+.payment-section .row,
+.trade-detail-section .row {
+  grid-template-columns: 1fr 70px 130px;
+}
+
+.loan-section .row {
+  grid-template-columns: 1fr 1fr 38px 64px;
+}
+
+.loan-section .row:first-of-type,
+.loan-section .row:nth-of-type(4) {
+  grid-template-columns: 1fr 172px;
+}
+
+.option-section {
+  min-height: 438px;
+}
+
+.option-rows,
+.fee-extra-rows {
+  display: grid;
+}
+
+.option-line {
+  display: grid;
+  grid-template-columns: 1fr 120px;
+  min-height: 27px;
+  border-bottom: 1px solid var(--sheet-line);
+}
+
+.option-line input {
+  min-width: 0;
+  border: 0;
+  outline: 0;
+  padding: 3px 6px;
+  background: transparent;
+}
+
+.option-line input:first-child {
+  border-right: 1px solid var(--sheet-line);
+}
+
+.fee-section .row {
+  grid-template-columns: 1fr 94px 120px;
+}
+
+.fee-extra-rows .option-line {
+  grid-template-columns: 1fr 120px;
+}
+
+.terms-section {
+  padding-top: 8px;
+  padding-bottom: 8px;
+}
+
+.terms-section ol {
+  margin: 0;
+  padding: 0 10px 0 26px;
+  font-size: 0.72rem;
+  line-height: 1.5;
+}
+
+.bottom-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.contact-box,
+.memo-box {
+  min-height: 132px;
+}
+
+.contact-box span,
+.memo-box span {
+  min-height: 28px;
+  border-right: 0;
+  border-bottom: 1px solid var(--sheet-line);
+}
+
+.signature-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+  padding: 12px;
+}
+
+.signature-section div {
+  min-height: 92px;
+}
+
+.signature-section strong {
+  display: block;
+  color: var(--sheet-dark);
+  font-size: 0.86rem;
+}
+
+.signature-section span {
+  display: block;
+  height: 54px;
+  border-bottom: 1px solid #111;
+}
+
+@media (max-width: 900px) {
+  .sheet-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .sheet-toolbar-actions {
+    justify-content: stretch;
+  }
+
+  .sheet-toolbar select,
+  .sheet-toolbar button {
+    flex: 1 1 150px;
+  }
+}
+
+@page {
+  size: A4 portrait;
+  margin: 7mm;
+}
+
+@media print {
+  body {
+    background: #fff;
+  }
+
+  .sheet-toolbar {
+    display: none;
+  }
+
+  .sheet-page-wrap {
+    padding: 0;
+    overflow: visible;
+  }
+
+  .sales-sheet {
+    width: 196mm;
+    min-height: 283mm;
+    padding: 0;
+    border: 0;
+    box-shadow: none;
+    transform: none;
+  }
+
+  input,
+  textarea {
+    color: #000;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .box,
+  .sheet-grid,
+  .cell,
+  .row,
+  .option-line {
+    break-inside: avoid;
+  }
+}

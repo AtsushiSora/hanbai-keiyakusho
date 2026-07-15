@@ -6,6 +6,8 @@
 
 - `contract.html`: 契約書作成画面
 - `contract.js`: 契約書入力、プレビュー、印刷、端末内履歴
+- `sales-sheet.html`: 帳票型の販売契約書兼注文書。上書き保存、印刷、PDF保存に対応
+- `sales-sheet.js`: 帳票型ページの保存、上書き、自動計算
 - `contract-auth.bundle.js`: 管理者ログイン用のビルド済みJS
 - `netlify/functions/contracts.ts`: 契約一覧、保存、削除API
 - `TEST_GUIDE.md`: テスト手順書
