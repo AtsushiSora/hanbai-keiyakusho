@@ -1,7 +1,11 @@
-import { getUser, handleAuthCallback, login, logout, onAuthChange } from "@netlify/identity";
+import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
+import { SUPABASE_CONFIG } from "./supabase-config.js";
 
 const ENABLE_TEST_LOGIN = true;
+
 const testLoginStorageKey = "orderAutoTestLogin";
+const draftStorageKey = "orderAutoContractDraft";
+const tableName = SUPABASE_CONFIG.tableName || "order_auto_contracts";
 
 const loginPanel = document.querySelector("#loginPanel");
 const loginForm = document.querySelector("#adminLoginForm");
@@ -23,365 +27,379 @@ const exportContractsButton = document.querySelector("#exportContractsButton");
 const importContractsButton = document.querySelector("#importContractsButton");
 const importContractsFile = document.querySelector("#importContractsFile");
 
+const supabase = isSupabaseConfigured()
+  ? createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey, {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+      },
+    })
+  : null;
+
 let currentUser = null;
-let serverContracts = [];
+let cloudContracts = [];
 let isTestLogin = false;
-let listFilter = "all";
-let listSearch = "";
+let activeStatusFilter = "all";
+let activeSearchTerm = "";
 
 initAdminAuth();
 
 async function initAdminAuth() {
-  setAuthStatus("ログイン状態を確認しています。");
   setupTestLoginButton();
+
+  loginForm?.addEventListener("submit", handleLoginSubmit);
+  logoutButton?.addEventListener("click", handleLogout);
+  refreshServerContractsButton?.addEventListener("click", loadCloudContracts);
+  saveServerContractButton?.addEventListener("click", saveCloudContract);
+  loadServerContractButton?.addEventListener("click", () => loadSelectedContract("create"));
+  loadRemoteContractButton?.addEventListener("click", () => loadSelectedContract("remote"));
+  deleteServerContractButton?.addEventListener("click", deleteSelectedContract);
+  serverContractSelect?.addEventListener("change", () => setCloudButtonsDisabled(!serverContractSelect.value));
+  contractListSearch?.addEventListener("input", () => {
+    activeSearchTerm = contractListSearch.value.trim().toLowerCase();
+    renderCloudContracts(serverContractSelect?.value || "");
+  });
+  contractStatusTabs?.addEventListener("click", (event) => {
+    const button = event.target.closest("[data-filter]");
+    if (!button) {
+      return;
+    }
+    activeStatusFilter = button.dataset.filter || "all";
+    contractStatusTabs.querySelectorAll("[data-filter]").forEach((filterButton) => {
+      filterButton.classList.toggle("active", filterButton === button);
+    });
+    renderCloudContracts(serverContractSelect?.value || "");
+  });
+  contractCardList?.addEventListener("click", handleContractCardAction);
+  exportContractsButton?.addEventListener("click", exportContractsJson);
+  importContractsButton?.addEventListener("click", () => importContractsFile?.click());
+  importContractsFile?.addEventListener("change", importContractsJson);
 
   if (ENABLE_TEST_LOGIN && sessionStorage.getItem(testLoginStorageKey) === "1") {
     activateTestLogin();
     return;
   }
 
-  try {
-    await handleAuthCallback();
-  } catch {
-    setAuthStatus("ログイン確認でエラーが発生しました。再度ログインしてください。");
+  if (!supabase) {
+    applyLoggedOutState("Supabase設定が未入力です。src/supabase-config.js にURLとanon keyを設定してください。");
+    return;
   }
 
-  currentUser = await getUser();
-  await applyAuthState();
+  const { data } = await supabase.auth.getSession();
+  currentUser = data.session?.user || null;
+  if (currentUser) {
+    await activateCloudLogin();
+  } else {
+    applyLoggedOutState("Supabaseに登録した管理者アカウントでログインしてください。");
+  }
 
-  onAuthChange(async (_event, user) => {
-    currentUser = user;
-    await applyAuthState();
+  supabase.auth.onAuthStateChange(async (_event, session) => {
+    if (isTestLogin) {
+      return;
+    }
+    currentUser = session?.user || null;
+    if (currentUser) {
+      await activateCloudLogin();
+    } else {
+      applyLoggedOutState("Supabaseに登録した管理者アカウントでログインしてください。");
+    }
   });
 }
 
-loginForm?.addEventListener("submit", async (event) => {
+async function handleLoginSubmit(event) {
   event.preventDefault();
+  if (!loginForm) {
+    return;
+  }
+
+  if (!supabase) {
+    setAuthStatus("Supabase設定が未入力です。src/supabase-config.js を設定してください。");
+    return;
+  }
+
   const formData = new FormData(loginForm);
   const email = String(formData.get("email") || "").trim();
   const password = String(formData.get("password") || "");
-
   if (!email || !password) {
     setAuthStatus("メールアドレスとパスワードを入力してください。");
     return;
   }
 
+  setLoginFormDisabled(true);
   setAuthStatus("ログインしています。");
-  setAuthControlsDisabled(true);
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  setLoginFormDisabled(false);
 
-  try {
-    currentUser = await login(email, password);
-    loginForm.reset();
-    await applyAuthState();
-  } catch {
+  if (error || !data.user) {
     setAuthStatus("ログインできませんでした。メールアドレスまたはパスワードを確認してください。");
-  } finally {
-    setAuthControlsDisabled(false);
+    return;
   }
-});
 
-logoutButton?.addEventListener("click", async () => {
-  if (isTestLogin) {
-    sessionStorage.removeItem(testLoginStorageKey);
-  } else {
-    await logout();
-  }
+  currentUser = data.user;
+  isTestLogin = false;
+  sessionStorage.removeItem(testLoginStorageKey);
+  loginForm.reset();
+  await activateCloudLogin();
+}
+
+async function handleLogout() {
+  sessionStorage.removeItem(testLoginStorageKey);
   isTestLogin = false;
   currentUser = null;
-  serverContracts = [];
-  renderServerContracts();
-  await applyAuthState();
-});
+  cloudContracts = [];
+  if (supabase) {
+    await supabase.auth.signOut();
+  }
+  applyLoggedOutState("ログアウトしました。");
+}
 
-refreshServerContractsButton?.addEventListener("click", loadServerContracts);
-saveServerContractButton?.addEventListener("click", saveServerContract);
-loadServerContractButton?.addEventListener("click", loadSelectedServerContract);
-loadRemoteContractButton?.addEventListener("click", () => loadSelectedServerContract("remote"));
-deleteServerContractButton?.addEventListener("click", deleteSelectedServerContract);
-serverContractSelect?.addEventListener("change", () => setServerButtonsDisabled(!serverContractSelect.value));
-contractListSearch?.addEventListener("input", () => {
-  listSearch = contractListSearch.value.trim().toLowerCase();
-  renderServerContracts(serverContractSelect?.value || "");
-});
-contractStatusTabs?.addEventListener("click", (event) => {
-  const button = event.target.closest("[data-filter]");
-  if (!button) {
+function setupTestLoginButton() {
+  if (!testLoginButton) {
     return;
   }
-  listFilter = button.dataset.filter || "all";
-  contractStatusTabs.querySelectorAll("[data-filter]").forEach((item) => {
-    item.classList.toggle("active", item === button);
-  });
-  renderServerContracts(serverContractSelect?.value || "");
-});
-contractCardList?.addEventListener("click", handleContractCardClick);
-exportContractsButton?.addEventListener("click", exportContractsJson);
-importContractsButton?.addEventListener("click", () => importContractsFile?.click());
-importContractsFile?.addEventListener("change", importContractsJson);
+  testLoginButton.hidden = !ENABLE_TEST_LOGIN;
+  testLoginButton.addEventListener("click", activateTestLogin);
+}
 
-async function applyAuthState() {
+function activateTestLogin() {
+  isTestLogin = true;
+  currentUser = { email: "test-admin@example.local" };
+  sessionStorage.setItem(testLoginStorageKey, "1");
   document.body.classList.remove("auth-loading");
-
-  if (isTestLogin) {
-    document.body.classList.add("is-admin-authenticated");
+  document.body.classList.add("is-admin-authenticated");
+  if (loginPanel) {
     loginPanel.hidden = true;
+  }
+  if (adminUserLabel) {
     adminUserLabel.textContent = "テスト用ログイン中";
-    serverContracts = [];
-    renderServerContracts();
-    setAuthStatus("");
-    setServerStatus("テスト用ログイン中です。サーバー保存・契約一覧はNetlifyログイン時のみ利用できます。");
-    return;
   }
+  cloudContracts = getLocalTestContracts();
+  renderCloudContracts();
+  setStoredStatus("テスト用ログイン中です。保存はこのブラウザ内だけで確認できます。");
+}
 
-  if (!currentUser) {
-    document.body.classList.remove("is-admin-authenticated");
-    loginPanel.hidden = false;
-    setAuthStatus("管理者アカウントでログインしてください。");
-    return;
-  }
-
-  adminUserLabel.textContent = `${currentUser.email || "管理者"} でログイン中`;
-
-  try {
-    await loadServerContracts();
-    document.body.classList.add("is-admin-authenticated");
+async function activateCloudLogin() {
+  isTestLogin = false;
+  document.body.classList.remove("auth-loading");
+  document.body.classList.add("is-admin-authenticated");
+  if (loginPanel) {
     loginPanel.hidden = true;
-    setAuthStatus("");
-  } catch (error) {
-    document.body.classList.remove("is-admin-authenticated");
+  }
+  if (adminUserLabel) {
+    adminUserLabel.textContent = `${currentUser?.email || "管理者"} でログイン中`;
+  }
+  setAuthStatus("");
+  await loadCloudContracts();
+}
+
+function applyLoggedOutState(message) {
+  document.body.classList.remove("auth-loading");
+  document.body.classList.remove("is-admin-authenticated");
+  if (loginPanel) {
     loginPanel.hidden = false;
-    setAuthStatus(error?.status === 403 ? "このアカウントには管理者権限がありません。" : "認証確認に失敗しました。");
   }
+  if (adminUserLabel) {
+    adminUserLabel.textContent = "ログイン中";
+  }
+  setAuthStatus(message);
+  setStoredStatus("");
+  cloudContracts = [];
+  renderCloudContracts();
 }
 
-async function loadServerContracts() {
+async function loadCloudContracts() {
   if (isTestLogin) {
-    serverContracts = [];
-    renderServerContracts();
-    setServerStatus("テスト用ログイン中はサーバー契約一覧を利用できません。");
+    cloudContracts = getLocalTestContracts();
+    renderCloudContracts(serverContractSelect?.value || "");
+    setStoredStatus(cloudContracts.length ? `${cloudContracts.length}件の契約を読み込みました。` : "保存済み契約はありません。");
     return;
   }
 
-  if (!currentUser) {
+  if (!supabase || !currentUser) {
     return;
   }
 
-  setServerStatus("契約一覧を読み込んでいます。");
-  const response = await fetch("/api/contracts", {
-    headers: authHeaders(),
-    credentials: "same-origin",
-  });
+  setStoredStatus("契約一覧を読み込んでいます。");
+  const { data, error } = await supabase
+    .from(tableName)
+    .select("*")
+    .order("updated_at", { ascending: false });
 
-  if (!response.ok) {
-    const error = new Error("Contract list failed");
-    error.status = response.status;
-    throw error;
+  if (error) {
+    cloudContracts = [];
+    renderCloudContracts();
+    setStoredStatus("契約一覧を読み込めませんでした。Supabaseのテーブル設定を確認してください。");
+    return;
   }
 
-  const result = await response.json();
-  serverContracts = Array.isArray(result.contracts) ? result.contracts : [];
-  renderServerContracts();
-  setServerStatus(serverContracts.length ? `${serverContracts.length}件の契約を読み込みました。` : "保存済み契約はありません。");
+  cloudContracts = (data || []).map(fromSupabaseRecord);
+  renderCloudContracts(serverContractSelect?.value || "");
+  setStoredStatus(cloudContracts.length ? `${cloudContracts.length}件の契約を読み込みました。` : "保存済み契約はありません。");
 }
 
-function renderServerContracts(selectedId = "") {
-  if (serverContractSelect && !serverContracts.length) {
-    serverContractSelect.innerHTML = '<option value="">保存済み契約はありません</option>';
-    setServerButtonsDisabled(true);
+function renderCloudContracts(selectedId = "") {
+  if (serverContractSelect) {
+    if (!cloudContracts.length) {
+      serverContractSelect.innerHTML = '<option value="">保存済み契約はありません</option>';
+      setCloudButtonsDisabled(true);
+    } else {
+      serverContractSelect.innerHTML = [
+        '<option value="">契約を選択してください</option>',
+        ...cloudContracts.map((contract) => `<option value="${escapeHtml(contract.id)}">${escapeHtml(getStoredContractLabel(contract))}</option>`),
+      ].join("");
+      serverContractSelect.value = selectedId;
+      setCloudButtonsDisabled(!serverContractSelect.value);
+    }
   }
-
-  if (serverContractSelect && serverContracts.length) {
-    serverContractSelect.innerHTML = [
-    '<option value="">契約を選択してください</option>',
-    ...serverContracts.map((contract) => `<option value="${escapeHtml(contract.id)}">${escapeHtml(getServerContractLabel(contract))}</option>`),
-    ].join("");
-    serverContractSelect.value = selectedId;
-    setServerButtonsDisabled(!serverContractSelect.value);
-  }
-
   renderContractCards(selectedId);
 }
 
-async function saveServerContract() {
-  if (isTestLogin) {
-    setServerStatus("テスト用ログイン中はサーバー保存できません。印刷・PDF保存や端末内履歴で確認してください。");
+async function saveCloudContract() {
+  if (!window.contractTool) {
+    setStoredStatus("契約書作成ページで保存してください。");
     return;
   }
 
-  if (!currentUser || !window.contractTool) {
-    return;
-  }
-
-  const selectedId = serverContractSelect?.value || "";
   const payload = window.contractTool.getRecordPayload();
-  setServerStatus("契約を保存しています。");
-
-  const response = await fetch(selectedId ? `/api/contracts/${encodeURIComponent(selectedId)}` : "/api/contracts", {
-    method: "POST",
-    headers: {
-      ...authHeaders(),
-      "Content-Type": "application/json",
-    },
-    credentials: "same-origin",
-    body: JSON.stringify(payload),
+  const selectedId = serverContractSelect?.value || "";
+  const record = normalizeContractRecord({
+    id: selectedId || createRecordId(),
+    data: payload.data || {},
   });
 
-  if (!response.ok) {
-    setServerStatus("契約を保存できませんでした。");
+  if (isTestLogin) {
+    saveLocalTestContract(record);
+    cloudContracts = getLocalTestContracts();
+    renderCloudContracts(record.id);
+    setStoredStatus("テスト用としてブラウザ内に保存しました。");
     return;
   }
 
-  const result = await response.json();
-  await loadServerContracts();
-  renderServerContracts(result.contract?.id || selectedId);
-  setServerStatus("契約をサーバーに保存しました。");
+  if (!supabase || !currentUser) {
+    setStoredStatus("Supabaseログイン後に保存できます。");
+    return;
+  }
+
+  setStoredStatus("契約をクラウド保存しています。");
+  const dbRecord = toSupabaseRecord(record, currentUser.id);
+  const { data, error } = await supabase
+    .from(tableName)
+    .upsert(dbRecord, { onConflict: "id" })
+    .select()
+    .single();
+
+  if (error) {
+    setStoredStatus("契約をクラウド保存できませんでした。SupabaseのRLS設定を確認してください。");
+    return;
+  }
+
+  await loadCloudContracts();
+  renderCloudContracts(data?.id || record.id);
+  setStoredStatus("契約をクラウド保存しました。");
 }
 
-async function loadSelectedServerContract(targetPage = "create") {
-  if (isTestLogin) {
-    setServerStatus("テスト用ログイン中はサーバー契約の読み込みはできません。");
-    return;
-  }
-
-  const selectedId = serverContractSelect?.value;
+function loadSelectedContract(targetPage = "create") {
+  const selectedId = serverContractSelect?.value || "";
   if (!selectedId) {
-    setServerStatus("読み込む契約を選択してください。");
+    setStoredStatus("読み込む契約を選択してください。");
     return;
   }
 
-  setServerStatus("契約を読み込んでいます。");
-  const response = await fetch(`/api/contracts/${encodeURIComponent(selectedId)}`, {
-    headers: authHeaders(),
-    credentials: "same-origin",
-  });
-
-  if (!response.ok) {
-    setServerStatus("契約を読み込めませんでした。");
+  const selected = cloudContracts.find((contract) => contract.id === selectedId);
+  if (!selected) {
+    setStoredStatus("契約を読み込めませんでした。");
+    loadCloudContracts();
     return;
   }
 
-  const result = await response.json();
   if (targetPage === "remote") {
-    try {
-      sessionStorage.setItem("orderAutoContractDraft", JSON.stringify(result.contract?.data || {}));
-    } catch {
-      setServerStatus("契約情報をメール・LINE契約ページへ渡せませんでした。");
-      return;
-    }
-    window.location.href = "contract-contact.html";
+    transferContractToPage(selected, "contract-contact.html");
     return;
   }
 
   if (document.body.classList.contains("contract-list-page")) {
-    try {
-      sessionStorage.setItem("orderAutoContractDraft", JSON.stringify(result.contract?.data || {}));
-    } catch {
-      setServerStatus("契約情報を作成ページへ渡せませんでした。");
-      return;
-    }
-    window.location.href = "contract-create.html";
+    transferContractToPage(selected, "contract-create.html");
     return;
   }
 
   if (!window.contractTool) {
-    setServerStatus("契約書作成ページで読み込んでください。");
+    setStoredStatus("契約書作成ページで読み込んでください。");
     return;
   }
-
-  window.contractTool.loadRecordPayload(result.contract);
-  setServerStatus("契約情報をフォームに読み込みました。");
+  window.contractTool.loadRecordPayload(selected);
+  setStoredStatus("契約情報をフォームに読み込みました。");
 }
 
-async function deleteSelectedServerContract() {
-  if (isTestLogin) {
-    setServerStatus("テスト用ログイン中はサーバー契約の削除はできません。");
-    return;
-  }
-
-  const selectedId = serverContractSelect?.value;
+async function deleteSelectedContract() {
+  const selectedId = serverContractSelect?.value || "";
   if (!selectedId) {
-    setServerStatus("削除する契約を選択してください。");
+    setStoredStatus("削除する契約を選択してください。");
     return;
   }
 
-  const selected = serverContracts.find((contract) => contract.id === selectedId);
-  if (!window.confirm(`${selected ? getServerContractLabel(selected) : "選択した契約"}をサーバーから削除します。よろしいですか。`)) {
+  const selected = cloudContracts.find((contract) => contract.id === selectedId);
+  const label = selected ? getStoredContractLabel(selected) : "選択した契約";
+  if (!window.confirm(`${label}を削除します。よろしいですか。`)) {
     return;
   }
 
-  const response = await fetch(`/api/contracts/${encodeURIComponent(selectedId)}`, {
-    method: "DELETE",
-    headers: authHeaders(),
-    credentials: "same-origin",
-  });
-
-  if (!response.ok) {
-    setServerStatus("契約を削除できませんでした。");
+  if (isTestLogin) {
+    deleteLocalTestContract(selectedId);
+    cloudContracts = getLocalTestContracts();
+    renderCloudContracts();
+    setStoredStatus("契約を削除しました。");
     return;
   }
 
-  await loadServerContracts();
-  setServerStatus("契約を削除しました。");
+  if (!supabase || !currentUser) {
+    setStoredStatus("Supabaseログイン後に削除できます。");
+    return;
+  }
+
+  const { error } = await supabase.from(tableName).delete().eq("id", selectedId);
+  if (error) {
+    setStoredStatus("契約を削除できませんでした。");
+    return;
+  }
+
+  await loadCloudContracts();
+  setStoredStatus("契約を削除しました。");
 }
 
-async function handleContractCardClick(event) {
+function handleContractCardAction(event) {
   const button = event.target.closest("[data-contract-action]");
   if (!button) {
     return;
   }
 
   const id = button.dataset.contractId || "";
-  const source = button.dataset.contractSource || "server";
   const action = button.dataset.contractAction || "";
   if (!id || !action) {
     return;
   }
 
-  if (source === "local") {
-    handleLocalContractAction(id, action);
-    return;
-  }
-
   if (serverContractSelect) {
     serverContractSelect.value = id;
-    setServerButtonsDisabled(false);
+    setCloudButtonsDisabled(false);
   }
 
   if (action === "edit") {
-    await loadSelectedServerContract("create");
+    loadSelectedContract("create");
   } else if (action === "remote") {
-    await loadSelectedServerContract("remote");
+    loadSelectedContract("remote");
   } else if (action === "delete") {
-    await deleteSelectedServerContract();
+    deleteSelectedContract();
   }
 }
 
-function handleLocalContractAction(id, action) {
-  const record = getLocalContractRecords().find((item) => item.id === id);
-  if (!record) {
-    setServerStatus("契約を読み込めませんでした。");
-    renderServerContracts();
-    return;
-  }
-
-  if (action === "delete") {
-    if (!window.confirm(`${getContractCardTitle(toDisplayContract(record, "local"))}を削除します。よろしいですか。`)) {
-      return;
-    }
-    const nextRecords = getLocalContractRecords().filter((item) => item.id !== id);
-    writeLocalContractRecords(nextRecords);
-    renderServerContracts();
-    setServerStatus("端末内の契約を削除しました。");
-    return;
-  }
-
+function transferContractToPage(contract, targetPath) {
   try {
-    sessionStorage.setItem("orderAutoContractDraft", JSON.stringify(record.data || {}));
+    sessionStorage.setItem(draftStorageKey, JSON.stringify(contract.data || {}));
+    window.location.href = targetPath;
   } catch {
-    setServerStatus("契約情報を次のページへ渡せませんでした。");
-    return;
+    setStoredStatus("契約情報を次のページへ渡せませんでした。");
   }
-  window.location.href = action === "remote" ? "contract-contact.html" : "contract-create.html";
 }
 
 function renderContractCards(selectedId = "") {
@@ -389,141 +407,63 @@ function renderContractCards(selectedId = "") {
     return;
   }
 
-  const contracts = getVisibleContracts();
-  if (!contracts.length) {
-    contractCardList.innerHTML = `<div class="contract-list-empty">${isTestLogin ? "端末内に保存された契約はありません。" : "表示できる契約はありません。"}</div>`;
+  const displayContracts = getFilteredDisplayContracts();
+  if (!displayContracts.length) {
+    contractCardList.innerHTML = '<div class="contract-list-empty">表示できる契約はありません。</div>';
     return;
   }
 
-  contractCardList.innerHTML = contracts
-    .map((contract) => {
-      const title = getContractCardTitle(contract);
-      const subtitle = getContractCardSubtitle(contract);
-      const status = contract.status || "下書き";
-      return `
-        <article class="contract-list-card ${contract.id === selectedId ? "is-active" : ""}">
-          <div class="contract-card-main">
-            <strong>${escapeHtml(title)}</strong>
-            <span>${escapeHtml(subtitle)}</span>
-          </div>
-          <div class="contract-card-actions">
-            <span class="contract-status-chip">${escapeHtml(status)}</span>
-            <button class="secondary-button" type="button" data-contract-action="remote" data-contract-source="${escapeHtml(contract.source)}" data-contract-id="${escapeHtml(contract.id)}">メール・LINE契約</button>
-            <button class="secondary-button" type="button" data-contract-action="edit" data-contract-source="${escapeHtml(contract.source)}" data-contract-id="${escapeHtml(contract.id)}">編集</button>
-            <button class="secondary-button danger" type="button" data-contract-action="delete" data-contract-source="${escapeHtml(contract.source)}" data-contract-id="${escapeHtml(contract.id)}">削除</button>
-          </div>
-        </article>
-      `;
-    })
-    .join("");
+  contractCardList.innerHTML = displayContracts.map((contract) => {
+    const selectedClass = contract.id === selectedId ? " is-selected" : "";
+    return `
+      <article class="contract-list-card${selectedClass}">
+        <div>
+          <strong>${escapeHtml(contract.buyerName || "買主未入力")}</strong>
+          <span>${escapeHtml(getContractCardMeta(contract))}</span>
+        </div>
+        <div class="contract-list-card-actions">
+          <span class="status-pill">${escapeHtml(contract.status || "下書き")}</span>
+          <button class="secondary-button compact" type="button" data-contract-action="remote" data-contract-id="${escapeHtml(contract.id)}">メール・LINE契約</button>
+          <button class="secondary-button compact" type="button" data-contract-action="edit" data-contract-id="${escapeHtml(contract.id)}">編集</button>
+          <button class="secondary-button compact danger" type="button" data-contract-action="delete" data-contract-id="${escapeHtml(contract.id)}">削除</button>
+        </div>
+      </article>
+    `;
+  }).join("");
 }
 
-function getVisibleContracts() {
-  return getDisplayContracts().filter((contract) => {
+function getFilteredDisplayContracts() {
+  return cloudContracts.map(toDisplayContract).filter((contract) => {
     const status = contract.status || "下書き";
-    const matchesFilter = listFilter === "all" || status === listFilter;
-    const haystack = [
+    const matchesStatus = activeStatusFilter === "all" || status === activeStatusFilter;
+    const searchSource = [
       contract.id,
       contract.buyerName,
       contract.vehicleName,
       contract.totalPrice,
       status,
-    ]
-      .join(" ")
-      .toLowerCase();
-    const matchesSearch = !listSearch || haystack.includes(listSearch);
-    return matchesFilter && matchesSearch;
+    ].join(" ").toLowerCase();
+    const matchesSearch = !activeSearchTerm || searchSource.includes(activeSearchTerm);
+    return matchesStatus && matchesSearch;
   });
 }
 
-function getDisplayContracts() {
-  if (isTestLogin) {
-    return getLocalContractRecords().map((record) => toDisplayContract(record, "local"));
-  }
-
-  return serverContracts.map((contract) => toDisplayContract(contract, "server"));
-}
-
-function toDisplayContract(record, source) {
-  const data = record.data || {};
-  return {
-    id: record.id,
-    source,
-    buyerName: record.buyerName || data.buyerName || "",
-    vehicleName: record.vehicleName || data.vehicleName || "",
-    totalPrice: record.totalPrice || formatYen(data.totalPrice || calculateTotal(data)) || "",
-    status: record.status || data.remoteStatus || data.contractStatus || "下書き",
-    updatedAt: record.updatedAt || record.savedAt || record.savedAt || "",
-    data,
-  };
-}
-
-function getContractCardTitle(contract) {
-  return contract.buyerName || "買主未入力";
-}
-
-function getContractCardSubtitle(contract) {
-  const vehicle = contract.vehicleName || "車両未入力";
-  const total = contract.totalPrice || "金額未入力";
-  return `${vehicle} / 売買契約${total ? ` / ${total}` : ""}`;
-}
-
-function getLocalContractRecords() {
-  try {
-    const records = JSON.parse(localStorage.getItem("orderAutoContractRecords") || "[]");
-    return Array.isArray(records) ? records : [];
-  } catch {
-    return [];
-  }
-}
-
-function writeLocalContractRecords(records) {
-  try {
-    localStorage.setItem("orderAutoContractRecords", JSON.stringify(records));
-    return true;
-  } catch {
-    return false;
-  }
-}
-
-async function exportContractsJson() {
-  const contracts = isTestLogin ? getLocalContractRecords() : await fetchFullServerContracts();
+function exportContractsJson() {
   const payload = {
     exportedAt: new Date().toISOString(),
-    source: isTestLogin ? "local" : "server",
-    contracts,
+    source: isTestLogin ? "test-local" : "supabase",
+    contracts: cloudContracts,
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
-  const url = URL.createObjectURL(blob);
-  const link = document.createElement("a");
-  link.href = url;
-  link.download = `order-auto-sales-contracts-${new Date().toISOString().slice(0, 10)}.json`;
-  document.body.append(link);
-  link.click();
-  link.remove();
-  URL.revokeObjectURL(url);
-  setServerStatus("JSONを出力しました。");
-}
-
-async function fetchFullServerContracts() {
-  const results = [];
-  for (const summary of serverContracts) {
-    try {
-      const response = await fetch(`/api/contracts/${encodeURIComponent(summary.id)}`, {
-        headers: authHeaders(),
-        credentials: "same-origin",
-      });
-      if (response.ok) {
-        const result = await response.json();
-        results.push(result.contract || summary);
-      } else {
-        results.push(summary);
-      }
-    } catch {
-      results.push(summary);
-    }
-  }
-  return results;
+  const objectUrl = URL.createObjectURL(blob);
+  const anchor = document.createElement("a");
+  anchor.href = objectUrl;
+  anchor.download = `order-auto-sales-contracts-${new Date().toISOString().slice(0, 10)}.json`;
+  document.body.append(anchor);
+  anchor.click();
+  anchor.remove();
+  URL.revokeObjectURL(objectUrl);
+  setStoredStatus("JSONを出力しました。");
 }
 
 async function importContractsJson() {
@@ -535,23 +475,34 @@ async function importContractsJson() {
   try {
     const text = await file.text();
     const parsed = JSON.parse(text);
-    const contracts = Array.isArray(parsed) ? parsed : parsed.contracts;
-    if (!Array.isArray(contracts)) {
+    const incoming = Array.isArray(parsed) ? parsed : parsed.contracts;
+    if (!Array.isArray(incoming)) {
       throw new Error("Invalid JSON");
     }
 
+    const normalized = incoming.map(normalizeContractRecord);
     if (isTestLogin) {
-      const normalized = contracts.map(normalizeImportedLocalRecord);
-      writeLocalContractRecords([...normalized, ...getLocalContractRecords()].slice(0, 100));
-      renderServerContracts();
-      setServerStatus(`${normalized.length}件の契約を端末内に取り込みました。`);
-    } else {
-      const savedCount = await importContractsToServer(contracts);
-      await loadServerContracts();
-      setServerStatus(`${savedCount}件の契約をクラウドへ取り込みました。`);
+      normalized.forEach(saveLocalTestContract);
+      cloudContracts = getLocalTestContracts();
+      renderCloudContracts();
+      setStoredStatus(`${normalized.length}件の契約を取り込みました。`);
+      return;
     }
+
+    if (!supabase || !currentUser) {
+      setStoredStatus("Supabaseログイン後にJSON取込できます。");
+      return;
+    }
+
+    const dbRecords = normalized.map((record) => toSupabaseRecord(record, currentUser.id));
+    const { error } = await supabase.from(tableName).upsert(dbRecords, { onConflict: "id" });
+    if (error) {
+      throw error;
+    }
+    await loadCloudContracts();
+    setStoredStatus(`${normalized.length}件の契約を取り込みました。`);
   } catch {
-    setServerStatus("JSONを取り込めませんでした。ファイル形式を確認してください。");
+    setStoredStatus("JSONを取り込めませんでした。ファイル形式やSupabase設定を確認してください。");
   } finally {
     if (importContractsFile) {
       importContractsFile.value = "";
@@ -559,107 +510,122 @@ async function importContractsJson() {
   }
 }
 
-function normalizeImportedLocalRecord(record) {
-  const data = record.data || record;
+function toSupabaseRecord(record, userId) {
+  const normalized = normalizeContractRecord(record);
   return {
-    id: record.id || createLocalRecordId(),
-    savedAt: record.savedAt || record.createdAt || new Date().toISOString(),
+    id: normalized.id,
+    user_id: userId,
+    buyer_name: normalized.buyerName,
+    vehicle_name: normalized.vehicleName,
+    total_price: normalized.totalPrice,
+    status: normalized.status,
+    data: normalized.data,
+    updated_at: new Date().toISOString(),
+  };
+}
+
+function fromSupabaseRecord(record) {
+  return normalizeContractRecord({
+    id: record.id,
+    savedAt: record.created_at,
+    updatedAt: record.updated_at,
+    buyerName: record.buyer_name,
+    vehicleName: record.vehicle_name,
+    totalPrice: record.total_price,
+    status: record.status,
+    data: record.data || {},
+  });
+}
+
+function normalizeContractRecord(record) {
+  const data = record.data || record || {};
+  const now = new Date().toISOString();
+  const normalized = {
+    id: sanitizeRecordId(record.id) || createRecordId(),
+    savedAt: record.savedAt || record.createdAt || now,
+    updatedAt: record.updatedAt || record.savedAt || record.createdAt || now,
+    data,
+  };
+  const display = toDisplayContract(normalized);
+  normalized.buyerName = record.buyerName || display.buyerName;
+  normalized.vehicleName = record.vehicleName || display.vehicleName;
+  normalized.totalPrice = record.totalPrice || display.totalPrice;
+  normalized.status = record.status || display.status;
+  return normalized;
+}
+
+function toDisplayContract(record) {
+  const data = record.data || {};
+  return {
+    id: record.id,
+    buyerName: record.buyerName || data.buyerName || "",
+    vehicleName: record.vehicleName || data.vehicleName || "",
+    totalPrice: record.totalPrice || formatPrice(data.totalPrice || calculateTotal(data)) || "",
+    status: record.status || data.remoteStatus || data.contractStatus || "下書き",
+    updatedAt: record.updatedAt || record.savedAt || "",
     data,
   };
 }
 
-async function importContractsToServer(contracts) {
-  let savedCount = 0;
-  for (const contract of contracts) {
-    const data = contract.data || contract;
-    const id = sanitizeImportId(contract.id || "");
-    const response = await fetch(id ? `/api/contracts/${encodeURIComponent(id)}` : "/api/contracts", {
-      method: "POST",
-      headers: {
-        ...authHeaders(),
-        "Content-Type": "application/json",
-      },
-      credentials: "same-origin",
-      body: JSON.stringify({ data }),
-    });
-    if (response.ok) {
-      savedCount += 1;
-    }
-  }
-  return savedCount;
+function getContractCardMeta(contract) {
+  const vehicle = contract.vehicleName || "車両未入力";
+  const price = contract.totalPrice || "金額未入力";
+  return `${vehicle} / 売買契約 / ${price}`;
 }
 
-function sanitizeImportId(id) {
-  const cleaned = String(id || "").replace(/[^a-zA-Z0-9_-]/g, "");
-  return cleaned.length > 0 && cleaned.length <= 120 ? cleaned : "";
+function getStoredContractLabel(contract) {
+  const display = toDisplayContract(contract);
+  const buyer = display.buyerName || "買主未入力";
+  const vehicle = display.vehicleName || "車両未入力";
+  const price = display.totalPrice || "金額未入力";
+  return `${formatDate(display.updatedAt)} / ${buyer} / ${vehicle} / ${price}`;
 }
 
-function createLocalRecordId() {
-  if (window.crypto?.randomUUID) {
-    return window.crypto.randomUUID();
+function getLocalTestContracts() {
+  try {
+    const parsed = JSON.parse(localStorage.getItem("orderAutoContractRecords") || "[]");
+    return Array.isArray(parsed) ? parsed.map(normalizeContractRecord) : [];
+  } catch {
+    return [];
   }
-  return `contract-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function saveLocalTestContract(record) {
+  const records = getLocalTestContracts();
+  const index = records.findIndex((item) => item.id === record.id);
+  if (index >= 0) {
+    records[index] = normalizeContractRecord(record);
+  } else {
+    records.unshift(normalizeContractRecord(record));
+  }
+  localStorage.setItem("orderAutoContractRecords", JSON.stringify(records.slice(0, 100)));
+}
+
+function deleteLocalTestContract(id) {
+  const records = getLocalTestContracts().filter((record) => record.id !== id);
+  localStorage.setItem("orderAutoContractRecords", JSON.stringify(records));
 }
 
 function calculateTotal(data) {
-  const total =
-    parseAmount(data.basePrice) +
-    parseAmount(data.fees) +
-    parseAmount(data.taxes) +
-    parseAmount(data.recycleFee) -
-    parseAmount(data.discount);
+  const total = toNumber(data.basePrice)
+    + toNumber(data.fees)
+    + toNumber(data.taxes)
+    + toNumber(data.recycleFee)
+    - toNumber(data.discount);
   return total > 0 ? String(total) : "";
 }
 
-function parseAmount(value) {
+function formatPrice(value) {
+  const price = toNumber(value);
+  return price > 0 ? `金 ${price.toLocaleString("ja-JP")} 円` : "";
+}
+
+function toNumber(value) {
   const number = Number(String(value || "").replace(/[^\d.-]/g, ""));
   return Number.isFinite(number) ? number : 0;
 }
 
-function formatYen(value) {
-  const amount = parseAmount(value);
-  return amount > 0 ? `金 ${amount.toLocaleString("ja-JP")} 円` : "";
-}
-
-function setupTestLoginButton() {
-  if (!testLoginButton) {
-    return;
-  }
-
-  testLoginButton.hidden = !ENABLE_TEST_LOGIN;
-  testLoginButton.addEventListener("click", () => {
-    sessionStorage.setItem(testLoginStorageKey, "1");
-    activateTestLogin();
-  });
-}
-
-async function activateTestLogin() {
-  isTestLogin = true;
-  currentUser = {
-    email: "test-admin@example.local",
-    token: { access_token: "test-login" },
-  };
-  await applyAuthState();
-}
-
-function authHeaders() {
-  const token = getAuthToken(currentUser);
-  return token ? { Authorization: `Bearer ${token}` } : {};
-}
-
-function getAuthToken(user) {
-  return user?.token?.access_token || user?.token?.accessToken || user?.access_token || user?.accessToken || "";
-}
-
-function getServerContractLabel(contract) {
-  const buyer = contract.buyerName || "買主未入力";
-  const vehicle = contract.vehicleName || "車両未入力";
-  const total = contract.totalPrice || "金額未入力";
-  const updated = formatDateTime(contract.updatedAt || contract.savedAt);
-  return `${updated} / ${buyer} / ${vehicle} / ${total}`;
-}
-
-function formatDateTime(value) {
+function formatDate(value) {
   if (!value) {
     return "日時未記録";
   }
@@ -670,25 +636,38 @@ function formatDateTime(value) {
   return `${date.getFullYear()}年${date.getMonth() + 1}月${date.getDate()}日 ${String(date.getHours()).padStart(2, "0")}:${String(date.getMinutes()).padStart(2, "0")}`;
 }
 
+function sanitizeRecordId(value) {
+  const id = String(value || "").replace(/[^a-zA-Z0-9_-]/g, "");
+  return id.length > 0 && id.length <= 120 ? id : "";
+}
+
+function createRecordId() {
+  return window.crypto?.randomUUID ? window.crypto.randomUUID() : `contract-${Date.now()}-${Math.random().toString(16).slice(2)}`;
+}
+
+function isSupabaseConfigured() {
+  return Boolean(SUPABASE_CONFIG.url && SUPABASE_CONFIG.anonKey);
+}
+
 function setAuthStatus(message) {
   if (authStatus) {
     authStatus.textContent = message;
   }
 }
 
-function setServerStatus(message) {
+function setStoredStatus(message) {
   if (serverContractStatus) {
     serverContractStatus.textContent = message;
   }
 }
 
-function setAuthControlsDisabled(disabled) {
+function setLoginFormDisabled(disabled) {
   loginForm?.querySelectorAll("input, button").forEach((element) => {
     element.disabled = disabled;
   });
 }
 
-function setServerButtonsDisabled(disabled) {
+function setCloudButtonsDisabled(disabled) {
   if (loadServerContractButton) {
     loadServerContractButton.disabled = disabled;
   }

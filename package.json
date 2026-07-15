@@ -1,11 +1,6 @@
 {
+  "type": "module",
   "scripts": {
-    "build": "node scripts/build-contract-auth.mjs"
-  },
-  "dependencies": {
-    "@netlify/blobs": "10.1.0",
-    "@netlify/functions": "latest",
-    "@netlify/identity": "latest",
-    "esbuild": "latest"
+    "check": "node --check src/contract-auth.js && node --check contract-auth.bundle.js && node --check contract.js && node --check contract-contact.js && node --check sales-consent.js && node --check sales-sheet.js"
   }
 }

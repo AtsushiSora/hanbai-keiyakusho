@@ -42,7 +42,7 @@
           <article class="auth-card" id="loginPanel">
             <p class="section-kicker">ADMIN LOGIN</p>
             <h2>管理者ログイン</h2>
-            <p>契約書情報の入力・保存・一覧表示は、管理者ログイン後に利用できます。</p>
+            <p>Supabaseに登録した管理者アカウントでログインします。契約データはクラウド保存されます。</p>
             <div class="test-login-box">
               <strong>テスト用</strong>
               <p>ログイン登録なしで入力画面を確認できます。本番公開前に削除または無効化してください。</p>
@@ -304,14 +304,14 @@
             </div>
             <div class="contract-preview-support">
               <div class="server-contract-panel" id="list">
-                <p class="section-kicker">SERVER LIST</p>
+                <p class="section-kicker">CLOUD LIST</p>
                 <h2>保存済み契約一覧</h2>
-                <select id="serverContractSelect" aria-label="サーバー保存済み契約">
+                <select id="serverContractSelect" aria-label="クラウド保存済み契約">
                   <option value="">保存済み契約はありません</option>
                 </select>
                 <div class="server-contract-actions">
                   <button class="secondary-button" type="button" id="loadServerContractButton">選択した契約を開く</button>
-                  <button class="secondary-button danger" type="button" id="deleteServerContractButton">サーバーから削除</button>
+                  <button class="secondary-button danger" type="button" id="deleteServerContractButton">削除</button>
                 </div>
               </div>
               <div class="contract-history-panel">
