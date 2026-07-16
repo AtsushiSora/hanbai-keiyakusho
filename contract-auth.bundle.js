@@ -1,1 +1,1 @@
-import "./src/contract-auth.js";
+import "./src/contract-auth.js?v=convert2";

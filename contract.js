@@ -13,6 +13,7 @@ const previewMessage = document.querySelector("#previewMessage");
 const previewCopyLabel = document.querySelector("#previewCopyLabel");
 const customerCopyButton = document.querySelector("#customerCopyButton");
 const shopCopyButton = document.querySelector("#shopCopyButton");
+const convertEstimateButton = document.querySelector("#convertEstimateButton");
 const completeContractButton = document.querySelector("#completeContractButton");
 const salesOptionRows = document.querySelector("#salesOptionRows");
 const salesTemplateImportKey = "orderAutoSalesTemplateImport";
@@ -439,11 +440,18 @@ function prepareEstimate() {
 function updatePreviewStatus() {
   const status = form?.elements.contractStatus?.value || form?.elements.remoteStatus?.value || "下書き";
   const documentType = form?.elements.documentType?.value || "契約書";
+  const isEstimate = documentType === "見積書";
   if (previewStatusLabel) {
     previewStatusLabel.textContent = status;
   }
   if (previewDocumentTypeLabel) {
     previewDocumentTypeLabel.textContent = `${documentType}PDFプレビュー`;
+  }
+  if (convertEstimateButton) {
+    convertEstimateButton.hidden = !isEstimate;
+  }
+  if (completeContractButton) {
+    completeContractButton.hidden = isEstimate;
   }
 }
 

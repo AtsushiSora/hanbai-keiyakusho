@@ -20,6 +20,7 @@ const loadServerContractButton = document.querySelector("#loadServerContractButt
 const loadRemoteContractButton = document.querySelector("#loadRemoteContractButton");
 const saveServerContractButton = document.querySelector("#saveServerContractButton");
 const saveEstimateButton = document.querySelector("#saveEstimateButton");
+const convertEstimateButton = document.querySelector("#convertEstimateButton");
 const deleteServerContractButton = document.querySelector("#deleteServerContractButton");
 const serverContractStatus = document.querySelector("#serverContractStatus");
 const contractCardList = document.querySelector("#contractCardList");
@@ -44,6 +45,7 @@ let cloudContracts = [];
 let isTestLogin = false;
 let activeStatusFilter = "all";
 let activeSearchTerm = "";
+let isConvertingEstimate = false;
 
 initAdminAuth();
 
@@ -55,6 +57,7 @@ async function initAdminAuth() {
   refreshServerContractsButton?.addEventListener("click", loadCloudContracts);
   saveServerContractButton?.addEventListener("click", () => saveCloudContract());
   saveEstimateButton?.addEventListener("click", () => saveCloudContract("見積書"));
+  convertEstimateButton?.addEventListener("click", convertCurrentEstimateToContract);
   loadServerContractButton?.addEventListener("click", () => loadSelectedContract("create"));
   loadRemoteContractButton?.addEventListener("click", () => loadSelectedContract("remote"));
   deleteServerContractButton?.addEventListener("click", deleteSelectedContract);
@@ -308,6 +311,100 @@ async function saveCloudContract(requestedDocumentType = "") {
   setStoredStatus(`${documentType}をクラウド保存しました。`);
 }
 
+async function convertCurrentEstimateToContract() {
+  if (!window.contractTool) {
+    setStoredStatus("見積書を開いてから変換してください。");
+    return;
+  }
+  const payload = window.contractTool.getRecordPayload();
+  const selectedId = serverContractSelect?.value || "";
+  await convertEstimateToContract(payload.data || {}, selectedId);
+}
+
+async function convertStoredEstimateToContract(id) {
+  const selected = cloudContracts.find((contract) => contract.id === id);
+  if (!selected) {
+    setStoredStatus("変換する見積書を読み込めませんでした。");
+    return;
+  }
+  await convertEstimateToContract(selected.data || {}, selected.id);
+}
+
+async function convertEstimateToContract(sourceData, sourceId = "") {
+  if ((sourceData.documentType || "契約書") !== "見積書") {
+    setStoredStatus("見積書だけを契約書へ変換できます。");
+    return;
+  }
+  if (!isTestLogin && (!supabase || !currentUser)) {
+    setStoredStatus("Supabaseログイン後に契約書へ変換できます。");
+    return;
+  }
+  if (isConvertingEstimate) {
+    return;
+  }
+  isConvertingEstimate = true;
+  setEstimateConversionDisabled(true);
+
+  try {
+    const convertedData = {
+      ...sourceData,
+      documentType: "契約書",
+      contractStatus: "下書き",
+      remoteStatus: "下書き",
+      convertedFromEstimateId: sourceId,
+      convertedAt: new Date().toISOString(),
+    };
+    const record = normalizeContractRecord({
+      id: createRecordId(),
+      data: convertedData,
+    });
+
+    setStoredStatus("見積書から契約書を作成しています。");
+    if (isTestLogin) {
+      saveLocalTestContract(record);
+      cloudContracts = getLocalTestContracts();
+      finishEstimateConversion(record);
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from(tableName)
+      .insert(toSupabaseRecord(record, currentUser.id))
+      .select()
+      .single();
+    if (error) {
+      setStoredStatus("契約書へ変換できませんでした。SupabaseのRLS設定を確認してください。");
+      return;
+    }
+
+    await loadCloudContracts();
+    const savedRecord = data ? fromSupabaseRecord(data) : record;
+    finishEstimateConversion(savedRecord);
+  } finally {
+    isConvertingEstimate = false;
+    setEstimateConversionDisabled(false);
+  }
+}
+
+function setEstimateConversionDisabled(disabled) {
+  if (convertEstimateButton) {
+    convertEstimateButton.disabled = disabled;
+  }
+  contractCardList?.querySelectorAll('[data-contract-action="convert"]').forEach((button) => {
+    button.disabled = disabled;
+  });
+}
+
+function finishEstimateConversion(record) {
+  activeStatusFilter = "all";
+  contractStatusTabs?.querySelectorAll("[data-filter]").forEach((button) => {
+    button.classList.toggle("active", button.dataset.filter === "all");
+  });
+  renderCloudContracts(record.id);
+  window.contractTool?.loadRecordPayload(record);
+  setStoredStatus("見積書を残して、新しい契約書を下書き保存しました。");
+}
+
 function loadSelectedContract(targetPage = "create") {
   const selectedId = serverContractSelect?.value || "";
   if (!selectedId) {
@@ -397,6 +494,8 @@ function handleContractCardAction(event) {
     loadSelectedContract("create");
   } else if (action === "remote") {
     loadSelectedContract("remote");
+  } else if (action === "convert") {
+    convertStoredEstimateToContract(id);
   } else if (action === "delete") {
     deleteSelectedContract();
   }
@@ -425,6 +524,9 @@ function renderContractCards(selectedId = "") {
   contractCardList.innerHTML = displayContracts.map((contract) => {
     const selectedClass = contract.id === selectedId ? " is-selected" : "";
     const remoteButtonLabel = contract.documentType === "見積書" ? "見積書を送る" : "メール・LINE契約";
+    const convertButton = contract.documentType === "見積書"
+      ? `<button class="secondary-button compact convert-contract-button" type="button" data-contract-action="convert" data-contract-id="${escapeHtml(contract.id)}">契約書に変換</button>`
+      : "";
     return `
       <article class="contract-list-card${selectedClass}">
         <div class="contract-card-main">
@@ -434,6 +536,7 @@ function renderContractCards(selectedId = "") {
         <div class="contract-card-actions">
           <span class="document-type-pill">${escapeHtml(contract.documentType)}</span>
           <span class="status-pill">${escapeHtml(contract.status || "下書き")}</span>
+          ${convertButton}
           <button class="secondary-button compact" type="button" data-contract-action="remote" data-contract-id="${escapeHtml(contract.id)}">${remoteButtonLabel}</button>
           <button class="secondary-button compact" type="button" data-contract-action="edit" data-contract-id="${escapeHtml(contract.id)}">編集</button>
           <button class="secondary-button compact danger" type="button" data-contract-action="delete" data-contract-id="${escapeHtml(contract.id)}">削除</button>

@@ -2231,6 +2231,17 @@ pre {
   padding-inline: 16px;
 }
 
+.contract-card-actions .convert-contract-button,
+.preview-actions .convert-estimate-button {
+  color: #fff;
+  background: var(--contract-green, #0f7a4d);
+  border-color: var(--contract-green, #0f7a4d);
+}
+
+.preview-actions .convert-estimate-button[hidden] {
+  display: none;
+}
+
 .contract-card-actions .danger {
   color: #a32828;
   background: #fff;
