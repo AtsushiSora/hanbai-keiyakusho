@@ -332,8 +332,20 @@
               <legend>諸費用</legend>
               <div class="form-grid">
                 <label>
+                  <span>自動車税（種別割）</span>
+                  <input name="autoTaxAmount" inputmode="numeric" type="text" />
+                </label>
+                <label>
+                  <span>重量税</span>
+                  <input name="weightTax" inputmode="numeric" type="text" />
+                </label>
+                <label>
+                  <span>自賠責保険</span>
+                  <input name="liabilityInsurance" inputmode="numeric" type="text" />
+                </label>
+                <label>
                   <span>税金・保険等</span>
-                  <input name="taxInsurance" inputmode="numeric" type="text" />
+                  <input name="taxInsurance" inputmode="numeric" type="text" readonly />
                 </label>
                 <label>
                   <span>販売諸費用</span>
@@ -352,20 +364,8 @@
                   <input name="autoTaxMonth" type="text" />
                 </label>
                 <label>
-                  <span>自動車税</span>
-                  <input name="autoTaxAmount" inputmode="numeric" type="text" />
-                </label>
-                <label>
-                  <span>重量税</span>
-                  <input name="weightTax" inputmode="numeric" type="text" />
-                </label>
-                <label>
                   <span>自賠責保険 月数</span>
                   <input name="liabilityInsuranceMonth" type="text" />
-                </label>
-                <label>
-                  <span>自賠責保険</span>
-                  <input name="liabilityInsurance" inputmode="numeric" type="text" />
                 </label>
                 <label>
                   <span>検査・登録手続</span>
@@ -670,7 +670,7 @@
       </section>
     </main>
 
-    <script src="contract.js?v=input11"></script>
+    <script src="contract.js?v=input12"></script>
     <script type="module" src="contract-auth.bundle.js?v=estimate3"></script>
   </body>
 </html>

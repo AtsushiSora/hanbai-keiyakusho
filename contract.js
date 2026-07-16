@@ -254,6 +254,7 @@ function getData() {
   }
 
   syncOptionTotal();
+  syncTaxInsuranceTotal();
   const data = Object.fromEntries(new FormData(form).entries());
   data.totalPrice = data.totalPrice || calculateTotal(data);
   data.depositTotal = data.depositTotal || calculateRecycleTotal(data);
@@ -441,6 +442,7 @@ function startNewContract() {
   form?.reset();
   renderSalesOptionRows(1);
   syncOptionTotal();
+  syncTaxInsuranceTotal();
   updateSalesPriceTotal();
   if (contractHistorySelect) {
     contractHistorySelect.value = "";
@@ -537,6 +539,7 @@ function applyContractData(data) {
   });
   syncBirthdaySelects(data.buyerBirthday || "");
   syncOptionTotal();
+  syncTaxInsuranceTotal();
   updateSalesPriceTotal();
   formatAllMoneyFields();
   formatAllMeasurementFields();
@@ -575,6 +578,9 @@ function handleFormInput(event) {
   addOptionRowWhenNeeded(event?.target);
   if (/^optionPrice\d+$/.test(event?.target?.name || "")) {
     syncOptionTotal();
+  }
+  if (["autoTaxAmount", "weightTax", "liabilityInsurance"].includes(event?.target?.name || "")) {
+    syncTaxInsuranceTotal();
   }
   updateSalesPriceTotal();
   saveDraft();
@@ -704,6 +710,16 @@ function syncOptionTotal() {
   }
   const total = sumOptionPrices(Object.fromEntries(new FormData(form).entries()));
   customPrice.value = total > 0 ? total.toLocaleString("ja-JP") : "";
+}
+
+function syncTaxInsuranceTotal() {
+  const taxInsurance = form?.elements.taxInsurance;
+  if (!taxInsurance) {
+    return;
+  }
+  const total = ["autoTaxAmount", "weightTax", "liabilityInsurance"]
+    .reduce((sum, name) => sum + parseAmount(form.elements[name]?.value), 0);
+  taxInsurance.value = total > 0 ? total.toLocaleString("ja-JP") : "";
 }
 
 function updateSalesPriceTotal() {
