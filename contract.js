@@ -255,6 +255,7 @@ function getData() {
 
   syncOptionTotal();
   syncTaxInsuranceTotal();
+  syncSalesExpenseTotal();
   const data = Object.fromEntries(new FormData(form).entries());
   data.totalPrice = data.totalPrice || calculateTotal(data);
   data.depositTotal = data.depositTotal || calculateRecycleTotal(data);
@@ -443,6 +444,7 @@ function startNewContract() {
   renderSalesOptionRows(1);
   syncOptionTotal();
   syncTaxInsuranceTotal();
+  syncSalesExpenseTotal();
   updateSalesPriceTotal();
   if (contractHistorySelect) {
     contractHistorySelect.value = "";
@@ -540,6 +542,7 @@ function applyContractData(data) {
   syncBirthdaySelects(data.buyerBirthday || "");
   syncOptionTotal();
   syncTaxInsuranceTotal();
+  syncSalesExpenseTotal();
   updateSalesPriceTotal();
   formatAllMoneyFields();
   formatAllMeasurementFields();
@@ -581,6 +584,9 @@ function handleFormInput(event) {
   }
   if (["autoTaxAmount", "weightTax", "liabilityInsurance"].includes(event?.target?.name || "")) {
     syncTaxInsuranceTotal();
+  }
+  if (["inspectionRegisterFee", "parkingCertificateFee", "autoTaxAdjustment", "liabilityAdjustment", "fundManagementFee"].includes(event?.target?.name || "")) {
+    syncSalesExpenseTotal();
   }
   updateSalesPriceTotal();
   saveDraft();
@@ -720,6 +726,16 @@ function syncTaxInsuranceTotal() {
   const total = ["autoTaxAmount", "weightTax", "liabilityInsurance"]
     .reduce((sum, name) => sum + parseAmount(form.elements[name]?.value), 0);
   taxInsurance.value = total > 0 ? total.toLocaleString("ja-JP") : "";
+}
+
+function syncSalesExpenseTotal() {
+  const salesExpense = form?.elements.salesExpense;
+  if (!salesExpense) {
+    return;
+  }
+  const total = ["inspectionRegisterFee", "parkingCertificateFee", "autoTaxAdjustment", "liabilityAdjustment", "fundManagementFee"]
+    .reduce((sum, name) => sum + parseAmount(form.elements[name]?.value), 0);
+  salesExpense.value = total > 0 ? total.toLocaleString("ja-JP") : "";
 }
 
 function updateSalesPriceTotal() {

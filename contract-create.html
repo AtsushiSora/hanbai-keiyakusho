@@ -348,8 +348,28 @@
                   <input name="taxInsurance" inputmode="numeric" type="text" readonly />
                 </label>
                 <label>
+                  <span>検査・登録手続</span>
+                  <input name="inspectionRegisterFee" inputmode="numeric" type="text" />
+                </label>
+                <label>
+                  <span>車庫証明手続</span>
+                  <input name="parkingCertificateFee" inputmode="numeric" type="text" />
+                </label>
+                <label>
+                  <span>自動車税（種別割）未経過相当額</span>
+                  <input name="autoTaxAdjustment" inputmode="numeric" type="text" />
+                </label>
+                <label>
+                  <span>自賠責保険未経過相当額</span>
+                  <input name="liabilityAdjustment" inputmode="numeric" type="text" />
+                </label>
+                <label>
+                  <span>資金管理料</span>
+                  <input name="fundManagementFee" inputmode="numeric" type="text" />
+                </label>
+                <label>
                   <span>販売諸費用</span>
-                  <input name="salesExpense" inputmode="numeric" type="text" />
+                  <input name="salesExpense" inputmode="numeric" type="text" readonly />
                 </label>
                 <label>
                   <span>その他諸費用</span>
@@ -366,26 +386,6 @@
                 <label>
                   <span>自賠責保険 月数</span>
                   <input name="liabilityInsuranceMonth" type="text" />
-                </label>
-                <label>
-                  <span>検査・登録手続</span>
-                  <input name="inspectionRegisterFee" inputmode="numeric" type="text" />
-                </label>
-                <label>
-                  <span>車庫証明手続</span>
-                  <input name="parkingCertificateFee" inputmode="numeric" type="text" />
-                </label>
-                <label>
-                  <span>自動車税未経過相当額</span>
-                  <input name="autoTaxAdjustment" inputmode="numeric" type="text" />
-                </label>
-                <label>
-                  <span>自賠責未経過相当額</span>
-                  <input name="liabilityAdjustment" inputmode="numeric" type="text" />
-                </label>
-                <label>
-                  <span>資金管理料金</span>
-                  <input name="fundManagementFee" inputmode="numeric" type="text" />
                 </label>
                 <label>
                   <span>検査登録費用</span>
@@ -670,7 +670,7 @@
       </section>
     </main>
 
-    <script src="contract.js?v=input12"></script>
+    <script src="contract.js?v=input13"></script>
     <script type="module" src="contract-auth.bundle.js?v=estimate3"></script>
   </body>
 </html>
