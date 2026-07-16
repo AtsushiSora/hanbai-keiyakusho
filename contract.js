@@ -321,6 +321,7 @@ function mapContractToSalesTemplate(data) {
     makerOptionPrice: data.makerOptionPrice || "",
     ...getOptionTemplateData(data),
     customPrice: data.customPrice || "",
+    discount: data.discount || "",
     taxInsurance: data.taxInsurance || data.taxes || "",
     salesExpense: data.salesExpense || data.fees || "",
     otherExpense: data.otherExpense || "",

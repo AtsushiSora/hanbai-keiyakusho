@@ -265,6 +265,7 @@ function schedulePrint() {
 
 function calculateTotals() {
   const data = getFormData();
+  updateDiscountRow(data);
   setOutput("vehicleTotal", getVehicleTotal(data));
   setOutput("expenseTotal", getExpenseTotal(data));
   setOutput("paymentTotal", getPaymentTotal(data));
@@ -277,7 +278,14 @@ function getVehicleTotal(data) {
   const vehicleBase = parseAmount(data.storeDeliveryPrice) || parseAmount(data.basePrice);
   const summaryOptions = sum([data.dealerOptionPrice, data.makerOptionPrice, data.customPrice]);
   const detailedOptions = sum(range(14).map((number) => data[`optionPrice${number}`]));
-  return vehicleBase + (summaryOptions || detailedOptions);
+  return vehicleBase + (summaryOptions || detailedOptions) - parseAmount(data.discount);
+}
+
+function updateDiscountRow(data) {
+  const discountLabel = document.querySelector("#discountLabel");
+  if (discountLabel) {
+    discountLabel.textContent = parseAmount(data.discount) > 0 ? "値引き" : "";
+  }
 }
 
 function getExpenseTotal(data) {

@@ -6,7 +6,7 @@
     <title>販売契約書PDFテンプレート | オーダーオート</title>
     <meta name="description" content="添付写真をPDF化した販売契約書テンプレートに入力、上書き保存、印刷、PDF保存できます。" />
     <meta name="robots" content="noindex, nofollow" />
-    <link rel="stylesheet" href="sales-template.css?v=template2" />
+    <link rel="stylesheet" href="sales-template.css?v=template3" />
   </head>
   <body>
     <header class="template-toolbar">
@@ -100,6 +100,8 @@
           <input class="tpl-field" style="--x: 84.8%; --y: 37.4%; --w: 10.0%; --h: 1.7%;" name="bodyColor" />
 
           <input class="tpl-field amount" style="--x: 49.0%; --y: 39.7%; --w: 18.0%; --h: 1.5%;" name="basePrice" inputmode="numeric" />
+          <output class="tpl-output left" id="discountLabel" style="--x: 12.5%; --y: 41.35%; --w: 29.0%; --h: 1.5%;"></output>
+          <input class="tpl-field amount" style="--x: 49.0%; --y: 41.35%; --w: 18.0%; --h: 1.5%;" name="discount" inputmode="numeric" />
           <input class="tpl-field amount" style="--x: 49.0%; --y: 43.0%; --w: 18.0%; --h: 1.5%;" name="storeDeliveryPrice" inputmode="numeric" />
           <input class="tpl-field amount" style="--x: 49.0%; --y: 47.5%; --w: 18.0%; --h: 1.5%;" name="customPrice" inputmode="numeric" />
           <output class="tpl-output amount" id="vehicleTotal" style="--x: 49.0%; --y: 49.5%; --w: 18.0%; --h: 1.5%;">0</output>
@@ -158,6 +160,6 @@
       </form>
     </main>
 
-    <script src="sales-sheet.js"></script>
+    <script src="sales-sheet.js?v=discount1"></script>
   </body>
 </html>
