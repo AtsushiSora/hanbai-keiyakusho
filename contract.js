@@ -40,6 +40,7 @@ const moneyFieldNames = new Set([
   "liabilityAdjustment",
   "fundManagementFee",
   "parkingActualFee",
+  "parkingCertificateActualFee",
   "recycleDeposit",
   "cashPayment",
   "applicationMoney",
@@ -256,6 +257,7 @@ function getData() {
   syncOptionTotal();
   syncTaxInsuranceTotal();
   syncSalesExpenseTotal();
+  syncOtherExpenseTotal();
   const data = Object.fromEntries(new FormData(form).entries());
   data.totalPrice = data.totalPrice || calculateTotal(data);
   data.depositTotal = data.depositTotal || calculateRecycleTotal(data);
@@ -445,6 +447,7 @@ function startNewContract() {
   syncOptionTotal();
   syncTaxInsuranceTotal();
   syncSalesExpenseTotal();
+  syncOtherExpenseTotal();
   updateSalesPriceTotal();
   if (contractHistorySelect) {
     contractHistorySelect.value = "";
@@ -543,6 +546,7 @@ function applyContractData(data) {
   syncOptionTotal();
   syncTaxInsuranceTotal();
   syncSalesExpenseTotal();
+  syncOtherExpenseTotal();
   updateSalesPriceTotal();
   formatAllMoneyFields();
   formatAllMeasurementFields();
@@ -587,6 +591,9 @@ function handleFormInput(event) {
   }
   if (["inspectionRegisterFee", "parkingCertificateFee", "autoTaxAdjustment", "liabilityAdjustment", "fundManagementFee"].includes(event?.target?.name || "")) {
     syncSalesExpenseTotal();
+  }
+  if (["parkingActualFee", "parkingCertificateActualFee", "recycleDeposit"].includes(event?.target?.name || "")) {
+    syncOtherExpenseTotal();
   }
   updateSalesPriceTotal();
   saveDraft();
@@ -736,6 +743,16 @@ function syncSalesExpenseTotal() {
   const total = ["inspectionRegisterFee", "parkingCertificateFee", "autoTaxAdjustment", "liabilityAdjustment", "fundManagementFee"]
     .reduce((sum, name) => sum + parseAmount(form.elements[name]?.value), 0);
   salesExpense.value = total > 0 ? total.toLocaleString("ja-JP") : "";
+}
+
+function syncOtherExpenseTotal() {
+  const otherExpense = form?.elements.otherExpense;
+  if (!otherExpense) {
+    return;
+  }
+  const total = ["parkingActualFee", "parkingCertificateActualFee", "recycleDeposit"]
+    .reduce((sum, name) => sum + parseAmount(form.elements[name]?.value), 0);
+  otherExpense.value = total > 0 ? total.toLocaleString("ja-JP") : "";
 }
 
 function updateSalesPriceTotal() {
@@ -939,6 +956,7 @@ function getExpenseTotal(data) {
     + parseAmount(data.liabilityAdjustment)
     + parseAmount(data.fundManagementFee)
     + parseAmount(data.parkingActualFee)
+    + parseAmount(data.parkingCertificateActualFee)
     + parseAmount(data.recycleDeposit || data.recycleFee);
   return summaryExpenses || detailedExpenses;
 }

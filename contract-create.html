@@ -372,8 +372,20 @@
                   <input name="salesExpense" inputmode="numeric" type="text" readonly />
                 </label>
                 <label>
+                  <span>検査登録費用</span>
+                  <input name="parkingActualFee" inputmode="numeric" type="text" />
+                </label>
+                <label>
+                  <span>車庫証明費用</span>
+                  <input name="parkingCertificateActualFee" inputmode="numeric" type="text" />
+                </label>
+                <label>
+                  <span>リサイクル預託相当額</span>
+                  <input name="recycleDeposit" inputmode="numeric" type="text" />
+                </label>
+                <label>
                   <span>その他諸費用</span>
-                  <input name="otherExpense" inputmode="numeric" type="text" />
+                  <input name="otherExpense" inputmode="numeric" type="text" readonly />
                 </label>
                 <label>
                   <span>任意諸費用</span>
@@ -386,14 +398,6 @@
                 <label>
                   <span>自賠責保険 月数</span>
                   <input name="liabilityInsuranceMonth" type="text" />
-                </label>
-                <label>
-                  <span>検査登録費用</span>
-                  <input name="parkingActualFee" inputmode="numeric" type="text" />
-                </label>
-                <label>
-                  <span>リサイクル預託相当額</span>
-                  <input name="recycleDeposit" inputmode="numeric" type="text" />
                 </label>
                 <label>
                   <span>値引き</span>
@@ -670,7 +674,7 @@
       </section>
     </main>
 
-    <script src="contract.js?v=input13"></script>
+    <script src="contract.js?v=input14"></script>
     <script type="module" src="contract-auth.bundle.js?v=estimate3"></script>
   </body>
 </html>
