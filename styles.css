@@ -1094,6 +1094,21 @@ legend {
   font-weight: 900;
 }
 
+legend.fieldset-summary {
+  display: flex;
+  width: 100%;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.fieldset-summary output {
+  color: var(--blue-dark);
+  font-size: 1.12rem;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+
 .form-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -3357,6 +3372,17 @@ pre {
   .contract-editor-actions .secondary-button {
     width: 100%;
     min-width: 0;
+  }
+
+  legend.fieldset-summary {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  .fieldset-summary output {
+    width: 100%;
+    text-align: left;
   }
 
   .preview-panel-head,

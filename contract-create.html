@@ -6,7 +6,7 @@
     <title>契約書作成｜オーダーオート</title>
     <meta name="description" content="オーダーオートの車両販売契約書を入力フォームからPDF保存・印刷・メール・LINE送信用に作成できる契約作成システムです。" />
     <meta name="robots" content="noindex, nofollow" />
-    <link rel="stylesheet" href="styles.css?v=contract22" />
+    <link rel="stylesheet" href="styles.css?v=contract23" />
   </head>
   <body class="admin-page contract-page sales-contract-system contract-create-page auth-loading">
     <header class="site-header admin-header">
@@ -303,15 +303,14 @@
             </fieldset>
 
             <fieldset data-contract-section="price">
-              <legend>販売価格</legend>
+              <legend class="fieldset-summary">
+                <span>販売価格</span>
+                <output id="salesPriceTotal" aria-label="販売価格合計">合計 0円</output>
+              </legend>
               <div class="form-grid">
                 <label>
                   <span>車両価格</span>
                   <input name="basePrice" inputmode="numeric" type="text" placeholder="例）1905535" />
-                </label>
-                <label>
-                  <span>車両店頭引渡価格</span>
-                  <input name="storeDeliveryPrice" inputmode="numeric" type="text" placeholder="未入力なら車両価格" />
                 </label>
               </div>
               <div class="dynamic-option-block full">
@@ -326,6 +325,12 @@
                   <span>加装・加修</span>
                   <input name="customPrice" inputmode="numeric" type="text" readonly />
                 </label>
+              </div>
+            </fieldset>
+
+            <fieldset data-contract-section="expenses">
+              <legend>諸費用</legend>
+              <div class="form-grid">
                 <label>
                   <span>税金・保険等</span>
                   <input name="taxInsurance" inputmode="numeric" type="text" />
@@ -342,24 +347,6 @@
                   <span>任意諸費用</span>
                   <input name="optionalExpense" inputmode="numeric" type="text" />
                 </label>
-                <label>
-                  <span>値引き</span>
-                  <input name="discount" inputmode="numeric" type="text" />
-                </label>
-                <label>
-                  <span>支払総額</span>
-                  <input name="totalPrice" inputmode="numeric" type="text" placeholder="未入力なら自動計算" />
-                </label>
-                <label>
-                  <span>内消費税</span>
-                  <input name="includedTax" inputmode="numeric" type="text" />
-                </label>
-              </div>
-            </fieldset>
-
-            <fieldset data-contract-section="expenses">
-              <legend>諸費用</legend>
-              <div class="form-grid">
                 <label>
                   <span>自動車税 月数</span>
                   <input name="autoTaxMonth" type="text" />
@@ -407,6 +394,18 @@
                 <label>
                   <span>リサイクル預託相当額</span>
                   <input name="recycleDeposit" inputmode="numeric" type="text" />
+                </label>
+                <label>
+                  <span>値引き</span>
+                  <input name="discount" inputmode="numeric" type="text" />
+                </label>
+                <label>
+                  <span>支払総額</span>
+                  <input name="totalPrice" inputmode="numeric" type="text" placeholder="未入力なら自動計算" />
+                </label>
+                <label>
+                  <span>内消費税</span>
+                  <input name="includedTax" inputmode="numeric" type="text" />
                 </label>
               </div>
             </fieldset>
@@ -671,7 +670,7 @@
       </section>
     </main>
 
-    <script src="contract.js?v=input10"></script>
+    <script src="contract.js?v=input11"></script>
     <script type="module" src="contract-auth.bundle.js?v=estimate3"></script>
   </body>
 </html>

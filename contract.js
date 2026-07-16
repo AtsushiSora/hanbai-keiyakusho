@@ -15,6 +15,7 @@ const shopCopyButton = document.querySelector("#shopCopyButton");
 const convertEstimateButton = document.querySelector("#convertEstimateButton");
 const completeContractButton = document.querySelector("#completeContractButton");
 const salesOptionRows = document.querySelector("#salesOptionRows");
+const salesPriceTotal = document.querySelector("#salesPriceTotal");
 const buyerBirthYear = document.querySelector("#buyerBirthYear");
 const buyerBirthMonth = document.querySelector("#buyerBirthMonth");
 const buyerBirthDay = document.querySelector("#buyerBirthDay");
@@ -22,7 +23,6 @@ const salesTemplateImportKey = "orderAutoSalesTemplateImport";
 const maxSalesOptionRows = 14;
 const moneyFieldNames = new Set([
   "basePrice",
-  "storeDeliveryPrice",
   "customPrice",
   "taxInsurance",
   "salesExpense",
@@ -311,7 +311,7 @@ function mapContractToSalesTemplate(data) {
     bodyColor: data.vehicleColor || "",
     equipment: data.equipment || "",
     basePrice: data.basePrice || "",
-    storeDeliveryPrice: data.storeDeliveryPrice || data.basePrice || "",
+    storeDeliveryPrice: data.basePrice || "",
     dealerOptionPrice: data.dealerOptionPrice || "",
     makerOptionPrice: data.makerOptionPrice || "",
     ...getOptionTemplateData(data),
@@ -440,6 +440,8 @@ function startNewContract() {
 
   form?.reset();
   renderSalesOptionRows(1);
+  syncOptionTotal();
+  updateSalesPriceTotal();
   if (contractHistorySelect) {
     contractHistorySelect.value = "";
   }
@@ -535,6 +537,7 @@ function applyContractData(data) {
   });
   syncBirthdaySelects(data.buyerBirthday || "");
   syncOptionTotal();
+  updateSalesPriceTotal();
   formatAllMoneyFields();
   formatAllMeasurementFields();
   updatePreviewStatus();
@@ -573,6 +576,7 @@ function handleFormInput(event) {
   if (/^optionPrice\d+$/.test(event?.target?.name || "")) {
     syncOptionTotal();
   }
+  updateSalesPriceTotal();
   saveDraft();
 }
 
@@ -680,7 +684,7 @@ function calculateTotal(data) {
 }
 
 function getVehicleTotal(data) {
-  const vehicleBase = parseAmount(data.storeDeliveryPrice) || parseAmount(data.basePrice);
+  const vehicleBase = parseAmount(data.basePrice);
   const summaryOptions =
     parseAmount(data.dealerOptionPrice)
     + parseAmount(data.makerOptionPrice)
@@ -700,6 +704,14 @@ function syncOptionTotal() {
   }
   const total = sumOptionPrices(Object.fromEntries(new FormData(form).entries()));
   customPrice.value = total > 0 ? total.toLocaleString("ja-JP") : "";
+}
+
+function updateSalesPriceTotal() {
+  if (!salesPriceTotal || !form) {
+    return;
+  }
+  const data = Object.fromEntries(new FormData(form).entries());
+  salesPriceTotal.textContent = `合計 ${getVehicleTotal(data).toLocaleString("ja-JP")}円`;
 }
 
 function getOptionTemplateData(data) {
