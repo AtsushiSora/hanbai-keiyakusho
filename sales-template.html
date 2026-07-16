@@ -6,7 +6,7 @@
     <title>販売契約書PDFテンプレート | オーダーオート</title>
     <meta name="description" content="添付写真をPDF化した販売契約書テンプレートに入力、上書き保存、印刷、PDF保存できます。" />
     <meta name="robots" content="noindex, nofollow" />
-    <link rel="stylesheet" href="sales-template.css?v=template4" />
+    <link rel="stylesheet" href="sales-template.css?v=template5" />
   </head>
   <body>
     <header class="template-toolbar">
@@ -31,6 +31,21 @@
           <span>保存済み帳票</span>
           <select id="recordSelect" aria-label="保存済み帳票">
             <option value="">新規作成</option>
+          </select>
+        </label>
+        <label id="layoutModeControl" hidden>
+          <span>配置確認グループ</span>
+          <select id="layoutGroupSelect" aria-label="配置確認グループ">
+            <option value="customer">お客様情報</option>
+            <option value="vehicle">販売車両情報</option>
+            <option value="price">販売価格</option>
+            <option value="options">オプション</option>
+            <option value="expenses">諸費用</option>
+            <option value="trade">下取り情報</option>
+            <option value="loan">ローン・支払い</option>
+            <option value="recycle">リサイクル預託金</option>
+            <option value="notes">問い合わせ・備考</option>
+            <option value="all">全項目</option>
           </select>
         </label>
         <div class="template-action-grid">
@@ -182,6 +197,6 @@
       </form>
     </main>
 
-    <script src="sales-sheet.js?v=alignment1"></script>
+    <script src="sales-sheet.js?v=alignment2"></script>
   </body>
 </html>

@@ -270,6 +270,11 @@ textarea.tpl-field {
   font-size: clamp(9px, 1.25vw, 16px);
 }
 
+.pdf-template-sheet.layout-mode .layout-hidden {
+  visibility: hidden;
+  pointer-events: none;
+}
+
 @page {
   size: A4 portrait;
   margin: 0;
