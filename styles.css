@@ -1206,6 +1206,28 @@ textarea:focus {
   margin-top: 16px;
 }
 
+.dynamic-option-block {
+  display: grid;
+  gap: 10px;
+}
+
+.dynamic-option-head,
+.dynamic-option-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(120px, 0.8fr);
+  gap: 12px;
+}
+
+.dynamic-option-head {
+  color: #33435a;
+  font-size: 0.9rem;
+  font-weight: 800;
+}
+
+.dynamic-option-row input {
+  min-height: 48px;
+}
+
 .optional-fields {
   margin-top: 14px;
   padding: 14px;

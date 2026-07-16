@@ -13,16 +13,19 @@ const previewCopyLabel = document.querySelector("#previewCopyLabel");
 const customerCopyButton = document.querySelector("#customerCopyButton");
 const shopCopyButton = document.querySelector("#shopCopyButton");
 const completeContractButton = document.querySelector("#completeContractButton");
+const salesOptionRows = document.querySelector("#salesOptionRows");
 const salesTemplateImportKey = "orderAutoSalesTemplateImport";
+const maxSalesOptionRows = 14;
 
 removePersistentDraft();
 setDefaultDate();
+renderSalesOptionRows(1);
 restoreDraft();
 renderHistoryOptions();
 exposeContractToolApi();
 
-form?.addEventListener("input", saveDraft);
-form?.addEventListener("change", saveDraft);
+form?.addEventListener("input", handleFormInput);
+form?.addEventListener("change", handleFormInput);
 printContractButton?.addEventListener("click", () => openSalesTemplate(true));
 savePdfButton?.addEventListener("click", () => openSalesTemplate(false));
 saveRecordButton?.addEventListener("click", saveContractRecord);
@@ -114,6 +117,7 @@ function mapContractToSalesTemplate(data) {
     storeDeliveryPrice: data.storeDeliveryPrice || data.basePrice || "",
     dealerOptionPrice: data.dealerOptionPrice || "",
     makerOptionPrice: data.makerOptionPrice || "",
+    ...getOptionTemplateData(data),
     customPrice: data.customPrice || "",
     taxInsurance: data.taxInsurance || data.taxes || "",
     salesExpense: data.salesExpense || data.fees || "",
@@ -237,6 +241,7 @@ function startNewContract() {
   }
 
   form?.reset();
+  renderSalesOptionRows(1);
   if (contractHistorySelect) {
     contractHistorySelect.value = "";
   }
@@ -315,6 +320,7 @@ function applyContractData(data) {
     return;
   }
 
+  ensureSalesOptionRowsForData(data);
   Object.entries(data).forEach(([name, value]) => {
     const field = form.elements[name];
     if (field) {
@@ -353,6 +359,11 @@ function saveDraft() {
   } catch {
     // 入力中の下書き保存に失敗しても契約作成は続けられる。
   }
+}
+
+function handleFormInput(event) {
+  addOptionRowWhenNeeded(event?.target);
+  saveDraft();
 }
 
 function restoreDraft() {
@@ -442,9 +453,82 @@ function calculateTotal(data) {
 function getVehicleTotal(data) {
   const vehicleBase = parseAmount(data.storeDeliveryPrice) || parseAmount(data.basePrice);
   return vehicleBase
+    + sumOptionPrices(data)
     + parseAmount(data.dealerOptionPrice)
     + parseAmount(data.makerOptionPrice)
     + parseAmount(data.customPrice);
+}
+
+function sumOptionPrices(data) {
+  return range(maxSalesOptionRows).reduce((total, number) => total + parseAmount(data[`optionPrice${number}`]), 0);
+}
+
+function getOptionTemplateData(data) {
+  return Object.fromEntries(
+    range(maxSalesOptionRows).flatMap((number) => [
+      [`optionName${number}`, data[`optionName${number}`] || ""],
+      [`optionPrice${number}`, data[`optionPrice${number}`] || ""],
+    ]),
+  );
+}
+
+function renderSalesOptionRows(count, data = {}) {
+  if (!salesOptionRows) {
+    return;
+  }
+  salesOptionRows.innerHTML = "";
+  range(Math.min(maxSalesOptionRows, Math.max(1, count))).forEach((number) => {
+    appendSalesOptionRow(number, data);
+  });
+}
+
+function appendSalesOptionRow(number, data = {}) {
+  if (!salesOptionRows || number > maxSalesOptionRows) {
+    return;
+  }
+  salesOptionRows.insertAdjacentHTML("beforeend", `
+    <div class="dynamic-option-row">
+      <input name="optionName${number}" type="text" placeholder="例）ドライブレコーダー" value="${escapeHtml(data[`optionName${number}`] || "")}" />
+      <input name="optionPrice${number}" inputmode="numeric" type="text" placeholder="例）40537" value="${escapeHtml(data[`optionPrice${number}`] || "")}" />
+    </div>
+  `);
+}
+
+function ensureSalesOptionRowsForData(data) {
+  if (!salesOptionRows) {
+    return;
+  }
+  const neededRows = getNeededOptionRowCount(data);
+  const currentRows = getCurrentOptionRowCount();
+  for (let number = currentRows + 1; number <= neededRows; number += 1) {
+    appendSalesOptionRow(number, data);
+  }
+}
+
+function addOptionRowWhenNeeded(target) {
+  if (!salesOptionRows || !target?.name || !/^option(Name|Price)\d+$/.test(target.name)) {
+    return;
+  }
+  const currentRows = getCurrentOptionRowCount();
+  const rowNumber = getOptionRowNumber(target.name);
+  if (rowNumber === currentRows && target.value.trim() && currentRows < maxSalesOptionRows) {
+    appendSalesOptionRow(currentRows + 1);
+  }
+}
+
+function getNeededOptionRowCount(data) {
+  const filledRows = range(maxSalesOptionRows).filter((number) => {
+    return String(data[`optionName${number}`] || "").trim() || String(data[`optionPrice${number}`] || "").trim();
+  });
+  return Math.min(maxSalesOptionRows, Math.max(1, (filledRows.at(-1) || 0) + 1));
+}
+
+function getCurrentOptionRowCount() {
+  return salesOptionRows?.querySelectorAll(".dynamic-option-row").length || 0;
+}
+
+function getOptionRowNumber(name) {
+  return Number(String(name).match(/\d+$/)?.[0] || 0);
 }
 
 function getExpenseTotal(data) {
@@ -499,6 +583,10 @@ function buildRepairText(data) {
 function parseAmount(value) {
   const number = Number(String(value || "").replace(/[^\d.-]/g, ""));
   return Number.isFinite(number) ? number : 0;
+}
+
+function range(length) {
+  return Array.from({ length }, (_, index) => index + 1);
 }
 
 function formatYen(value) {

@@ -6,7 +6,7 @@
     <title>契約書作成｜オーダーオート</title>
     <meta name="description" content="オーダーオートの車両販売契約書を入力フォームからPDF保存・印刷・メール・LINE送信用に作成できる契約作成システムです。" />
     <meta name="robots" content="noindex, nofollow" />
-    <link rel="stylesheet" href="styles.css?v=contract14" />
+    <link rel="stylesheet" href="styles.css?v=contract15" />
   </head>
   <body class="admin-page contract-page sales-contract-system contract-create-page auth-loading">
     <header class="site-header admin-header">
@@ -113,6 +113,8 @@
             <input name="recycleFee" type="hidden" />
             <input name="warrantyType" type="hidden" />
             <input name="downPayment" type="hidden" />
+            <input name="dealerOptionPrice" type="hidden" />
+            <input name="makerOptionPrice" type="hidden" />
             <fieldset>
               <legend>基本情報</legend>
               <div class="form-grid">
@@ -316,14 +318,15 @@
                   <span>車両店頭引渡価格</span>
                   <input name="storeDeliveryPrice" inputmode="numeric" type="text" placeholder="未入力なら車両価格" />
                 </label>
-                <label>
-                  <span>販売店オプション</span>
-                  <input name="dealerOptionPrice" inputmode="numeric" type="text" />
-                </label>
-                <label>
-                  <span>メーカーオプション</span>
-                  <input name="makerOptionPrice" inputmode="numeric" type="text" />
-                </label>
+              </div>
+              <div class="dynamic-option-block full">
+                <div class="dynamic-option-head">
+                  <span>オプション</span>
+                  <span>価格</span>
+                </div>
+                <div class="dynamic-option-rows" id="salesOptionRows"></div>
+              </div>
+              <div class="form-grid">
                 <label>
                   <span>加装・加修</span>
                   <input name="customPrice" inputmode="numeric" type="text" />

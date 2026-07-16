@@ -6,6 +6,7 @@ const ENABLE_TEST_LOGIN = true;
 const testLoginStorageKey = "orderAutoTestLogin";
 const draftStorageKey = "orderAutoContractDraft";
 const tableName = SUPABASE_CONFIG.tableName || "order_auto_contracts";
+const maxSalesOptionRows = 14;
 
 const loginPanel = document.querySelector("#loginPanel");
 const loginForm = document.querySelector("#adminLoginForm");
@@ -614,9 +615,15 @@ function calculateTotal(data) {
 function getVehicleTotal(data) {
   const vehicleBase = toNumber(data.storeDeliveryPrice) || toNumber(data.basePrice);
   return vehicleBase
+    + sumOptionPrices(data)
     + toNumber(data.dealerOptionPrice)
     + toNumber(data.makerOptionPrice)
     + toNumber(data.customPrice);
+}
+
+function sumOptionPrices(data) {
+  return Array.from({ length: maxSalesOptionRows }, (_, index) => index + 1)
+    .reduce((total, number) => total + toNumber(data[`optionPrice${number}`]), 0);
 }
 
 function getExpenseTotal(data) {
