@@ -6,7 +6,7 @@
     <title>契約書作成｜オーダーオート</title>
     <meta name="description" content="オーダーオートの車両販売契約書を入力フォームからPDF保存・印刷・メール・LINE送信用に作成できる契約作成システムです。" />
     <meta name="robots" content="noindex, nofollow" />
-    <link rel="stylesheet" href="styles.css?v=contract21" />
+    <link rel="stylesheet" href="styles.css?v=contract22" />
   </head>
   <body class="admin-page contract-page sales-contract-system contract-create-page auth-loading">
     <header class="site-header admin-header">
@@ -165,6 +165,10 @@
                   <span>郵便番号</span>
                   <input name="buyerZip" type="text" placeholder="例）731-0000" />
                 </label>
+                <label class="form-grid-wide">
+                  <span>住所</span>
+                  <input name="buyerAddress" type="text" placeholder="例）広島県広島市..." />
+                </label>
                 <div class="form-field">
                   <span>生年月日</span>
                   <div class="date-select-row" role="group" aria-label="生年月日">
@@ -191,10 +195,6 @@
                   <input name="buyerWorkplace" type="text" />
                 </label>
               </div>
-              <label class="full">
-                <span>住所</span>
-                <input name="buyerAddress" type="text" placeholder="例）広島県広島市..." />
-              </label>
             </fieldset>
 
             <fieldset data-contract-section="vehicle">
