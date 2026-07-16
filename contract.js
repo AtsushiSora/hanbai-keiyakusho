@@ -66,7 +66,21 @@ const measurementFieldUnits = {
   warrantyMileage: "km",
   tradeMileage: "km",
 };
+const contractSectionOrder = [
+  "customer",
+  "vehicle",
+  "price",
+  "expenses",
+  "trade-in",
+  "loan",
+  "basic",
+  "warranty",
+  "payment",
+  "recycle",
+  "notes",
+];
 
+arrangeContractSections();
 removePersistentDraft();
 setDefaultDate();
 setupDateFields();
@@ -91,6 +105,15 @@ clearAllRecordsButton?.addEventListener("click", clearAllContractRecords);
 customerCopyButton?.addEventListener("click", () => setPreviewCopy("お客様控え"));
 shopCopyButton?.addEventListener("click", () => setPreviewCopy("店控え"));
 completeContractButton?.addEventListener("click", completeContract);
+
+function arrangeContractSections() {
+  contractSectionOrder.forEach((sectionName) => {
+    const section = form?.querySelector(`[data-contract-section="${sectionName}"]`);
+    if (section) {
+      form.append(section);
+    }
+  });
+}
 
 function setDefaultDate() {
   const today = new Date().toISOString().slice(0, 10);

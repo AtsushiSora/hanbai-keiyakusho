@@ -117,7 +117,7 @@
             <input name="downPayment" type="hidden" />
             <input name="dealerOptionPrice" type="hidden" />
             <input name="makerOptionPrice" type="hidden" />
-            <fieldset>
+            <fieldset data-contract-section="basic">
               <legend>基本情報</legend>
               <div class="form-grid">
                 <label>
@@ -150,8 +150,8 @@
               </div>
             </fieldset>
 
-            <fieldset>
-              <legend>買主情報</legend>
+            <fieldset data-contract-section="customer">
+              <legend>お客様情報</legend>
               <div class="form-grid">
                 <label>
                   <span>氏名</span>
@@ -197,8 +197,8 @@
               </label>
             </fieldset>
 
-            <fieldset>
-              <legend>車両情報</legend>
+            <fieldset data-contract-section="vehicle">
+              <legend>販売車両情報</legend>
               <div class="form-grid">
                 <label>
                   <span>車種名</span>
@@ -276,7 +276,7 @@
               </label>
             </fieldset>
 
-            <fieldset>
+            <fieldset data-contract-section="warranty">
               <legend>保証・状態</legend>
               <div class="form-grid">
                 <label>
@@ -314,7 +314,7 @@
               </label>
             </fieldset>
 
-            <fieldset>
+            <fieldset data-contract-section="price">
               <legend>販売価格</legend>
               <div class="form-grid">
                 <label>
@@ -369,8 +369,8 @@
               </div>
             </fieldset>
 
-            <fieldset>
-              <legend>諸費用明細</legend>
+            <fieldset data-contract-section="expenses">
+              <legend>諸費用</legend>
               <div class="form-grid">
                 <label>
                   <span>自動車税 月数</span>
@@ -423,7 +423,7 @@
               </div>
             </fieldset>
 
-            <fieldset>
+            <fieldset data-contract-section="payment">
               <legend>支払条件</legend>
               <div class="form-grid">
                 <label>
@@ -470,8 +470,8 @@
               </label>
             </fieldset>
 
-            <fieldset>
-              <legend>下取情報</legend>
+            <fieldset data-contract-section="trade-in">
+              <legend>下取り情報</legend>
               <div class="form-grid">
                 <label>
                   <span>下取有無</span>
@@ -535,8 +535,8 @@
               </label>
             </fieldset>
 
-            <fieldset>
-              <legend>ローン・割賦</legend>
+            <fieldset data-contract-section="loan">
+              <legend>ローン</legend>
               <div class="form-grid">
                 <label>
                   <span>ローン有無</span>
@@ -580,7 +580,7 @@
               </div>
             </fieldset>
 
-            <fieldset>
+            <fieldset data-contract-section="recycle">
               <legend>リサイクル預託金</legend>
               <div class="form-grid">
                 <label>
@@ -614,7 +614,7 @@
               </div>
             </fieldset>
 
-            <fieldset>
+            <fieldset data-contract-section="notes">
               <legend>備考・問い合わせ</legend>
               <label class="full">
                 <span>お客様への案内・特記事項</span>
@@ -683,7 +683,7 @@
       </section>
     </main>
 
-    <script src="contract.js?v=input6"></script>
+    <script src="contract.js?v=input8"></script>
     <script type="module" src="contract-auth.bundle.js?v=estimate3"></script>
   </body>
 </html>
