@@ -2557,16 +2557,6 @@ pre {
   box-shadow: 0 4px 14px rgba(20, 66, 116, 0.08);
 }
 
-.preview-message {
-  margin: 0;
-  padding: 12px 14px;
-  color: var(--contract-green-dark, #0a4f35);
-  background: #f0fbf5;
-  border: 1px solid rgba(15, 122, 77, 0.2);
-  border-radius: var(--radius);
-  font-weight: 900;
-}
-
 .pdf-preview-frame {
   position: relative;
   overflow: auto;

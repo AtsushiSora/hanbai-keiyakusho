@@ -9,7 +9,6 @@ const clearAllRecordsButton = document.querySelector("#clearAllRecordsButton");
 const contractSaveStatus = document.querySelector("#contractSaveStatus");
 const previewStatusLabel = document.querySelector("#previewStatusLabel");
 const previewDocumentTypeLabel = document.querySelector("#previewDocumentTypeLabel");
-const previewMessage = document.querySelector("#previewMessage");
 const previewCopyLabel = document.querySelector("#previewCopyLabel");
 const customerCopyButton = document.querySelector("#customerCopyButton");
 const shopCopyButton = document.querySelector("#shopCopyButton");
@@ -524,9 +523,6 @@ function updateSaveStatus(message) {
   if (contractSaveStatus) {
     contractSaveStatus.textContent = message;
   }
-  if (previewMessage && message) {
-    previewMessage.textContent = message;
-  }
 }
 
 function saveDraft() {
@@ -571,9 +567,6 @@ function setPreviewCopy(label) {
   }
   customerCopyButton?.classList.toggle("active", label === "お客様控え");
   shopCopyButton?.classList.toggle("active", label === "店控え");
-  if (previewMessage) {
-    previewMessage.textContent = `${label}のプレビューを表示しています。PDF保存・PDF印刷で帳票を作成できます。`;
-  }
 }
 
 function completeContract() {
@@ -581,9 +574,6 @@ function completeContract() {
   setContractStatus("完了");
   saveDraft();
   updateSaveStatus("契約ステータスを完了にしました。必要に応じてクラウド保存してください。");
-  if (previewMessage) {
-    previewMessage.textContent = "完了にしました。正式な控えはPDF保存または印刷で保管してください。";
-  }
 }
 
 function setContractStatus(status) {
