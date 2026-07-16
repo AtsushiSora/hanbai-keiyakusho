@@ -8,6 +8,7 @@ const deleteRecordButton = document.querySelector("#deleteRecordButton");
 const clearAllRecordsButton = document.querySelector("#clearAllRecordsButton");
 const contractSaveStatus = document.querySelector("#contractSaveStatus");
 const previewStatusLabel = document.querySelector("#previewStatusLabel");
+const previewDocumentTypeLabel = document.querySelector("#previewDocumentTypeLabel");
 const previewMessage = document.querySelector("#previewMessage");
 const previewCopyLabel = document.querySelector("#previewCopyLabel");
 const customerCopyButton = document.querySelector("#customerCopyButton");
@@ -173,7 +174,8 @@ function saveContractRecord() {
   }
 
   renderHistoryOptions(record.id);
-  updateSaveStatus("下書きを保存しました。");
+  const documentType = record.data.documentType || "契約書";
+  updateSaveStatus(`${documentType}の下書きを保存しました。`);
 }
 
 function loadSelectedContractRecord() {
@@ -197,7 +199,7 @@ function loadSelectedContractRecord() {
     deleteRecordButton.disabled = false;
   }
   saveDraft();
-  updateSaveStatus("保存済み契約を読み込みました。");
+  updateSaveStatus(`保存済み${record.data?.documentType || "契約書"}を読み込みました。`);
 }
 
 function deleteSelectedContractRecord() {
@@ -246,6 +248,7 @@ function startNewContract() {
     contractHistorySelect.value = "";
   }
   setDefaultDate();
+  setDocumentType("契約書");
   setContractStatus("下書き");
   saveDraft();
   updateSaveStatus("新規作成を開始しました。");
@@ -278,6 +281,7 @@ function exposeContractToolApi() {
     loadRecordPayload: loadContractRecordPayload,
     getSummary: () => createContractSummary(getData()),
     setStatus: updateSaveStatus,
+    prepareEstimate: prepareEstimate,
     newRecord: startNewContract,
   };
 }
@@ -312,7 +316,8 @@ function getRecordLabel(record) {
   const buyer = data.buyerName || "買主未入力";
   const vehicle = data.vehicleName || "車両未入力";
   const total = formatYen(data.totalPrice || calculateTotal(data)) || "金額未入力";
-  return `${savedDate} / ${buyer} / ${vehicle} / ${total}`;
+  const documentType = data.documentType || "契約書";
+  return `${savedDate} / ${documentType} / ${buyer} / ${vehicle} / ${total}`;
 }
 
 function applyContractData(data) {
@@ -396,6 +401,7 @@ function setPreviewCopy(label) {
 }
 
 function completeContract() {
+  setDocumentType("契約書");
   setContractStatus("完了");
   saveDraft();
   updateSaveStatus("契約ステータスを完了にしました。必要に応じてクラウド保存してください。");
@@ -417,10 +423,27 @@ function setContractStatus(status) {
   updatePreviewStatus();
 }
 
+function setDocumentType(documentType) {
+  if (form?.elements.documentType) {
+    form.elements.documentType.value = documentType;
+  }
+  updatePreviewStatus();
+}
+
+function prepareEstimate() {
+  setDocumentType("見積書");
+  setContractStatus("見積保存");
+  saveDraft();
+}
+
 function updatePreviewStatus() {
   const status = form?.elements.contractStatus?.value || form?.elements.remoteStatus?.value || "下書き";
+  const documentType = form?.elements.documentType?.value || "契約書";
   if (previewStatusLabel) {
     previewStatusLabel.textContent = status;
+  }
+  if (previewDocumentTypeLabel) {
+    previewDocumentTypeLabel.textContent = `${documentType}PDFプレビュー`;
   }
 }
 

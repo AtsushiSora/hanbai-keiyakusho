@@ -2143,6 +2143,10 @@ pre {
   display: none;
 }
 
+.contract-list-page .list-legacy-actions {
+  display: none;
+}
+
 .contract-card-list {
   display: grid;
   gap: 12px;
@@ -2159,7 +2163,8 @@ pre {
   border-radius: var(--radius);
 }
 
-.contract-list-card.is-active {
+.contract-list-card.is-active,
+.contract-list-card.is-selected {
   border-color: var(--contract-green, #0f7a4d);
   box-shadow: inset 4px 0 0 var(--contract-green, #0f7a4d);
 }
@@ -2190,6 +2195,28 @@ pre {
   border-radius: 999px;
   font-size: 0.84rem;
   font-weight: 900;
+}
+
+.document-type-pill,
+.status-pill {
+  display: inline-grid;
+  place-items: center;
+  min-height: 30px;
+  padding: 0 11px;
+  border-radius: 999px;
+  font-size: 0.8rem;
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.document-type-pill {
+  color: #735000;
+  background: #fff2c7;
+}
+
+.status-pill {
+  color: var(--contract-green-dark, #0a4f35);
+  background: #eaf6ef;
 }
 
 .contract-card-actions {
@@ -2290,6 +2317,19 @@ pre {
   background: var(--contract-green, var(--blue));
   border-color: var(--contract-green, var(--blue));
   box-shadow: 0 16px 34px rgba(15, 122, 77, 0.22);
+}
+
+.contract-editor-actions .estimate-save-button {
+  color: #735000;
+  background: #fff8e6;
+  border-color: #e8bd54;
+}
+
+.contract-editor-actions .estimate-save-button:hover,
+.contract-editor-actions .estimate-save-button:focus-visible {
+  color: #fff;
+  background: #9a6b00;
+  border-color: #9a6b00;
 }
 
 .auth-card,

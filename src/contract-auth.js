@@ -19,6 +19,7 @@ const serverContractSelect = document.querySelector("#serverContractSelect");
 const loadServerContractButton = document.querySelector("#loadServerContractButton");
 const loadRemoteContractButton = document.querySelector("#loadRemoteContractButton");
 const saveServerContractButton = document.querySelector("#saveServerContractButton");
+const saveEstimateButton = document.querySelector("#saveEstimateButton");
 const deleteServerContractButton = document.querySelector("#deleteServerContractButton");
 const serverContractStatus = document.querySelector("#serverContractStatus");
 const contractCardList = document.querySelector("#contractCardList");
@@ -52,7 +53,8 @@ async function initAdminAuth() {
   loginForm?.addEventListener("submit", handleLoginSubmit);
   logoutButton?.addEventListener("click", handleLogout);
   refreshServerContractsButton?.addEventListener("click", loadCloudContracts);
-  saveServerContractButton?.addEventListener("click", saveCloudContract);
+  saveServerContractButton?.addEventListener("click", () => saveCloudContract());
+  saveEstimateButton?.addEventListener("click", () => saveCloudContract("見積書"));
   loadServerContractButton?.addEventListener("click", () => loadSelectedContract("create"));
   loadRemoteContractButton?.addEventListener("click", () => loadSelectedContract("remote"));
   deleteServerContractButton?.addEventListener("click", deleteSelectedContract);
@@ -256,16 +258,22 @@ function renderCloudContracts(selectedId = "") {
   renderContractCards(selectedId);
 }
 
-async function saveCloudContract() {
+async function saveCloudContract(requestedDocumentType = "") {
   if (!window.contractTool) {
     setStoredStatus("契約書作成ページで保存してください。");
     return;
   }
 
+  if (requestedDocumentType === "見積書") {
+    window.contractTool.prepareEstimate();
+  }
   const payload = window.contractTool.getRecordPayload();
   const selectedId = serverContractSelect?.value || "";
+  const documentType = payload.data?.documentType || "契約書";
+  const selectedContract = cloudContracts.find((contract) => contract.id === selectedId);
+  const canOverwriteSelected = selectedContract && toDisplayContract(selectedContract).documentType === documentType;
   const record = normalizeContractRecord({
-    id: selectedId || createRecordId(),
+    id: canOverwriteSelected ? selectedId : createRecordId(),
     data: payload.data || {},
   });
 
@@ -273,7 +281,7 @@ async function saveCloudContract() {
     saveLocalTestContract(record);
     cloudContracts = getLocalTestContracts();
     renderCloudContracts(record.id);
-    setStoredStatus("テスト用としてブラウザ内に保存しました。");
+    setStoredStatus(`テスト用として${documentType}をブラウザ内に保存しました。`);
     return;
   }
 
@@ -282,7 +290,7 @@ async function saveCloudContract() {
     return;
   }
 
-  setStoredStatus("契約をクラウド保存しています。");
+  setStoredStatus(`${documentType}をクラウド保存しています。`);
   const dbRecord = toSupabaseRecord(record, currentUser.id);
   const { data, error } = await supabase
     .from(tableName)
@@ -291,13 +299,13 @@ async function saveCloudContract() {
     .single();
 
   if (error) {
-    setStoredStatus("契約をクラウド保存できませんでした。SupabaseのRLS設定を確認してください。");
+    setStoredStatus(`${documentType}をクラウド保存できませんでした。SupabaseのRLS設定を確認してください。`);
     return;
   }
 
   await loadCloudContracts();
   renderCloudContracts(data?.id || record.id);
-  setStoredStatus("契約をクラウド保存しました。");
+  setStoredStatus(`${documentType}をクラウド保存しました。`);
 }
 
 function loadSelectedContract(targetPage = "create") {
@@ -416,15 +424,17 @@ function renderContractCards(selectedId = "") {
 
   contractCardList.innerHTML = displayContracts.map((contract) => {
     const selectedClass = contract.id === selectedId ? " is-selected" : "";
+    const remoteButtonLabel = contract.documentType === "見積書" ? "見積書を送る" : "メール・LINE契約";
     return `
       <article class="contract-list-card${selectedClass}">
-        <div>
+        <div class="contract-card-main">
           <strong>${escapeHtml(contract.buyerName || "買主未入力")}</strong>
           <span>${escapeHtml(getContractCardMeta(contract))}</span>
         </div>
-        <div class="contract-list-card-actions">
+        <div class="contract-card-actions">
+          <span class="document-type-pill">${escapeHtml(contract.documentType)}</span>
           <span class="status-pill">${escapeHtml(contract.status || "下書き")}</span>
-          <button class="secondary-button compact" type="button" data-contract-action="remote" data-contract-id="${escapeHtml(contract.id)}">メール・LINE契約</button>
+          <button class="secondary-button compact" type="button" data-contract-action="remote" data-contract-id="${escapeHtml(contract.id)}">${remoteButtonLabel}</button>
           <button class="secondary-button compact" type="button" data-contract-action="edit" data-contract-id="${escapeHtml(contract.id)}">編集</button>
           <button class="secondary-button compact danger" type="button" data-contract-action="delete" data-contract-id="${escapeHtml(contract.id)}">削除</button>
         </div>
@@ -442,6 +452,7 @@ function getFilteredDisplayContracts() {
       contract.buyerName,
       contract.vehicleName,
       contract.totalPrice,
+      contract.documentType,
       status,
     ].join(" ").toLowerCase();
     const matchesSearch = !activeSearchTerm || searchSource.includes(activeSearchTerm);
@@ -552,6 +563,7 @@ function normalizeContractRecord(record) {
   normalized.vehicleName = record.vehicleName || display.vehicleName;
   normalized.totalPrice = record.totalPrice || display.totalPrice;
   normalized.status = record.status || display.status;
+  normalized.documentType = record.documentType || display.documentType;
   return normalized;
 }
 
@@ -563,6 +575,7 @@ function toDisplayContract(record) {
     vehicleName: record.vehicleName || data.vehicleName || "",
     totalPrice: record.totalPrice || formatPrice(data.totalPrice || calculateTotal(data)) || "",
     status: record.status || data.remoteStatus || data.contractStatus || "下書き",
+    documentType: record.documentType || data.documentType || "契約書",
     updatedAt: record.updatedAt || record.savedAt || "",
     data,
   };
@@ -571,7 +584,7 @@ function toDisplayContract(record) {
 function getContractCardMeta(contract) {
   const vehicle = contract.vehicleName || "車両未入力";
   const price = contract.totalPrice || "金額未入力";
-  return `${vehicle} / 売買契約 / ${price}`;
+  return `${vehicle} / ${contract.documentType} / ${price}`;
 }
 
 function getStoredContractLabel(contract) {
@@ -579,7 +592,7 @@ function getStoredContractLabel(contract) {
   const buyer = display.buyerName || "買主未入力";
   const vehicle = display.vehicleName || "車両未入力";
   const price = display.totalPrice || "金額未入力";
-  return `${formatDate(display.updatedAt)} / ${buyer} / ${vehicle} / ${price}`;
+  return `${formatDate(display.updatedAt)} / ${display.documentType} / ${buyer} / ${vehicle} / ${price}`;
 }
 
 function getLocalTestContracts() {

@@ -6,7 +6,7 @@
     <title>契約書作成｜オーダーオート</title>
     <meta name="description" content="オーダーオートの車両販売契約書を入力フォームからPDF保存・印刷・メール・LINE送信用に作成できる契約作成システムです。" />
     <meta name="robots" content="noindex, nofollow" />
-    <link rel="stylesheet" href="styles.css?v=contract15" />
+    <link rel="stylesheet" href="styles.css?v=contract16" />
   </head>
   <body class="admin-page contract-page sales-contract-system contract-create-page auth-loading">
     <header class="site-header admin-header">
@@ -98,6 +98,7 @@
             <button class="secondary-button" type="button" id="newContractButton">入力クリア</button>
             <button class="secondary-button" type="button" id="saveRecordButton">下書き保存</button>
             <button class="secondary-button" type="button" id="saveServerContractButton">クラウド保存</button>
+            <button class="secondary-button estimate-save-button" type="button" id="saveEstimateButton">見積書保存</button>
             <a class="secondary-button" href="assets/sales-contract-template.pdf" download="sales-contract-template.pdf">店控えベースPDF</a>
             <button class="secondary-button" type="button" id="savePdfButton">PDF保存</button>
             <button class="primary-link" type="button" id="printContractButton">PDF印刷</button>
@@ -108,6 +109,7 @@
           <form class="contract-form" id="contractForm" autocomplete="off" spellcheck="false">
             <input name="contractStatus" type="hidden" value="下書き" />
             <input name="remoteStatus" type="hidden" value="下書き" />
+            <input name="documentType" type="hidden" value="契約書" />
             <input name="fees" type="hidden" />
             <input name="taxes" type="hidden" />
             <input name="recycleFee" type="hidden" />
@@ -628,7 +630,7 @@
             <div class="preview-panel-head">
               <div>
                 <p class="section-kicker">PDF PREVIEW</p>
-                <h2>PDFプレビュー</h2>
+                <h2 id="previewDocumentTypeLabel">契約書PDFプレビュー</h2>
                 <strong id="previewStatusLabel">下書き</strong>
               </div>
               <div class="preview-actions">
@@ -677,7 +679,7 @@
       </section>
     </main>
 
-    <script src="contract.js"></script>
-    <script type="module" src="contract-auth.bundle.js"></script>
+    <script src="contract.js?v=estimate1"></script>
+    <script type="module" src="contract-auth.bundle.js?v=estimate1"></script>
   </body>
 </html>
