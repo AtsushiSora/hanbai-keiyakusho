@@ -272,6 +272,7 @@ function calculateTotals() {
   setOutput("tradeTotal", getTradeTotal(data));
   setOutput("afterTradeTotal", getPaymentTotal(data) - getTradeTotal(data));
   setOutput("paymentInputTotal", getPaymentInputTotal(data));
+  setOutput("recycleTotal", getRecycleTotal(data));
 }
 
 function getVehicleTotal(data) {
@@ -302,6 +303,7 @@ function getExpenseTotal(data) {
     data.fundManagementFee,
     data.depositTotal,
     data.parkingActualFee,
+    data.parkingCertificateActualFee,
     data.recycleDeposit,
     ...range(8).map((number) => data[`feePrice${number}`]),
   ]);
@@ -317,7 +319,17 @@ function getTradeTotal(data) {
 }
 
 function getPaymentInputTotal(data) {
-  return sum([data.cashPayment, data.loanDownPayment, data.loanFee]);
+  return sum([data.loanPrincipal, data.loanFee]);
+}
+
+function getRecycleTotal(data) {
+  return parseAmount(data.depositTotal) || sum([
+    data.recycleManagementFee,
+    data.shredderFee,
+    data.airbagFee,
+    data.fluorocarbonFee,
+    data.recycleInfoFee,
+  ]);
 }
 
 function setOutput(id, amount) {
