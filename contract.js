@@ -253,6 +253,7 @@ function getData() {
     return {};
   }
 
+  syncOptionTotal();
   const data = Object.fromEntries(new FormData(form).entries());
   data.totalPrice = data.totalPrice || calculateTotal(data);
   data.depositTotal = data.depositTotal || calculateRecycleTotal(data);
@@ -520,7 +521,7 @@ function applyContractData(data) {
     return;
   }
 
-  ensureSalesOptionRowsForData(data);
+  renderSalesOptionRows(getNeededOptionRowCount(data), data);
   Object.entries(data).forEach(([name, value]) => {
     const field = form.elements[name];
     if (field) {
@@ -533,6 +534,7 @@ function applyContractData(data) {
     }
   });
   syncBirthdaySelects(data.buyerBirthday || "");
+  syncOptionTotal();
   formatAllMoneyFields();
   formatAllMeasurementFields();
   updatePreviewStatus();
@@ -568,6 +570,9 @@ function saveDraft() {
 
 function handleFormInput(event) {
   addOptionRowWhenNeeded(event?.target);
+  if (/^optionPrice\d+$/.test(event?.target?.name || "")) {
+    syncOptionTotal();
+  }
   saveDraft();
 }
 
@@ -676,15 +681,25 @@ function calculateTotal(data) {
 
 function getVehicleTotal(data) {
   const vehicleBase = parseAmount(data.storeDeliveryPrice) || parseAmount(data.basePrice);
-  return vehicleBase
-    + sumOptionPrices(data)
-    + parseAmount(data.dealerOptionPrice)
+  const summaryOptions =
+    parseAmount(data.dealerOptionPrice)
     + parseAmount(data.makerOptionPrice)
     + parseAmount(data.customPrice);
+  const detailedOptions = sumOptionPrices(data);
+  return vehicleBase + (detailedOptions || summaryOptions);
 }
 
 function sumOptionPrices(data) {
   return range(maxSalesOptionRows).reduce((total, number) => total + parseAmount(data[`optionPrice${number}`]), 0);
+}
+
+function syncOptionTotal() {
+  const customPrice = form?.elements.customPrice;
+  if (!customPrice) {
+    return;
+  }
+  const total = sumOptionPrices(Object.fromEntries(new FormData(form).entries()));
+  customPrice.value = total > 0 ? total.toLocaleString("ja-JP") : "";
 }
 
 function getOptionTemplateData(data) {
@@ -836,17 +851,6 @@ function formatMeasurementInput(input) {
 
 function formatAllMeasurementFields() {
   form?.querySelectorAll(".measurement-input").forEach(formatMeasurementInput);
-}
-
-function ensureSalesOptionRowsForData(data) {
-  if (!salesOptionRows) {
-    return;
-  }
-  const neededRows = getNeededOptionRowCount(data);
-  const currentRows = getCurrentOptionRowCount();
-  for (let number = currentRows + 1; number <= neededRows; number += 1) {
-    appendSalesOptionRow(number, data);
-  }
 }
 
 function addOptionRowWhenNeeded(target) {
