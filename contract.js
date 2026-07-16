@@ -16,12 +16,59 @@ const shopCopyButton = document.querySelector("#shopCopyButton");
 const convertEstimateButton = document.querySelector("#convertEstimateButton");
 const completeContractButton = document.querySelector("#completeContractButton");
 const salesOptionRows = document.querySelector("#salesOptionRows");
+const buyerBirthYear = document.querySelector("#buyerBirthYear");
+const buyerBirthMonth = document.querySelector("#buyerBirthMonth");
+const buyerBirthDay = document.querySelector("#buyerBirthDay");
 const salesTemplateImportKey = "orderAutoSalesTemplateImport";
 const maxSalesOptionRows = 14;
+const moneyFieldNames = new Set([
+  "basePrice",
+  "storeDeliveryPrice",
+  "customPrice",
+  "taxInsurance",
+  "salesExpense",
+  "otherExpense",
+  "optionalExpense",
+  "discount",
+  "totalPrice",
+  "includedTax",
+  "autoTaxAmount",
+  "weightTax",
+  "liabilityInsurance",
+  "inspectionRegisterFee",
+  "parkingCertificateFee",
+  "autoTaxAdjustment",
+  "liabilityAdjustment",
+  "fundManagementFee",
+  "parkingActualFee",
+  "recycleDeposit",
+  "cashPayment",
+  "applicationMoney",
+  "loanDownPayment",
+  "balance",
+  "tradePrice",
+  "unpaidAutoTax",
+  "tradeDebt",
+  "loanPrincipal",
+  "loanFee",
+  "loanFirstPayment",
+  "loanMonthlyPayment",
+  "loanBonusPayment",
+  "recycleManagementFee",
+  "shredderFee",
+  "airbagFee",
+  "fluorocarbonFee",
+  "recycleInfoFee",
+  "depositTotal",
+]);
 
 removePersistentDraft();
 setDefaultDate();
+setupDateFields();
+setupBirthdaySelects();
+setupYearSelects();
 renderSalesOptionRows(1);
+setupMoneyFields();
 restoreDraft();
 renderHistoryOptions();
 exposeContractToolApi();
@@ -49,6 +96,127 @@ function setDefaultDate() {
   if (estimateDateField && !estimateDateField.value) {
     estimateDateField.value = today;
   }
+}
+
+function setupDateFields() {
+  form?.querySelectorAll('input[type="date"], input[type="month"]').forEach((input) => {
+    input.addEventListener("click", () => {
+      try {
+        input.showPicker?.();
+      } catch {
+        input.focus();
+      }
+    });
+  });
+}
+
+function setupBirthdaySelects() {
+  if (!buyerBirthYear || !buyerBirthMonth || !buyerBirthDay) {
+    return;
+  }
+  const currentYear = new Date().getFullYear();
+  buyerBirthYear.innerHTML = [
+    '<option value="">年</option>',
+    ...rangeFrom(currentYear, 1900).map((year) => {
+      const era = formatJapaneseEra(year);
+      const label = era === "西暦" ? `${year}年` : `${year}年（${era}）`;
+      return `<option value="${year}">${label}</option>`;
+    }),
+  ].join("");
+  buyerBirthMonth.innerHTML = [
+    '<option value="">月</option>',
+    ...range(12).map((month) => `<option value="${month}">${month}月</option>`),
+  ].join("");
+  updateBirthdayDayOptions();
+  [buyerBirthYear, buyerBirthMonth, buyerBirthDay].forEach((select) => {
+    select.addEventListener("change", () => {
+      if (select !== buyerBirthDay) {
+        updateBirthdayDayOptions();
+      }
+      updateBirthdayValue();
+    });
+  });
+}
+
+function updateBirthdayDayOptions() {
+  if (!buyerBirthDay) {
+    return;
+  }
+  const selectedDay = Number(buyerBirthDay.value || 0);
+  const year = Number(buyerBirthYear?.value || new Date().getFullYear());
+  const month = Number(buyerBirthMonth?.value || 1);
+  const dayCount = new Date(year, month, 0).getDate();
+  buyerBirthDay.innerHTML = [
+    '<option value="">日</option>',
+    ...range(dayCount).map((day) => `<option value="${day}">${day}日</option>`),
+  ].join("");
+  if (selectedDay > 0 && selectedDay <= dayCount) {
+    buyerBirthDay.value = String(selectedDay);
+  }
+}
+
+function updateBirthdayValue() {
+  const field = form?.elements.buyerBirthday;
+  if (!field) {
+    return;
+  }
+  const year = buyerBirthYear?.value || "";
+  const month = buyerBirthMonth?.value || "";
+  const day = buyerBirthDay?.value || "";
+  field.value = year && month && day
+    ? `${year}-${String(month).padStart(2, "0")}-${String(day).padStart(2, "0")}`
+    : "";
+}
+
+function syncBirthdaySelects(value) {
+  const parsed = parseBirthday(value);
+  buyerBirthYear.value = parsed?.year || "";
+  buyerBirthMonth.value = parsed?.month || "";
+  updateBirthdayDayOptions();
+  buyerBirthDay.value = parsed?.day || "";
+}
+
+function parseBirthday(value) {
+  const text = String(value || "").trim();
+  let match = text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (match) {
+    return { year: match[1], month: String(Number(match[2])), day: String(Number(match[3])) };
+  }
+  match = text.match(/^(\d{4})年(\d{1,2})月(\d{1,2})日$/);
+  if (match) {
+    return { year: match[1], month: match[2], day: match[3] };
+  }
+  match = text.match(/^(令和|平成|昭和)(元|\d+)年(\d{1,2})月(\d{1,2})日$/);
+  if (!match) {
+    return null;
+  }
+  const eraStart = { 令和: 2018, 平成: 1988, 昭和: 1925 }[match[1]];
+  const eraYear = match[2] === "元" ? 1 : Number(match[2]);
+  return { year: String(eraStart + eraYear), month: match[3], day: match[4] };
+}
+
+function setupYearSelects() {
+  const newestYear = new Date().getFullYear() + 1;
+  form?.querySelectorAll("[data-year-select]").forEach((select) => {
+    const options = ['<option value="">年式を選択</option>'];
+    for (let year = newestYear; year >= 1950; year -= 1) {
+      options.push(`<option value="${year}年">${year}年（${formatJapaneseEra(year)}）</option>`);
+    }
+    select.innerHTML = options.join("");
+  });
+}
+
+function formatJapaneseEra(year) {
+  if (year >= 2019) {
+    return `令和${year === 2019 ? "元" : year - 2018}年`;
+  }
+  if (year >= 1989) {
+    return `平成${year === 1989 ? "元" : year - 1988}年`;
+  }
+  if (year >= 1926) {
+    return `昭和${year === 1926 ? "元" : year - 1925}年`;
+  }
+  return "西暦";
 }
 
 function getData() {
@@ -90,7 +258,7 @@ function mapContractToSalesTemplate(data) {
     buyerKana: data.buyerKana || "",
     buyerName: data.buyerName || "",
     buyerZip: data.buyerZip || "",
-    buyerBirthday: data.buyerBirthday || "",
+    buyerBirthday: formatDateForDocument(data.buyerBirthday),
     buyerPhone: data.buyerPhone || "",
     buyerMobile: data.buyerMobile || "",
     buyerEmail: data.buyerEmail || "",
@@ -108,7 +276,7 @@ function mapContractToSalesTemplate(data) {
     vin: data.vehicleVin || "",
     engineSize: data.engineSize || "",
     mileage: data.vehicleMileage || "",
-    inspectionDate: data.inspectionDate || "",
+    inspectionDate: formatDateForDocument(data.inspectionDate),
     plateNo: data.vehiclePlate || "",
     mission: data.mission || "",
     doorCount: data.doorCount || "",
@@ -330,9 +498,16 @@ function applyContractData(data) {
   Object.entries(data).forEach(([name, value]) => {
     const field = form.elements[name];
     if (field) {
-      field.value = value;
+      if (field.matches?.("[data-year-select]") && value && !Array.from(field.options).some((option) => option.value === value)) {
+        field.add(new Option(value, value));
+      }
+      field.value = field.matches?.('input[type="date"], input[type="month"]')
+        ? normalizeDateInputValue(value, field.type)
+        : value;
     }
   });
+  syncBirthdaySelects(data.buyerBirthday || "");
+  formatAllMoneyFields();
   updatePreviewStatus();
 }
 
@@ -523,6 +698,83 @@ function appendSalesOptionRow(number, data = {}) {
       <input name="optionPrice${number}" inputmode="numeric" type="text" placeholder="例）40537" value="${escapeHtml(data[`optionPrice${number}`] || "")}" />
     </div>
   `);
+  setupMoneyFields(salesOptionRows);
+}
+
+function setupMoneyFields(root = document) {
+  root.querySelectorAll("input").forEach((input) => {
+    if (!isMoneyField(input) || input.dataset.moneyReady === "true") {
+      return;
+    }
+    input.dataset.moneyReady = "true";
+    input.classList.add("money-input");
+    input.inputMode = "numeric";
+    const label = input.closest("label");
+    const labelText = Array.from(label?.children || []).find((child) => child.tagName === "SPAN")?.textContent?.trim();
+    if (labelText) {
+      input.setAttribute("aria-label", labelText);
+    } else if (/^optionPrice\d+$/.test(input.name)) {
+      input.setAttribute("aria-label", `オプション${getOptionRowNumber(input.name)}の価格`);
+    }
+    const wrapper = document.createElement("div");
+    wrapper.className = "money-input-wrap";
+    input.before(wrapper);
+    wrapper.append(input);
+    const unit = document.createElement("span");
+    unit.className = "money-input-unit";
+    unit.textContent = "円";
+    unit.setAttribute("aria-hidden", "true");
+    wrapper.append(unit);
+    input.addEventListener("input", () => formatMoneyInputWhileTyping(input));
+    input.addEventListener("blur", () => formatMoneyInput(input));
+    input.addEventListener("change", () => formatMoneyInput(input));
+    formatMoneyInput(input);
+  });
+}
+
+function isMoneyField(input) {
+  return moneyFieldNames.has(input.name) || /^optionPrice\d+$/.test(input.name);
+}
+
+function formatMoneyInput(input) {
+  const value = String(input.value || "").trim();
+  if (!value) {
+    return;
+  }
+  const amount = parseAmount(value);
+  input.value = amount.toLocaleString("ja-JP");
+}
+
+function formatMoneyInputWhileTyping(input) {
+  const cursor = input.selectionStart ?? input.value.length;
+  const digitsBeforeCursor = input.value.slice(0, cursor).replace(/\D/g, "").length;
+  const isNegative = input.value.trim().startsWith("-");
+  const digits = input.value.replace(/\D/g, "").replace(/^0+(?=\d)/, "");
+  if (!digits) {
+    input.value = isNegative ? "-" : "";
+    return;
+  }
+  input.value = `${isNegative ? "-" : ""}${Number(digits).toLocaleString("ja-JP")}`;
+  let nextCursor = input.value.length;
+  if (digitsBeforeCursor === 0) {
+    nextCursor = isNegative ? 1 : 0;
+  } else {
+    let digitCount = 0;
+    for (let index = 0; index < input.value.length; index += 1) {
+      if (/\d/.test(input.value[index])) {
+        digitCount += 1;
+      }
+      if (digitCount === digitsBeforeCursor) {
+        nextCursor = index + 1;
+        break;
+      }
+    }
+  }
+  input.setSelectionRange(nextCursor, nextCursor);
+}
+
+function formatAllMoneyFields() {
+  form?.querySelectorAll(".money-input").forEach(formatMoneyInput);
 }
 
 function ensureSalesOptionRowsForData(data) {
@@ -600,6 +852,42 @@ function calculateIncludedTax(totalPrice) {
   return String(Math.floor(total / 11));
 }
 
+function formatDateForDocument(value) {
+  const text = String(value || "");
+  const dateMatch = text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (dateMatch) {
+    return `${dateMatch[1]}年${Number(dateMatch[2])}月${Number(dateMatch[3])}日`;
+  }
+  const monthMatch = text.match(/^(\d{4})-(\d{2})$/);
+  return monthMatch ? `${monthMatch[1]}年${Number(monthMatch[2])}月` : text;
+}
+
+function normalizeDateInputValue(value, type) {
+  const text = String(value || "").trim();
+  if ((type === "date" && /^\d{4}-\d{2}-\d{2}$/.test(text)) || (type === "month" && /^\d{4}-\d{2}$/.test(text))) {
+    return text;
+  }
+  let match = text.match(/^(\d{4})年(\d{1,2})月(?:(\d{1,2})日)?$/);
+  if (match) {
+    return buildDateInputValue(match[1], match[2], match[3], type);
+  }
+  match = text.match(/^(令和|平成|昭和)(元|\d+)年(\d{1,2})月(?:(\d{1,2})日)?$/);
+  if (!match) {
+    return "";
+  }
+  const eraStart = { 令和: 2018, 平成: 1988, 昭和: 1925 }[match[1]];
+  const eraYear = match[2] === "元" ? 1 : Number(match[2]);
+  return buildDateInputValue(eraStart + eraYear, match[3], match[4], type);
+}
+
+function buildDateInputValue(year, month, day, type) {
+  const yearMonth = `${year}-${String(month).padStart(2, "0")}`;
+  if (type === "month") {
+    return yearMonth;
+  }
+  return day ? `${yearMonth}-${String(day).padStart(2, "0")}` : "";
+}
+
 function buildWarrantyText(data) {
   const warranty = data.warranty || data.warrantyType || "";
   const period = data.warrantyPeriod ? `${data.warrantyPeriod}` : "";
@@ -618,6 +906,10 @@ function parseAmount(value) {
 
 function range(length) {
   return Array.from({ length }, (_, index) => index + 1);
+}
+
+function rangeFrom(start, end) {
+  return Array.from({ length: start - end + 1 }, (_, index) => start - index);
 }
 
 function formatYen(value) {
