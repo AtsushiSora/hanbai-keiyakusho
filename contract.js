@@ -258,6 +258,7 @@ function getData() {
   syncTaxInsuranceTotal();
   syncSalesExpenseTotal();
   syncOtherExpenseTotal();
+  syncPaymentTotal();
   const data = Object.fromEntries(new FormData(form).entries());
   data.totalPrice = data.totalPrice || calculateTotal(data);
   data.depositTotal = data.depositTotal || calculateRecycleTotal(data);
@@ -449,6 +450,7 @@ function startNewContract() {
   syncSalesExpenseTotal();
   syncOtherExpenseTotal();
   updateSalesPriceTotal();
+  syncPaymentTotal();
   if (contractHistorySelect) {
     contractHistorySelect.value = "";
   }
@@ -548,6 +550,7 @@ function applyContractData(data) {
   syncSalesExpenseTotal();
   syncOtherExpenseTotal();
   updateSalesPriceTotal();
+  syncPaymentTotal();
   formatAllMoneyFields();
   formatAllMeasurementFields();
   updatePreviewStatus();
@@ -596,6 +599,7 @@ function handleFormInput(event) {
     syncOtherExpenseTotal();
   }
   updateSalesPriceTotal();
+  syncPaymentTotal();
   saveDraft();
 }
 
@@ -761,6 +765,15 @@ function updateSalesPriceTotal() {
   }
   const data = Object.fromEntries(new FormData(form).entries());
   salesPriceTotal.textContent = `合計 ${getVehicleTotal(data).toLocaleString("ja-JP")}円`;
+}
+
+function syncPaymentTotal() {
+  const totalPrice = form?.elements.totalPrice;
+  if (!totalPrice) {
+    return;
+  }
+  const total = parseAmount(calculateTotal(Object.fromEntries(new FormData(form).entries())));
+  totalPrice.value = total > 0 ? total.toLocaleString("ja-JP") : "";
 }
 
 function getOptionTemplateData(data) {
