@@ -1230,18 +1230,21 @@ input[type="month"]::-webkit-calendar-picker-indicator {
   padding-inline: 10px;
 }
 
-.money-input-wrap {
+.money-input-wrap,
+.measurement-input-wrap {
   position: relative;
   min-width: 0;
 }
 
-.money-input-wrap .money-input {
+.money-input-wrap .money-input,
+.measurement-input-wrap .measurement-input {
   padding-right: 46px;
   text-align: right;
   font-variant-numeric: tabular-nums;
 }
 
-.money-input-wrap .money-input-unit {
+.money-input-wrap .money-input-unit,
+.measurement-input-wrap .measurement-input-unit {
   position: absolute;
   top: 50%;
   right: 14px;

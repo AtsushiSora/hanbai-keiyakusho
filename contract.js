@@ -60,6 +60,12 @@ const moneyFieldNames = new Set([
   "recycleInfoFee",
   "depositTotal",
 ]);
+const measurementFieldUnits = {
+  engineSize: "cc",
+  vehicleMileage: "km",
+  warrantyMileage: "km",
+  tradeMileage: "km",
+};
 
 removePersistentDraft();
 setDefaultDate();
@@ -68,6 +74,7 @@ setupBirthdaySelects();
 setupYearSelects();
 renderSalesOptionRows(1);
 setupMoneyFields();
+setupMeasurementFields();
 restoreDraft();
 renderHistoryOptions();
 exposeContractToolApi();
@@ -273,8 +280,8 @@ function mapContractToSalesTemplate(data) {
     fullModel: data.fullModel || data.vehicleModel || "",
     modelCode: data.modelCode || data.vehicleModel || "",
     vin: data.vehicleVin || "",
-    engineSize: data.engineSize || "",
-    mileage: data.vehicleMileage || "",
+    engineSize: formatMeasurementForDocument(data.engineSize, "cc"),
+    mileage: formatMeasurementForDocument(data.vehicleMileage, "km"),
     inspectionDate: formatDateForDocument(data.inspectionDate),
     plateNo: data.vehiclePlate || "",
     mission: data.mission || "",
@@ -507,6 +514,7 @@ function applyContractData(data) {
   });
   syncBirthdaySelects(data.buyerBirthday || "");
   formatAllMoneyFields();
+  formatAllMeasurementFields();
   updatePreviewStatus();
 }
 
@@ -767,6 +775,49 @@ function formatAllMoneyFields() {
   form?.querySelectorAll(".money-input").forEach(formatMoneyInput);
 }
 
+function setupMeasurementFields() {
+  Object.entries(measurementFieldUnits).forEach(([name, unitText]) => {
+    const input = form?.elements[name];
+    if (!input || input.dataset.measurementReady === "true") {
+      return;
+    }
+    input.dataset.measurementReady = "true";
+    input.classList.add("measurement-input");
+    input.inputMode = "numeric";
+    const label = input.closest("label");
+    const labelText = Array.from(label?.children || []).find((child) => child.tagName === "SPAN")?.textContent?.trim();
+    if (labelText) {
+      input.setAttribute("aria-label", labelText);
+    }
+    const wrapper = document.createElement("div");
+    wrapper.className = "measurement-input-wrap";
+    input.before(wrapper);
+    wrapper.append(input);
+    const unit = document.createElement("span");
+    unit.className = "measurement-input-unit";
+    unit.textContent = unitText;
+    unit.setAttribute("aria-hidden", "true");
+    wrapper.append(unit);
+    input.addEventListener("input", () => formatMoneyInputWhileTyping(input));
+    input.addEventListener("blur", () => formatMeasurementInput(input));
+    input.addEventListener("change", () => formatMeasurementInput(input));
+    formatMeasurementInput(input);
+  });
+}
+
+function formatMeasurementInput(input) {
+  const value = String(input.value || "").trim();
+  if (!value) {
+    return;
+  }
+  const digits = value.replace(/\D/g, "");
+  input.value = digits ? Number(digits).toLocaleString("ja-JP") : "";
+}
+
+function formatAllMeasurementFields() {
+  form?.querySelectorAll(".measurement-input").forEach(formatMeasurementInput);
+}
+
 function ensureSalesOptionRowsForData(data) {
   if (!salesOptionRows) {
     return;
@@ -852,6 +903,15 @@ function formatDateForDocument(value) {
   return monthMatch ? `${monthMatch[1]}年${Number(monthMatch[2])}月` : text;
 }
 
+function formatMeasurementForDocument(value, unit) {
+  const text = String(value || "").trim();
+  if (!text) {
+    return "";
+  }
+  const digits = text.replace(/\D/g, "");
+  return digits ? `${Number(digits).toLocaleString("ja-JP")} ${unit}` : text;
+}
+
 function normalizeDateInputValue(value, type) {
   const text = String(value || "").trim();
   if ((type === "date" && /^\d{4}-\d{2}-\d{2}$/.test(text)) || (type === "month" && /^\d{4}-\d{2}$/.test(text))) {
@@ -881,7 +941,7 @@ function buildDateInputValue(year, month, day, type) {
 function buildWarrantyText(data) {
   const warranty = data.warranty || data.warrantyType || "";
   const period = data.warrantyPeriod ? `${data.warrantyPeriod}` : "";
-  const mileage = data.warrantyMileage ? `${data.warrantyMileage}` : "";
+  const mileage = formatMeasurementForDocument(data.warrantyMileage, "km");
   return [warranty, period, mileage].filter(Boolean).join(" / ");
 }
 
