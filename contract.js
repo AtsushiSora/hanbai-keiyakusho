@@ -20,6 +20,12 @@ const buyerBirthYear = document.querySelector("#buyerBirthYear");
 const buyerBirthMonth = document.querySelector("#buyerBirthMonth");
 const buyerBirthDay = document.querySelector("#buyerBirthDay");
 const salesTemplateImportKey = "orderAutoSalesTemplateImport";
+const companyContact = [
+  "オーダーオート",
+  "代表者　空 篤志",
+  "広島県広島市佐伯区皆賀1-10-20",
+  "TEL 080-2912-8616",
+].join("\n");
 const maxSalesOptionRows = 14;
 const moneyFieldNames = new Set([
   "basePrice",
@@ -367,7 +373,7 @@ function mapContractToSalesTemplate(data) {
     paymentMethod: data.paymentMethod || "",
     paymentDue: data.paymentDue || "",
     bankAccount: data.bankAccount || "",
-    contactMemo: data.contactMemo || "",
+    contactMemo: data.contactMemo || companyContact,
     memo: data.memo || data.specialNotes || "",
   };
 }

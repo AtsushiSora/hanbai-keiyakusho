@@ -13,6 +13,12 @@ const feeExtraRows = document.querySelector("#feeExtraRows");
 const storageKey = "orderAutoSalesSheetRecords";
 const draftKey = "orderAutoSalesSheetDraft";
 const importKey = "orderAutoSalesTemplateImport";
+const companyContact = [
+  "オーダーオート",
+  "代表者　空 篤志",
+  "広島県広島市佐伯区皆賀1-10-20",
+  "TEL 080-2912-8616",
+].join("\n");
 let activeRecordId = "";
 
 const layoutFieldGroups = {
@@ -54,6 +60,7 @@ setupLayoutMode();
 setDefaultValues();
 restoreDraft();
 const importedContract = consumeImportedContract();
+setValueIfEmpty("contactMemo", companyContact);
 renderRecordOptions(activeRecordId);
 calculateTotals();
 if (importedContract?.autoPrint) {
@@ -143,6 +150,7 @@ function setDefaultValues() {
   setValueIfEmpty("estimateDate", new Date().toISOString().slice(0, 10));
   setValueIfEmpty("carType", "中古車");
   setValueIfEmpty("warranty", "なし");
+  setValueIfEmpty("contactMemo", companyContact);
 }
 
 function setValueIfEmpty(name, value) {
@@ -280,6 +288,7 @@ function applyFormData(data) {
       field.value = value;
     }
   });
+  setValueIfEmpty("contactMemo", companyContact);
 }
 
 function saveDraft() {
