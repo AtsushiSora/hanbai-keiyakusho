@@ -1,6 +1,6 @@
 {
   "type": "module",
   "scripts": {
-    "check": "node --check src/contract-auth.js && node --check contract-auth.bundle.js && node --check contract.js && node --check contract-contact.js && node --check sales-consent.js && node --check sales-sheet.js"
+    "check": "node --check src/supabase-client.js && node --check src/contract-auth.js && node --check contract-auth.bundle.js && node --check admin-invite.js && node --check contract.js && node --check contract-contact.js && node --check sales-consent.js && node --check sales-sheet.js"
   }
 }

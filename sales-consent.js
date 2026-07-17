@@ -1,9 +1,13 @@
+import { isSupabaseConfigured, supabase } from "./src/supabase-client.js";
+
 const ORDER_AUTO_EMAIL = "sora29128616@gmail.com";
 const DEFAULT_CRYPTO_ITERATIONS = 200000;
 
 let loadedContract = null;
 let isDrawing = false;
 let hasSignature = false;
+let remoteAccessToken = "";
+let remotePasscode = "";
 
 document.querySelector("#unlockConsentButton")?.addEventListener("click", unlockConsent);
 document.querySelector("#completeConsentButton")?.addEventListener("click", completeConsent);
@@ -54,6 +58,11 @@ async function unlockConsent() {
   }
 
   try {
+    const token = getRemoteToken();
+    if (token && isSupabaseConfigured()) {
+      await unlockSupabaseConsent(token, passcode.replaceAll("-", ""));
+      return;
+    }
     const envelope = decodeEnvelope();
     if (!envelope?.ciphertext || !envelope?.salt || !envelope?.iv) {
       throw new Error("Missing payload");
@@ -67,6 +76,33 @@ async function unlockConsent() {
     loadedContract = null;
     showError("契約データを開けませんでした。URL、パスコード、有効期限を確認してください。");
   }
+}
+
+function getRemoteToken() {
+  const params = new URLSearchParams(window.location.hash.replace(/^#/, ""));
+  return params.get("token") || "";
+}
+
+async function unlockSupabaseConsent(token, passcode) {
+  const { data, error } = await supabase.rpc("read_order_auto_remote_contract", {
+    p_access_token: token,
+    p_passcode: passcode,
+  });
+  const row = data?.[0];
+  if (error || !row?.contract_data) {
+    throw new Error("Remote contract unavailable");
+  }
+
+  remoteAccessToken = token;
+  remotePasscode = passcode;
+  loadedContract = {
+    source: "supabase",
+    remoteId: row.remote_id,
+    contractId: row.contract_id,
+    expiresAt: new Date(row.expires_at).getTime(),
+    data: row.contract_data,
+  };
+  renderContract();
 }
 
 function renderContract() {
@@ -96,7 +132,7 @@ function renderContract() {
   document.querySelector("#customerSignSection").hidden = false;
 }
 
-function completeConsent() {
+async function completeConsent() {
   const customerName = document.querySelector("#customerName")?.value.trim();
   const checks = Array.from(document.querySelectorAll("[name='customerConsent']"));
   const allChecked = checks.length && checks.every((item) => item.checked);
@@ -106,6 +142,32 @@ function completeConsent() {
   document.querySelector("#signatureError").hidden = !hasError;
   if (hasError) {
     return;
+  }
+
+  const consentItems = checks.map((item) => item.value);
+  if (loadedContract?.source === "supabase") {
+    const completeButton = document.querySelector("#completeConsentButton");
+    completeButton.disabled = true;
+    showCompletionStatus("署名を保存しています。");
+    try {
+      const canvas = document.querySelector("#customerSignature");
+      const { data: completed, error } = await supabase.rpc("complete_order_auto_remote_contract", {
+        p_access_token: remoteAccessToken,
+        p_passcode: remotePasscode,
+        p_signer_name: customerName,
+        p_consent_items: consentItems,
+        p_signature_data_url: canvas.toDataURL("image/png"),
+      });
+      if (error || completed !== true) {
+        throw new Error("Remote contract completion failed");
+      }
+    } catch {
+      completeButton.disabled = false;
+      showCompletionStatus("");
+      showError("契約を完了できませんでした。URLの有効期限を確認し、もう一度お試しください。");
+      return;
+    }
+    showCompletionStatus("署名と同意内容を保存し、契約を完了しました。");
   }
 
   const data = loadedContract?.data || {};
@@ -118,9 +180,16 @@ function completeConsent() {
     `確認日時: ${new Date().toLocaleString("ja-JP")}`,
     "",
     "確認項目:",
-    ...checks.map((item) => `・${item.value}`),
+    ...consentItems.map((item) => `・${item}`),
   ].join("\n");
   window.location.href = `mailto:${ORDER_AUTO_EMAIL}?subject=${encodeURIComponent("販売契約確認完了")}&body=${encodeURIComponent(body)}`;
+}
+
+function showCompletionStatus(message) {
+  const status = document.querySelector("#consentCompletionStatus");
+  if (status) {
+    status.textContent = message;
+  }
 }
 
 function setupSignature() {

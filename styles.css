@@ -2353,6 +2353,30 @@ pre {
   align-items: stretch;
 }
 
+.invite-auth-layout {
+  grid-template-columns: minmax(0, 640px);
+  justify-content: center;
+}
+
+.invite-auth-layout .auth-card h1 {
+  margin: 0 0 10px;
+  color: var(--blue-dark);
+  font-size: 1.5rem;
+}
+
+#invitePasswordForm {
+  display: grid;
+  gap: 14px;
+}
+
+#invitePasswordForm[hidden] {
+  display: none;
+}
+
+#invitePasswordForm .primary-link {
+  width: 100%;
+}
+
 .contract-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(360px, 0.88fr);

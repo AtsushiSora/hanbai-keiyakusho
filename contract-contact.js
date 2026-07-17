@@ -1,3 +1,5 @@
+import { isSupabaseConfigured, supabase } from "./src/supabase-client.js";
+
 const COMPANY = {
   name: "オーダーオート",
   representative: "空 篤志",
@@ -128,6 +130,55 @@ async function generateConsentUrl() {
     return;
   }
 
+  generateConsentUrlButton.disabled = true;
+  setStatus("確認URLを生成しています。");
+  try {
+    const isTestLogin = sessionStorage.getItem("orderAutoTestLogin") === "1";
+    if (isSupabaseConfigured() && !isTestLogin) {
+      await generateSupabaseConsentUrl(data);
+      return;
+    }
+    await generateEncryptedConsentUrl(data);
+  } catch {
+    setStatus("確認URLを生成できませんでした。通信状態を確認して、もう一度お試しください。");
+  } finally {
+    generateConsentUrlButton.disabled = false;
+  }
+}
+
+async function generateSupabaseConsentUrl(data) {
+  const { data: authData } = await supabase.auth.getSession();
+  if (!authData.session?.user) {
+    setStatus("Supabaseへログインし直してから確認URLを生成してください。");
+    return;
+  }
+  if (!data.__recordId) {
+    setStatus("先に契約をクラウド保存し、契約一覧の「メール・LINE契約」から開いてください。");
+    return;
+  }
+
+  const passcode = generatePasscode();
+  const accessToken = generateAccessToken();
+  const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+  const { data: remoteRows, error } = await supabase.rpc("create_order_auto_remote_contract", {
+    p_contract_id: data.__recordId,
+    p_access_token: accessToken,
+    p_passcode: passcode,
+    p_expires_at: expiresAt,
+  });
+
+  if (error || !remoteRows?.length) {
+    setStatus("確認URLを作成できませんでした。SupabaseのSQLとRLS設定を確認してください。");
+    return;
+  }
+
+  const url = new URL("sales-consent.html", window.location.href);
+  url.hash = `token=${encodeURIComponent(accessToken)}`;
+  setGeneratedConsent(url.toString(), passcode);
+  setStatus("Supabaseに期限付き確認URLを保存しました。パスコードは別送してください。");
+}
+
+async function generateEncryptedConsentUrl(data) {
   const passcode = generatePasscode();
   const payload = {
     id: data.contractNumber || data.estimateNo || `sales-${Date.now()}`,
@@ -141,14 +192,18 @@ async function generateConsentUrl() {
   const url = new URL("sales-consent.html", window.location.href);
   url.hash = `payload=${encoded}`;
 
+  setGeneratedConsent(url.toString(), passcode);
+  setStatus("テスト用の暗号化URLと開封パスコードを生成しました。パスコードは別送してください。");
+}
+
+function setGeneratedConsent(url, passcode) {
   if (consentUrlField) {
-    consentUrlField.value = url.toString();
+    consentUrlField.value = url;
   }
   if (consentPasscodeField) {
     consentPasscodeField.value = passcode;
   }
   buildEmailBody();
-  setStatus("暗号化した確認URLと開封パスコードを生成しました。パスコードは別送してください。");
 }
 
 async function copyConsentUrl() {
@@ -215,6 +270,10 @@ function generatePasscode() {
   crypto.getRandomValues(bytes);
   const number = bytes.reduce((acc, byte) => acc * 256 + byte, 0) % 100000000;
   return String(number).padStart(8, "0");
+}
+
+function generateAccessToken() {
+  return bytesToBase64Url(crypto.getRandomValues(new Uint8Array(32)));
 }
 
 async function deriveEncryptionKey(passcode, salt) {

@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="ja">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>管理者パスワード設定｜オーダーオート</title>
+    <meta name="robots" content="noindex, nofollow" />
+    <link rel="stylesheet" href="styles.css?v=contract24" />
+  </head>
+  <body class="admin-page contract-page sales-contract-system">
+    <header class="site-header admin-header">
+      <a class="brand" href="contract.html" aria-label="オーダーオート 契約作成">
+        <span class="brand-mark" aria-hidden="true"><img src="assets/brand-logo.png" alt="" /></span>
+        <span>
+          <strong>オーダーオート 契約作成</strong>
+          <small>車両販売</small>
+        </span>
+      </a>
+    </header>
+
+    <main class="contract-main">
+      <section class="section contract-auth-section">
+        <div class="section-inner auth-layout invite-auth-layout">
+          <article class="auth-card">
+            <p class="section-kicker">ADMIN SETUP</p>
+            <h1>管理者パスワード設定</h1>
+            <p id="inviteDescription">招待情報を確認しています。</p>
+            <form id="invitePasswordForm" autocomplete="off" hidden>
+              <label>
+                <span>新しいパスワード</span>
+                <input name="password" type="password" minlength="12" autocomplete="new-password" required />
+              </label>
+              <label>
+                <span>新しいパスワード（確認）</span>
+                <input name="passwordConfirm" type="password" minlength="12" autocomplete="new-password" required />
+              </label>
+              <button class="primary-link" type="submit">パスワードを設定</button>
+            </form>
+            <p class="auth-status" id="inviteStatus" aria-live="polite"></p>
+            <a class="secondary-link" id="loginLink" href="contract.html" hidden>管理者ログインへ</a>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <script type="module" src="admin-invite.js?v=invite1"></script>
+  </body>
+</html>

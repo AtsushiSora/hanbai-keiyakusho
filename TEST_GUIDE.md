@@ -7,23 +7,26 @@
 このシステムはGitHub Pagesで画面を公開し、ログインと契約データ保存にSupabaseを使います。Netlifyは利用しません。
 
 - 確認できること: 管理者ログイン、入力、クラウド保存、契約一覧、JSON出力・取込、PDF保存・印刷、メール・LINE文面作成
-- 保存場所: Supabase `order_auto_contracts` テーブル
-- 注意点: `src/supabase-config.js` のURLとanon key設定、`supabase-schema.sql` の実行が必要です。
+- 保存場所: Supabaseの契約・リモート契約・監査イベント用テーブル
+- 注意点: `src/supabase-config.js` のProject URLとPublishable key設定、`supabase-schema.sql` の実行が必要です。
 
 ## 0. Supabase準備
 
 1. Supabaseでプロジェクトを作成する
 2. SQL Editorで `supabase-schema.sql` を実行する
 3. Authenticationで管理者ユーザーを作成する
-4. Project URL と anon public key を `src/supabase-config.js` に設定する
-5. GitHubへ反映してGitHub Pagesで読み込める状態にする
+4. Project URL と Publishable key を `src/supabase-config.js` に設定する
+5. `enableTestLogin` を本番では `false` にする
+6. GitHubへ反映してGitHub Pagesで読み込める状態にする
+7. SupabaseのSite URLを `https://atsushisora.github.io/hanbai-keiyakusho/admin-invite.html` に設定する
 
 チェック項目:
 
 - `order_auto_contracts` テーブルがある
+- `order_auto_remote_contracts` と `order_auto_remote_events` テーブルがある
 - RLSが有効になっている
 - 管理者ユーザーでログインできる
-- `service_role` キーを公開ファイルに入れていない
+- Secret key、`service_role` キーを公開ファイルに入れていない
 
 ## 1. 画面確認
 
@@ -37,7 +40,7 @@ https://atsushisora.github.io/hanbai-keiyakusho/
 
 - 管理者ログイン画面が表示される
 - Supabaseに登録したメールアドレスとパスワードで入れる
-- `テスト用ログイン` でも作成画面に入れる
+- テスト期間中だけ `テスト用ログイン` で作成画面に入れる
 - `EDITOR / 新規契約作成` の操作パネルが表示される
 - スマホ幅でも文字やボタンが重ならない
 
@@ -151,11 +154,15 @@ https://atsushisora.github.io/hanbai-keiyakusho/
 - 契約一覧で選んだ契約内容が引き継がれる
 - URLとパスコードは別々に送る案内になっている
 - お客様確認ページで契約概要、重要事項、電子署名が表示される
+- 電子署名完了後、`order_auto_remote_contracts` に署名者名・同意内容・署名画像・完了日時が保存される
+- 元の契約が `完了` 状態になる
+- 誤ったパスコードを5回入力すると15分間ロックされる
 
 ## 7. 本番前の確認
 
-- テスト用ログインを無効化する場合は `src/contract-auth.js` の `ENABLE_TEST_LOGIN` を `false` にする
+- `src/supabase-config.js` の `enableTestLogin` を `false` にする
 - Supabaseの管理者ユーザーを強いパスワードにする
 - SupabaseのRLSポリシーが有効なことを確認する
+- GitHubにSecret key、`service_role` キー、管理者パスワードが含まれていないことを確認する
 - 契約一覧からJSON出力してバックアップを取る
 - 帳票PDFの入力位置を実車両データで確認する

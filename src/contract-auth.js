@@ -1,7 +1,6 @@
-import { createClient } from "https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/+esm";
-import { SUPABASE_CONFIG } from "./supabase-config.js";
+import { SUPABASE_CONFIG, isSupabaseConfigured, supabase } from "./supabase-client.js";
 
-const ENABLE_TEST_LOGIN = true;
+const ENABLE_TEST_LOGIN = SUPABASE_CONFIG.enableTestLogin === true;
 
 const testLoginStorageKey = "orderAutoTestLogin";
 const draftStorageKey = "orderAutoContractDraft";
@@ -29,16 +28,6 @@ const contractStatusTabs = document.querySelector("#contractStatusTabs");
 const exportContractsButton = document.querySelector("#exportContractsButton");
 const importContractsButton = document.querySelector("#importContractsButton");
 const importContractsFile = document.querySelector("#importContractsFile");
-
-const supabase = isSupabaseConfigured()
-  ? createClient(SUPABASE_CONFIG.url, SUPABASE_CONFIG.anonKey, {
-      auth: {
-        persistSession: true,
-        autoRefreshToken: true,
-        detectSessionInUrl: true,
-      },
-    })
-  : null;
 
 let currentUser = null;
 let cloudContracts = [];
@@ -88,7 +77,7 @@ async function initAdminAuth() {
   }
 
   if (!supabase) {
-    applyLoggedOutState("Supabase設定が未入力です。src/supabase-config.js にURLとanon keyを設定してください。");
+    applyLoggedOutState("Supabase設定が未入力です。src/supabase-config.js にProject URLとPublishable keyを設定してください。");
     return;
   }
 
@@ -230,6 +219,7 @@ async function loadCloudContracts() {
   const { data, error } = await supabase
     .from(tableName)
     .select("*")
+    .eq("user_id", currentUser.id)
     .order("updated_at", { ascending: false });
 
   if (error) {
@@ -463,7 +453,11 @@ async function deleteSelectedContract() {
     return;
   }
 
-  const { error } = await supabase.from(tableName).delete().eq("id", selectedId);
+  const { error } = await supabase
+    .from(tableName)
+    .delete()
+    .eq("id", selectedId)
+    .eq("user_id", currentUser.id);
   if (error) {
     setStoredStatus("契約を削除できませんでした。");
     return;
@@ -503,7 +497,10 @@ function handleContractCardAction(event) {
 
 function transferContractToPage(contract, targetPath) {
   try {
-    sessionStorage.setItem(draftStorageKey, JSON.stringify(contract.data || {}));
+    sessionStorage.setItem(draftStorageKey, JSON.stringify({
+      ...(contract.data || {}),
+      __recordId: contract.id,
+    }));
     window.location.href = targetPath;
   } catch {
     setStoredStatus("契約情報を次のページへ渡せませんでした。");
@@ -634,6 +631,8 @@ function toSupabaseRecord(record, userId) {
     vehicle_name: normalized.vehicleName,
     total_price: normalized.totalPrice,
     status: normalized.status,
+    document_type: normalized.documentType,
+    buyer_email: normalized.data?.buyerEmail || "",
     data: normalized.data,
     updated_at: new Date().toISOString(),
   };
@@ -648,6 +647,7 @@ function fromSupabaseRecord(record) {
     vehicleName: record.vehicle_name,
     totalPrice: record.total_price,
     status: record.status,
+    documentType: record.document_type,
     data: record.data || {},
   });
 }
@@ -788,10 +788,6 @@ function sanitizeRecordId(value) {
 
 function createRecordId() {
   return window.crypto?.randomUUID ? window.crypto.randomUUID() : `contract-${Date.now()}-${Math.random().toString(16).slice(2)}`;
-}
-
-function isSupabaseConfigured() {
-  return Boolean(SUPABASE_CONFIG.url && SUPABASE_CONFIG.anonKey);
 }
 
 function setAuthStatus(message) {
