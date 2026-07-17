@@ -28,7 +28,7 @@ async function initialize() {
     return;
   }
 
-  description.textContent = `${data.session.user.email || "管理者"} のパスワードを設定します。12文字以上で入力してください。`;
+  description.textContent = `${data.session.user.email || "管理者"} のパスワードを設定します。8文字以上で入力してください。`;
   form.hidden = false;
   status.textContent = "";
 }
@@ -39,8 +39,8 @@ async function updatePassword(event) {
   const password = String(formData.get("password") || "");
   const confirmation = String(formData.get("passwordConfirm") || "");
 
-  if (password.length < 12) {
-    status.textContent = "パスワードは12文字以上で入力してください。";
+  if (password.length < 8) {
+    status.textContent = "パスワードは8文字以上で入力してください。";
     return;
   }
   if (password !== confirmation) {
