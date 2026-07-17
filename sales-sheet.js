@@ -80,6 +80,7 @@ function setupLayoutMode() {
     return;
   }
 
+  document.body.classList.add("layout-adjustment");
   layoutModeControl.hidden = false;
   const requestedGroup = params.get("layout") || "customer";
   const validGroup = requestedGroup === "all" || Object.prototype.hasOwnProperty.call(layoutFieldGroups, requestedGroup)
