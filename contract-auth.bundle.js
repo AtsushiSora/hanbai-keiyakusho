@@ -1,1 +1,1 @@
-import "./src/contract-auth.js?v=supabase1";
+import "./src/contract-auth.js?v=supabase2";
