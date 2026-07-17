@@ -248,6 +248,14 @@ textarea.tpl-field {
   text-align: center;
 }
 
+.tpl-field.document-date {
+  text-align: left;
+}
+
+.tpl-field.template-value-mask {
+  background: #fff;
+}
+
 .tpl-field.amount,
 .tpl-output.amount {
   text-align: right;
@@ -321,6 +329,10 @@ textarea.tpl-field {
 
   .tpl-field {
     background: transparent;
+  }
+
+  .tpl-field.template-value-mask {
+    background: #fff;
   }
 }
 
