@@ -357,6 +357,27 @@ function calculateTotals() {
   setOutput("afterTradeTotal", getPaymentTotal(data) - getTradeTotal(data));
   setOutput("paymentInputTotal", getPaymentInputTotal(data));
   setOutput("recycleTotal", getRecycleTotal(data));
+  fitTemplateFields();
+}
+
+function fitTemplateFields() {
+  document.querySelectorAll(".tpl-field, .tpl-output").forEach((field) => {
+    field.style.removeProperty("font-size");
+    const value = "value" in field ? field.value : field.textContent.trim();
+    if (!value) {
+      return;
+    }
+
+    let fontSize = Number.parseFloat(window.getComputedStyle(field).fontSize) || 10;
+    const minimumFontSize = 5.5;
+    while (
+      fontSize > minimumFontSize
+      && (field.scrollWidth > field.clientWidth + 1 || field.scrollHeight > field.clientHeight + 1)
+    ) {
+      fontSize = Math.max(minimumFontSize, fontSize - 0.5);
+      field.style.fontSize = `${fontSize}px`;
+    }
+  });
 }
 
 function getVehicleTotal(data) {
