@@ -34,6 +34,7 @@ let isTestLogin = false;
 let activeStatusFilter = "all";
 let activeSearchTerm = "";
 let isConvertingEstimate = false;
+let isSavingCloud = false;
 
 initAdminAuth();
 
@@ -252,6 +253,22 @@ function renderCloudContracts(selectedId = "") {
 }
 
 async function saveCloudContract(requestedDocumentType = "") {
+  if (isSavingCloud) {
+    return;
+  }
+  isSavingCloud = true;
+  setCloudSaveButtonsDisabled(true);
+  setStoredStatus(`${requestedDocumentType || "契約書"}の入力内容を確認しています。`);
+  try {
+    await new Promise((resolve) => requestAnimationFrame(resolve));
+    await persistCloudContract(requestedDocumentType);
+  } finally {
+    isSavingCloud = false;
+    setCloudSaveButtonsDisabled(false);
+  }
+}
+
+async function persistCloudContract(requestedDocumentType = "") {
   if (!window.contractTool) {
     setStoredStatus("契約書作成ページで保存してください。");
     return;
@@ -831,6 +848,15 @@ function setCloudButtonsDisabled(disabled) {
   }
   if (deleteServerContractButton) {
     deleteServerContractButton.disabled = disabled;
+  }
+}
+
+function setCloudSaveButtonsDisabled(disabled) {
+  if (saveServerContractButton) {
+    saveServerContractButton.disabled = disabled;
+  }
+  if (saveEstimateButton) {
+    saveEstimateButton.disabled = disabled;
   }
 }
 

@@ -651,7 +651,7 @@ function handleFormInput(event) {
   syncPaymentTotal();
   saveDraft();
   if (activeValidationMode) {
-    validateContract(activeValidationMode, { focus: false });
+    validateContract(activeValidationMode, { focus: false, announceResolved: true });
   }
 }
 
@@ -780,7 +780,11 @@ function validateContract(mode = "draft", options = {}) {
   });
 
   if (!errors.length) {
+    const hadActiveValidation = Boolean(activeValidationMode);
     clearValidationState();
+    if (options.announceResolved && hadActiveValidation) {
+      updateSaveStatus("入力内容を修正しました。保存できます。");
+    }
     return true;
   }
 

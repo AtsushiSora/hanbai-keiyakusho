@@ -3,17 +3,17 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>販売契約内容の確認｜オーダーオート</title>
-    <meta name="description" content="オーダーオートの車両販売契約内容を確認し、電子署名と同意を行うページです。" />
+    <title>販売書類の確認｜オーダーオート</title>
+    <meta name="description" content="オーダーオートの車両販売契約書・見積書を安全に確認するページです。" />
     <meta name="robots" content="noindex, nofollow" />
     <link rel="stylesheet" href="styles.css?v=contract13" />
   </head>
   <body class="contract-page sales-contract-system consent-page">
     <header class="site-header admin-header">
-      <a class="brand" href="sales-consent.html" aria-label="オーダーオート 契約確認">
+      <a class="brand" href="sales-consent.html" aria-label="オーダーオート 書類確認">
         <span class="brand-mark" aria-hidden="true"><img src="assets/brand-logo.png" alt="" /></span>
         <span>
-          <strong>オーダーオート 契約確認</strong>
+          <strong id="consentBrandTitle">オーダーオート 書類確認</strong>
           <small>車両販売</small>
         </span>
       </a>
@@ -25,9 +25,9 @@
     <main class="contract-main">
       <section class="section consent-layout">
         <div class="section-inner consent-card">
-          <p class="section-kicker">Agreement</p>
-          <h1>契約内容の確認</h1>
-          <p>メール・LINEで届いた確認URLと、別途案内された開封パスコードを使って契約内容を確認してください。</p>
+          <p class="section-kicker" id="consentPageKicker">Secure Document</p>
+          <h1 id="consentPageTitle">販売書類の確認</h1>
+          <p id="consentPageIntroduction">メール・LINEで届いた確認URLと、別途案内された開封パスコードを使って内容を確認してください。</p>
 
           <section class="consent-unlock" id="consentUnlock">
             <h2>開封パスコード</h2>
@@ -36,14 +36,19 @@
               <span>パスコード</span>
               <input id="consentPasscodeInput" type="password" autocomplete="one-time-code" />
             </label>
-            <button class="primary-link" type="button" id="unlockConsentButton">契約内容を開く</button>
+            <button class="primary-link" type="button" id="unlockConsentButton">内容を開く</button>
           </section>
 
-          <p class="contract-save-status warning" id="consentError" hidden>契約データを読み込めませんでした。</p>
+          <p class="contract-save-status warning" id="consentError" hidden>書類データを読み込めませんでした。</p>
 
           <section class="consent-summary" id="consentSummary" hidden>
-            <h2>契約概要</h2>
+            <h2 id="consentSummaryTitle">書類概要</h2>
             <dl id="summaryList"></dl>
+          </section>
+
+          <section class="consent-summary" id="estimateNotice" hidden>
+            <h2>見積内容をご確認ください</h2>
+            <p>この画面は見積内容の確認用です。見積書の確認だけでは契約は成立しません。契約手続きは、販売店から届く契約書で行ってください。</p>
           </section>
 
           <section class="consent-summary" id="consentChecks" hidden>
@@ -75,6 +80,6 @@
       </section>
     </main>
 
-    <script type="module" src="sales-consent.js?v=supabase1"></script>
+    <script type="module" src="sales-consent.js?v=supabase2"></script>
   </body>
 </html>

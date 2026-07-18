@@ -48,10 +48,12 @@ function renderSelectedContract() {
   }
 
   const data = getContractData();
+  const copy = getDocumentCopy(data);
+  updatePageCopy(copy);
   if (!hasContractData(data)) {
     remoteSelectedContract.innerHTML = `
       <div class="remote-empty-state">
-        <p>送信する契約が選択されていません。</p>
+        <p>送信する書類が選択されていません。</p>
         <a class="secondary-button" href="contract-create.html">契約書作成へ</a>
       </div>
     `;
@@ -61,11 +63,11 @@ function renderSelectedContract() {
   remoteSelectedContract.innerHTML = `
     <article class="remote-contract-item active">
       <div>
-        <span>契約番号 ${escapeHtml(data.contractNumber || data.estimateNo || "下書き")}</span>
+        <span>${copy.numberLabel} ${escapeHtml(data.contractNumber || data.estimateNo || "下書き")}</span>
         <strong>${escapeHtml(data.buyerName || "買主未入力")}</strong>
-        <small>${escapeHtml(data.vehicleName || "車両未入力")} / ${escapeHtml(data.remoteStatus || "送信準備")}</small>
+        <small>${escapeHtml(data.vehicleName || "車両未入力")} / ${copy.documentLabel} / ${escapeHtml(data.remoteStatus || "送信準備")}</small>
       </div>
-      <a class="secondary-button compact" href="contract-create.html">契約を変更</a>
+      <a class="secondary-button compact" href="contract-create.html">${copy.changeLabel}</a>
     </article>
   `;
 }
@@ -76,22 +78,23 @@ function buildEmailBody() {
   }
 
   const data = getContractData();
+  const copy = getDocumentCopy(data);
   const url = consentUrlField?.value.trim() || "【確認URLをここに入力】";
   const body = [
     `${safePlain(data.buyerName, "お客様")} 様`,
     "",
     "オーダーオートです。",
-    "車両販売契約の内容確認をお願いいたします。",
+    copy.emailIntroduction,
     "",
     `車両：${safePlain([data.vehicleName, data.vehicleGrade].filter(Boolean).join(" "))}`,
     `車台番号：${safePlain(data.vehicleVin)}`,
-    `総支払額：${formatYen(data.totalPrice || calculateTotal(data)) || "未入力"}`,
+    `${copy.amountLabel}：${formatYen(data.totalPrice || calculateTotal(data)) || "未入力"}`,
     "",
     `確認URL：${url}`,
     "",
     "確認URLは暗号化されています。",
     "開封パスコードは安全のため、このメールには記載していません。",
-    "別途お伝えするパスコードを入力し、内容をご確認のうえ、重要事項に同意して契約を完了してください。",
+    copy.emailInstruction,
     consentPasscodeField?.value.trim() ? "" : "※先に「確認URL生成」を押して確認URLとパスコードを作成してください。",
     "",
     COMPANY.name,
@@ -105,28 +108,29 @@ function buildEmailBody() {
 
 function buildLineMessage() {
   const data = getContractData();
+  const copy = getDocumentCopy(data);
   const url = consentUrlField?.value.trim() || "【確認URL】";
 
   return [
     `${safePlain(data.buyerName, "お客様")} 様`,
     "",
     "オーダーオートです。",
-    "車両販売契約の内容確認をお願いします。",
+    copy.lineIntroduction,
     "",
     `車両：${safePlain([data.vehicleName, data.vehicleGrade].filter(Boolean).join(" "))}`,
-    `総支払額：${formatYen(data.totalPrice || calculateTotal(data)) || "未入力"}`,
+    `${copy.amountLabel}：${formatYen(data.totalPrice || calculateTotal(data)) || "未入力"}`,
     "",
     `確認URL：${url}`,
     "",
     "開封パスコードは安全のため、このLINEには記載していません。",
-    "別途お伝えする8桁のパスコードを入力して確認してください。",
+    copy.lineInstruction,
   ].join("\n");
 }
 
 async function generateConsentUrl() {
   const data = getContractData();
   if (!hasContractData(data)) {
-    setStatus("契約作成ページで送信する契約を入力してください。");
+    setStatus("契約作成ページで送信する書類を入力してください。");
     return;
   }
   const validationError = getRemoteContractValidationError(data);
@@ -177,7 +181,8 @@ async function generateSupabaseConsentUrl(data) {
     return;
   }
   if (!data.__recordId) {
-    setStatus("先に契約をクラウド保存し、契約一覧の「メール・LINE契約」から開いてください。");
+    const copy = getDocumentCopy(data);
+    setStatus(`先に${copy.documentLabel}をクラウド保存し、契約一覧の「${copy.remoteActionLabel}」から開いてください。`);
     return;
   }
 
@@ -270,7 +275,8 @@ async function openEmail() {
 
   buildEmailBody();
   const data = getContractData();
-  const href = `mailto:${encodeURIComponent(data.buyerEmail || "")}?subject=${encodeURIComponent("車両販売契約内容のご確認")}&body=${encodeURIComponent(emailBody?.value || "")}`;
+  const copy = getDocumentCopy(data);
+  const href = `mailto:${encodeURIComponent(data.buyerEmail || "")}?subject=${encodeURIComponent(copy.emailSubject)}&body=${encodeURIComponent(emailBody?.value || "")}`;
   window.location.href = href;
   setStatus("メール作成画面を開きました。パスコードは別送してください。");
 }
@@ -354,6 +360,51 @@ function parseAmount(value) {
 function safePlain(value, fallback = "未入力") {
   const cleaned = String(value || "").trim();
   return cleaned || fallback;
+}
+
+function getDocumentCopy(data = {}) {
+  if (data.documentType === "見積書") {
+    return {
+      documentLabel: "見積書",
+      numberLabel: "見積番号",
+      changeLabel: "見積書を変更",
+      remoteActionLabel: "見積書を送る",
+      pageTitle: "メール・LINEで見積書を送信",
+      pageKicker: "Remote Estimate",
+      amountLabel: "お見積総額",
+      emailIntroduction: "車両見積書の内容確認をお願いいたします。",
+      emailInstruction: "別途お伝えするパスコードを入力し、見積内容をご確認ください。見積書の確認だけでは契約は成立しません。",
+      lineIntroduction: "車両見積書の内容確認をお願いします。",
+      lineInstruction: "別途お伝えする8桁のパスコードを入力し、見積内容をご確認ください。見積書の確認だけでは契約は成立しません。",
+      emailSubject: "車両見積書のご確認",
+    };
+  }
+  return {
+    documentLabel: "契約書",
+    numberLabel: "契約番号",
+    changeLabel: "契約を変更",
+    remoteActionLabel: "メール・LINE契約",
+    pageTitle: "メール・LINEで契約",
+    pageKicker: "Remote Contract",
+    amountLabel: "総支払額",
+    emailIntroduction: "車両販売契約の内容確認をお願いいたします。",
+    emailInstruction: "別途お伝えするパスコードを入力し、内容をご確認のうえ、重要事項に同意して契約を完了してください。",
+    lineIntroduction: "車両販売契約の内容確認をお願いします。",
+    lineInstruction: "別途お伝えする8桁のパスコードを入力して確認してください。",
+    emailSubject: "車両販売契約内容のご確認",
+  };
+}
+
+function updatePageCopy(copy) {
+  const pageKicker = document.querySelector("#remotePageKicker");
+  const pageTitle = document.querySelector("#remotePageTitle");
+  if (pageKicker) {
+    pageKicker.textContent = copy.pageKicker;
+  }
+  if (pageTitle) {
+    pageTitle.textContent = copy.pageTitle;
+  }
+  document.title = `${copy.pageTitle}｜オーダーオート`;
 }
 
 function escapeHtml(value) {

@@ -74,7 +74,7 @@ async function unlockConsent() {
     renderContract();
   } catch {
     loadedContract = null;
-    showError("契約データを開けませんでした。URL、パスコード、有効期限を確認してください。");
+    showError("書類データを開けませんでした。URL、パスコード、有効期限を確認してください。");
   }
 }
 
@@ -107,8 +107,10 @@ async function unlockSupabaseConsent(token, passcode) {
 
 function renderContract() {
   const data = loadedContract?.data || {};
+  const isEstimate = isEstimateDocument(data);
+  updateConsentPageCopy(isEstimate);
   document.querySelector("#customerName").value = data.buyerName || "";
-  document.querySelector("#summaryList").innerHTML = [
+  const summaryRows = [
     summaryRow("買主氏名", data.buyerName),
     summaryRow("電話番号", data.buyerPhone),
     summaryRow("メール", data.buyerEmail),
@@ -118,21 +120,36 @@ function renderContract() {
     summaryRow("車台番号", data.vehicleVin),
     summaryRow("登録番号", data.vehiclePlate),
     summaryRow("走行距離", data.vehicleMileage),
-    summaryRow("総支払額", formatYen(data.totalPrice || calculateTotal(data))),
-    summaryRow("支払方法", data.paymentMethod),
-    summaryRow("納車予定日", data.deliveryDate),
-    summaryRow("保証", [data.warrantyType, data.warrantyPeriod].filter(Boolean).join(" / ")),
-    summaryRow("特記事項", data.specialNotes),
-  ].join("");
+    summaryRow(isEstimate ? "お見積総額" : "総支払額", formatYen(data.totalPrice || calculateTotal(data))),
+  ];
+  if (isEstimate) {
+    summaryRows.push(
+      summaryRow("見積日", data.estimateDate),
+      summaryRow("有効期限", data.validUntil),
+    );
+  } else {
+    summaryRows.push(
+      summaryRow("支払方法", data.paymentMethod),
+      summaryRow("納車予定日", data.deliveryDate),
+      summaryRow("保証", [data.warrantyType, data.warrantyPeriod].filter(Boolean).join(" / ")),
+      summaryRow("特記事項", data.specialNotes),
+    );
+  }
+  document.querySelector("#summaryList").innerHTML = summaryRows.join("");
 
   document.querySelector("#consentUnlock").hidden = true;
   document.querySelector("#consentError").hidden = true;
   document.querySelector("#consentSummary").hidden = false;
-  document.querySelector("#consentChecks").hidden = false;
-  document.querySelector("#customerSignSection").hidden = false;
+  document.querySelector("#estimateNotice").hidden = !isEstimate;
+  document.querySelector("#consentChecks").hidden = isEstimate;
+  document.querySelector("#customerSignSection").hidden = isEstimate;
 }
 
 async function completeConsent() {
+  if (isEstimateDocument(loadedContract?.data)) {
+    showError("見積書は内容確認のみです。電子署名は必要ありません。");
+    return;
+  }
   const customerName = document.querySelector("#customerName")?.value.trim();
   const checks = Array.from(document.querySelectorAll("[name='customerConsent']"));
   const allChecked = checks.length && checks.every((item) => item.checked);
@@ -249,6 +266,36 @@ function clearSignature() {
   const context = canvas?.getContext("2d");
   context?.clearRect(0, 0, canvas.width, canvas.height);
   hasSignature = false;
+}
+
+function isEstimateDocument(data = {}) {
+  return data.documentType === "見積書";
+}
+
+function updateConsentPageCopy(isEstimate) {
+  const copy = isEstimate
+    ? {
+      brandTitle: "オーダーオート 見積確認",
+      kicker: "Estimate",
+      pageTitle: "見積内容の確認",
+      introduction: "メール・LINEで届いた確認URLと、別途案内された開封パスコードを使って見積内容を確認してください。",
+      summaryTitle: "見積概要",
+      browserTitle: "見積内容の確認｜オーダーオート",
+    }
+    : {
+      brandTitle: "オーダーオート 契約確認",
+      kicker: "Agreement",
+      pageTitle: "契約内容の確認",
+      introduction: "メール・LINEで届いた確認URLと、別途案内された開封パスコードを使って契約内容を確認してください。",
+      summaryTitle: "契約概要",
+      browserTitle: "販売契約内容の確認｜オーダーオート",
+    };
+  document.querySelector("#consentBrandTitle").textContent = copy.brandTitle;
+  document.querySelector("#consentPageKicker").textContent = copy.kicker;
+  document.querySelector("#consentPageTitle").textContent = copy.pageTitle;
+  document.querySelector("#consentPageIntroduction").textContent = copy.introduction;
+  document.querySelector("#consentSummaryTitle").textContent = copy.summaryTitle;
+  document.title = copy.browserTitle;
 }
 
 function summaryRow(label, value) {

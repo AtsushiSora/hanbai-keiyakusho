@@ -3,8 +3,8 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>メール・LINE契約｜オーダーオート</title>
-    <meta name="description" content="オーダーオートの車両販売契約内容をメール・LINEで確認するためのURLと送信用文面を作成します。" />
+    <title>メール・LINEで送信｜オーダーオート</title>
+    <meta name="description" content="オーダーオートの車両販売契約書・見積書をメール・LINEで確認するためのURLと送信用文面を作成します。" />
     <meta name="robots" content="noindex, nofollow" />
     <link rel="stylesheet" href="styles.css?v=contract24" />
   </head>
@@ -28,11 +28,11 @@
     </header>
 
     <main class="contract-main" id="top">
-      <section class="contract-hero" aria-label="メール・LINE契約">
+      <section class="contract-hero" aria-label="メール・LINEで送信">
         <div class="section-inner contract-hero-inner">
           <div>
-            <p class="section-kicker">Remote Contract</p>
-            <h1>メール・LINEで契約</h1>
+            <p class="section-kicker" id="remotePageKicker">Remote Document</p>
+            <h1 id="remotePageTitle">メール・LINEで送信</h1>
           </div>
           <div class="contract-hero-actions admin-only">
             <a class="secondary-button" href="contract.html">TOPに戻る</a>
@@ -70,10 +70,10 @@
 
       <section class="section contract-workspace admin-only">
         <div class="section-inner remote-contract-page">
-          <section class="remote-flow-panel" aria-label="選択中の契約">
+          <section class="remote-flow-panel" aria-label="選択中の書類">
             <div class="remote-step-head">
-              <strong>選択中の契約</strong>
-              <span>契約作成ページ、または契約一覧から選んだ契約を表示します。</span>
+              <strong>選択中の書類</strong>
+              <span>契約作成ページ、または契約一覧から選んだ契約書・見積書を表示します。</span>
             </div>
             <div id="remoteSelectedContract" class="remote-selected-contract" aria-live="polite"></div>
           </section>
@@ -125,7 +125,7 @@
       </section>
     </main>
 
-    <script type="module" src="contract-contact.js?v=supabase2"></script>
-    <script type="module" src="src/contract-auth.js?v=supabase10"></script>
+    <script type="module" src="contract-contact.js?v=supabase3"></script>
+    <script type="module" src="src/contract-auth.js?v=supabase11"></script>
   </body>
 </html>
