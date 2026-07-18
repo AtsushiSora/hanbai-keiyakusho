@@ -2210,15 +2210,6 @@ pre {
   border-color: var(--contract-green, #0f7a4d);
 }
 
-.contract-list-select,
-.list-legacy-actions {
-  display: none;
-}
-
-.contract-list-page .list-legacy-actions {
-  display: none;
-}
-
 .contract-card-list {
   display: grid;
   gap: 12px;
@@ -2255,18 +2246,6 @@ pre {
 .contract-card-main span {
   color: #5d6a66;
   font-weight: 800;
-}
-
-.contract-status-chip {
-  display: inline-grid;
-  place-items: center;
-  min-height: 30px;
-  padding: 0 12px;
-  color: var(--contract-green-dark, #0a4f35);
-  background: #eaf6ef;
-  border-radius: 999px;
-  font-size: 0.84rem;
-  font-weight: 900;
 }
 
 .document-type-pill,
@@ -2444,8 +2423,7 @@ pre {
 .contract-editor-panel,
 .contract-form,
 .contract-history-panel,
-.contract-preview-panel,
-.security-panel {
+.contract-preview-panel {
   padding: 24px;
   background: #fff;
   border: 1px solid var(--line);
@@ -2677,27 +2655,15 @@ pre {
   margin-bottom: 12px;
 }
 
-.contract-history-panel h2,
-.security-panel h2 {
+.contract-history-panel h2 {
   margin: 0;
   color: var(--blue-dark);
   font-size: 1.2rem;
 }
 
-.contract-history-panel p,
-.security-panel p {
+.contract-history-panel p {
   margin: 0 0 14px;
   color: var(--muted);
-  font-weight: 700;
-}
-
-.security-panel ul {
-  display: grid;
-  gap: 8px;
-  margin: 0;
-  padding-left: 1.2em;
-  color: var(--muted);
-  font-size: 0.9rem;
   font-weight: 700;
 }
 
@@ -2922,271 +2888,6 @@ pre {
   font-weight: 900;
 }
 
-.home-compact {
-  background: #fff;
-}
-
-.compact-hero {
-  padding: clamp(26px, 5vw, 58px) 0 28px;
-  background: linear-gradient(180deg, #f4f9ff 0%, #fff 100%);
-}
-
-.compact-hero-inner {
-  display: grid;
-  grid-template-columns: minmax(0, 0.98fr) minmax(320px, 0.72fr);
-  gap: clamp(18px, 4vw, 44px);
-  align-items: center;
-}
-
-.compact-hero-copy h1 {
-  max-width: 720px;
-  font-size: clamp(2rem, 4.2vw, 3.55rem);
-}
-
-.worry-list {
-  display: grid;
-  gap: 10px;
-  margin: 18px 0 0;
-  padding: 0;
-  list-style: none;
-}
-
-.worry-list li {
-  display: grid;
-  grid-template-columns: 32px 1fr;
-  gap: 10px;
-  align-items: center;
-  padding: 12px 14px;
-  color: #263247;
-  background: #fff;
-  border: 1px solid #dbe9f6;
-  border-radius: var(--radius);
-  box-shadow: 0 8px 20px rgba(20, 66, 116, 0.06);
-  font-weight: 800;
-  line-height: 1.45;
-}
-
-.worry-list span {
-  display: grid;
-  place-items: center;
-  width: 32px;
-  height: 32px;
-  color: #fff;
-  background: var(--blue);
-  border-radius: 999px;
-  font-size: 0.88rem;
-  font-weight: 900;
-}
-
-.solution-copy {
-  margin: 16px 0 0;
-  color: var(--orange-dark);
-  font-size: 1.18rem;
-  font-weight: 900;
-}
-
-.compact-actions {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  margin-top: 20px;
-}
-
-.area-note {
-  margin: 14px 0 0;
-  color: var(--muted);
-  font-size: 0.92rem;
-  font-weight: 700;
-}
-
-.compact-hero-image {
-  width: 100%;
-  aspect-ratio: 4 / 3;
-  object-fit: cover;
-  object-position: 62% center;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
-}
-
-.compact-examples {
-  padding: 26px 0;
-  background: #fff;
-}
-
-.compact-heading {
-  margin-bottom: 14px;
-}
-
-.compact-heading h2 {
-  margin: 0;
-  color: var(--ink);
-  font-size: clamp(1.45rem, 3vw, 2.15rem);
-  line-height: 1.28;
-}
-
-.compact-heading p:not(.section-kicker) {
-  margin: 8px 0 0;
-  color: var(--muted);
-  font-weight: 700;
-}
-
-.price-example-grid {
-  display: grid;
-  grid-template-columns: repeat(4, minmax(0, 1fr));
-  gap: 12px;
-}
-
-.home-example-grid,
-.sales-record-grid {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  max-width: 760px;
-}
-
-.price-example-card {
-  display: grid;
-  gap: 7px;
-  min-height: 150px;
-  padding: 18px 16px;
-  background: #fff;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  box-shadow: 0 10px 24px rgba(20, 66, 116, 0.08);
-}
-
-.example-image-placeholder {
-  display: grid;
-  place-items: center;
-  min-height: 82px;
-  color: #6d7d90;
-  background: linear-gradient(135deg, #edf5ff, #f9fbfd);
-  border: 1px dashed #b9cfe5;
-  border-radius: var(--radius);
-  font-size: 0.86rem;
-  font-weight: 900;
-}
-
-.price-example-card strong {
-  color: var(--orange);
-  font-size: clamp(1.55rem, 3vw, 2.2rem);
-  font-weight: 900;
-  line-height: 1;
-}
-
-.price-example-card span {
-  color: var(--blue-dark);
-  font-weight: 900;
-}
-
-.price-example-card p {
-  margin: 0;
-  color: var(--muted);
-  font-size: 0.9rem;
-  font-weight: 700;
-  line-height: 1.5;
-}
-
-.sales-heading {
-  margin-top: 24px;
-}
-
-.inventory-reason-card {
-  display: grid;
-  gap: 8px;
-  margin-top: 16px;
-  padding: 18px;
-  background: linear-gradient(135deg, #f7fbff, #fff);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  box-shadow: 0 10px 24px rgba(20, 66, 116, 0.08);
-}
-
-.inventory-reason-card h2,
-.inventory-reason-card h3,
-.inventory-reason-card p {
-  margin: 0;
-}
-
-.inventory-reason-card h2 {
-  color: var(--ink);
-  font-size: 1.2rem;
-  line-height: 1.25;
-}
-
-.inventory-reason-card h3 {
-  color: var(--blue-dark);
-  font-size: 1rem;
-  line-height: 1.35;
-}
-
-.inventory-reason-card p {
-  color: #33435a;
-  font-size: 0.92rem;
-  font-weight: 700;
-  line-height: 1.65;
-}
-
-.inventory-reason-card small {
-  color: var(--muted);
-  font-size: 0.78rem;
-  font-weight: 800;
-  line-height: 1.5;
-}
-
-.local-support-card {
-  background: #fff;
-}
-
-.fine-note {
-  margin-top: 10px;
-  color: var(--muted);
-  font-size: 0.9rem;
-  font-weight: 800;
-}
-
-.sales-record-card .sales-spec {
-  color: #33435a;
-  font-size: 0.8rem;
-  font-weight: 900;
-  line-height: 1.35;
-}
-
-.compact-order-section {
-  padding: 28px 0 clamp(42px, 7vw, 76px);
-  background: linear-gradient(180deg, #f7fbff 0%, #fff 100%);
-}
-
-.compact-order-inner {
-  display: grid;
-  grid-template-columns: minmax(220px, 0.42fr) minmax(0, 1fr);
-  gap: clamp(18px, 4vw, 38px);
-  align-items: start;
-}
-
-.compact-order-form {
-  padding: clamp(18px, 3vw, 26px);
-}
-
-.compact-order-form fieldset + fieldset {
-  margin-top: 20px;
-}
-
-.compact-order-form legend {
-  margin-bottom: 10px;
-  font-size: 1rem;
-}
-
-.compact-order-form .form-grid {
-  gap: 12px;
-}
-
-.compact-order-form input,
-.compact-order-form select,
-.compact-order-form textarea {
-  min-height: 44px;
-  padding: 10px 12px;
-}
-
 @media (max-width: 1280px) {
   .desktop-nav,
   .header-actions {
@@ -3244,9 +2945,7 @@ pre {
   .contract-layout,
   .remote-contract-grid,
   .proposal-layout,
-  .contact-layout,
-  .compact-hero-inner,
-  .compact-order-inner {
+  .contact-layout {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
@@ -3422,207 +3121,6 @@ pre {
 
   .pdf-preview-frame img {
     min-width: 0;
-  }
-
-  .compact-hero {
-    padding: 10px 0 14px;
-  }
-
-  .compact-hero-inner,
-  .compact-order-inner {
-    grid-template-columns: 1fr;
-    gap: 14px;
-  }
-
-  .compact-hero-image {
-    display: none;
-  }
-
-  .compact-hero-copy .eyebrow {
-    margin-bottom: 6px;
-    font-size: 0.72rem;
-  }
-
-  .compact-hero-copy h1 {
-    font-size: 1.54rem;
-    line-height: 1.22;
-  }
-
-  .worry-list {
-    gap: 6px;
-    margin-top: 9px;
-  }
-
-  .worry-list li {
-    grid-template-columns: 22px 1fr;
-    gap: 7px;
-    padding: 7px 9px;
-    font-size: 0.8rem;
-    line-height: 1.34;
-  }
-
-  .worry-list span {
-    width: 22px;
-    height: 22px;
-    font-size: 0.68rem;
-  }
-
-  .solution-copy {
-    margin-top: 8px;
-    font-size: 0.94rem;
-  }
-
-  .compact-actions {
-    display: grid;
-    grid-template-columns: 1fr 0.82fr;
-    gap: 7px;
-    margin-top: 10px;
-  }
-
-  .compact-actions .primary-link.large,
-  .compact-actions .line-link.large {
-    min-height: 42px;
-    padding-inline: 12px;
-    font-size: 0.86rem;
-  }
-
-  .area-note {
-    margin-top: 8px;
-    font-size: 0.72rem;
-    line-height: 1.4;
-  }
-
-  .compact-examples {
-    padding: 14px 0;
-  }
-
-  .compact-heading {
-    margin-bottom: 10px;
-  }
-
-  .compact-heading h2 {
-    font-size: 1.24rem;
-  }
-
-  .price-example-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 7px;
-  }
-
-  .home-example-grid,
-  .sales-record-grid {
-    max-width: none;
-  }
-
-  .price-example-card {
-    min-height: 154px;
-    padding: 10px 9px;
-    gap: 4px;
-  }
-
-  .example-image-placeholder {
-    min-height: 56px;
-    font-size: 0.72rem;
-  }
-
-  .price-example-card strong {
-    font-size: 1.32rem;
-  }
-
-  .price-example-card span {
-    font-size: 0.78rem;
-  }
-
-  .price-example-card p {
-    font-size: 0.7rem;
-    line-height: 1.35;
-  }
-
-  .sales-heading {
-    margin-top: 18px;
-  }
-
-  .inventory-reason-card {
-    gap: 5px;
-    margin-top: 12px;
-    padding: 11px 10px;
-  }
-
-  .inventory-reason-card h2 {
-    font-size: 1rem;
-  }
-
-  .inventory-reason-card h3 {
-    font-size: 0.86rem;
-  }
-
-  .inventory-reason-card p {
-    font-size: 0.74rem;
-    line-height: 1.45;
-  }
-
-  .inventory-reason-card small {
-    font-size: 0.68rem;
-    line-height: 1.35;
-  }
-
-  .sales-record-card .sales-spec {
-    font-size: 0.68rem;
-    line-height: 1.25;
-  }
-
-  .compact-order-section {
-    padding: 14px 0 40px;
-  }
-
-  .compact-order-form {
-    padding: 16px 14px;
-  }
-
-  .compact-order-form .method-options {
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 7px;
-  }
-
-  .compact-order-form .method-option span {
-    min-height: 42px;
-    padding: 8px 6px;
-    font-size: 0.78rem;
-  }
-
-  .compact-order-form .form-grid {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-    gap: 10px;
-  }
-
-  .compact-order-form .optional-fields {
-    padding: 10px;
-  }
-
-  .compact-order-form .optional-fields summary {
-    font-size: 0.84rem;
-  }
-
-  .compact-order-form label span {
-    font-size: 0.8rem;
-  }
-
-  .compact-order-form input,
-  .compact-order-form select,
-  .compact-order-form textarea {
-    min-height: 42px;
-    padding: 9px 10px;
-    font-size: 0.86rem;
-  }
-
-  .compact-order-form .full,
-  .compact-order-form .consent {
-    grid-column: 1 / -1;
-  }
-
-  .compact-order-form .submit-button {
-    min-height: 50px;
-    font-size: 1rem;
   }
 
   .method-options {

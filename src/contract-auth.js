@@ -14,10 +14,8 @@ const adminUserLabel = document.querySelector("#adminUserLabel");
 const logoutButton = document.querySelector("#adminLogoutButton");
 const testLoginBox = document.querySelector("#testLoginBox");
 const testLoginButton = document.querySelector("#testLoginButton");
-const refreshServerContractsButton = document.querySelector("#refreshServerContractsButton");
 const serverContractSelect = document.querySelector("#serverContractSelect");
 const loadServerContractButton = document.querySelector("#loadServerContractButton");
-const loadRemoteContractButton = document.querySelector("#loadRemoteContractButton");
 const saveServerContractButton = document.querySelector("#saveServerContractButton");
 const saveEstimateButton = document.querySelector("#saveEstimateButton");
 const convertEstimateButton = document.querySelector("#convertEstimateButton");
@@ -44,12 +42,10 @@ async function initAdminAuth() {
 
   loginForm?.addEventListener("submit", handleLoginSubmit);
   logoutButton?.addEventListener("click", handleLogout);
-  refreshServerContractsButton?.addEventListener("click", loadCloudContracts);
   saveServerContractButton?.addEventListener("click", () => saveCloudContract());
   saveEstimateButton?.addEventListener("click", () => saveCloudContract("見積書"));
   convertEstimateButton?.addEventListener("click", convertCurrentEstimateToContract);
   loadServerContractButton?.addEventListener("click", () => loadSelectedContract("create"));
-  loadRemoteContractButton?.addEventListener("click", () => loadSelectedContract("remote"));
   deleteServerContractButton?.addEventListener("click", deleteSelectedContract);
   serverContractSelect?.addEventListener("change", () => setCloudButtonsDisabled(!serverContractSelect.value));
   contractListSearch?.addEventListener("input", () => {
@@ -406,6 +402,10 @@ function loadSelectedContract(targetPage = "create") {
     return;
   }
 
+  loadContractById(selectedId, targetPage);
+}
+
+function loadContractById(selectedId, targetPage = "create") {
   const selected = cloudContracts.find((contract) => contract.id === selectedId);
   if (!selected) {
     setStoredStatus("契約を読み込めませんでした。");
@@ -438,6 +438,10 @@ async function deleteSelectedContract() {
     return;
   }
 
+  await deleteContractById(selectedId);
+}
+
+async function deleteContractById(selectedId) {
   const selected = cloudContracts.find((contract) => contract.id === selectedId);
   const label = selected ? getStoredContractLabel(selected) : "選択した契約";
   if (!window.confirm(`${label}を削除します。よろしいですか。`)) {
@@ -483,19 +487,14 @@ function handleContractCardAction(event) {
     return;
   }
 
-  if (serverContractSelect) {
-    serverContractSelect.value = id;
-    setCloudButtonsDisabled(false);
-  }
-
   if (action === "edit") {
-    loadSelectedContract("create");
+    loadContractById(id, "create");
   } else if (action === "remote") {
-    loadSelectedContract("remote");
+    loadContractById(id, "remote");
   } else if (action === "convert") {
     convertStoredEstimateToContract(id);
   } else if (action === "delete") {
-    deleteSelectedContract();
+    deleteContractById(id);
   }
 }
 
@@ -815,9 +814,6 @@ function setLoginFormDisabled(disabled) {
 function setCloudButtonsDisabled(disabled) {
   if (loadServerContractButton) {
     loadServerContractButton.disabled = disabled;
-  }
-  if (loadRemoteContractButton) {
-    loadRemoteContractButton.disabled = disabled;
   }
   if (deleteServerContractButton) {
     deleteServerContractButton.disabled = disabled;

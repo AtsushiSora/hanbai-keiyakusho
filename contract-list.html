@@ -98,14 +98,6 @@
               <button type="button" data-filter="完了">完了</button>
             </div>
 
-            <select class="contract-list-select" id="serverContractSelect" aria-label="クラウド保存済み契約">
-              <option value="">保存済み契約はありません</option>
-            </select>
-            <div class="server-contract-actions list-legacy-actions">
-              <button class="secondary-button" type="button" id="loadServerContractButton">選択した契約を開く</button>
-              <button class="secondary-button" type="button" id="loadRemoteContractButton">メール・LINE契約へ</button>
-              <button class="secondary-button danger" type="button" id="deleteServerContractButton">削除</button>
-            </div>
             <div class="contract-card-list" id="contractCardList" aria-live="polite"></div>
             <div class="contract-save-status" id="serverContractStatus" aria-live="polite"></div>
           </div>
@@ -113,6 +105,6 @@
       </section>
     </main>
 
-    <script type="module" src="contract-auth.bundle.js?v=supabase6"></script>
+    <script type="module" src="src/contract-auth.js?v=supabase7"></script>
   </body>
 </html>
