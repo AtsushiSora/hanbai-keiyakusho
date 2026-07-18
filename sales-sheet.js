@@ -369,7 +369,7 @@ function fitTemplateFields() {
     }
 
     let fontSize = Number.parseFloat(window.getComputedStyle(field).fontSize) || 10;
-    const minimumFontSize = 5.5;
+    const minimumFontSize = 3;
     while (
       fontSize > minimumFontSize
       && (field.scrollWidth > field.clientWidth + 1 || field.scrollHeight > field.clientHeight + 1)

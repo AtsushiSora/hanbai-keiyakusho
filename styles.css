@@ -1227,6 +1227,13 @@ textarea:focus {
   box-shadow: 0 0 0 4px rgba(15, 103, 189, 0.13);
 }
 
+input[aria-invalid="true"],
+select[aria-invalid="true"],
+textarea[aria-invalid="true"] {
+  border-color: #c83d3d;
+  box-shadow: 0 0 0 3px rgba(200, 61, 61, 0.12);
+}
+
 input[type="date"],
 input[type="month"] {
   cursor: pointer;
@@ -2386,6 +2393,29 @@ pre {
   display: flex;
   flex-wrap: wrap;
   gap: 14px;
+}
+
+.contract-validation-summary {
+  grid-column: 1 / -1;
+  padding: 14px 16px;
+  color: #7d2020;
+  background: #fff5f5;
+  border: 1px solid #efb0b0;
+  border-radius: var(--radius);
+}
+
+.contract-validation-summary[hidden] {
+  display: none;
+}
+
+.contract-validation-summary strong {
+  display: block;
+  margin-bottom: 6px;
+}
+
+.contract-validation-summary ul {
+  margin: 0;
+  padding-left: 1.3rem;
 }
 
 .contract-editor-actions .primary-link,

@@ -257,6 +257,17 @@ async function saveCloudContract(requestedDocumentType = "") {
     return;
   }
 
+  const currentPayload = window.contractTool.getRecordPayload();
+  const validationMode = requestedDocumentType === "見積書"
+    ? "estimate"
+    : currentPayload.data?.contractStatus === "完了"
+      ? "complete"
+      : "draft";
+  if (!window.contractTool.validateFor(validationMode)) {
+    setStoredStatus("入力内容を確認してから保存してください。");
+    return;
+  }
+
   if (requestedDocumentType === "見積書") {
     window.contractTool.prepareEstimate();
   }

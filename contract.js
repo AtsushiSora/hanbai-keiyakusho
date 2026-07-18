@@ -19,6 +19,7 @@ const salesPriceTotal = document.querySelector("#salesPriceTotal");
 const buyerBirthYear = document.querySelector("#buyerBirthYear");
 const buyerBirthMonth = document.querySelector("#buyerBirthMonth");
 const buyerBirthDay = document.querySelector("#buyerBirthDay");
+const contractValidationSummary = document.querySelector("#contractValidationSummary");
 const salesTemplateImportKey = "orderAutoSalesTemplateImport";
 const companyContact = [
   "オーダーオート",
@@ -86,6 +87,21 @@ const contractSectionOrder = [
   "recycle",
   "notes",
 ];
+const validationFieldLabels = {
+  estimateNo: "契約番号・見積番号",
+  buyerName: "氏名",
+  buyerZip: "郵便番号",
+  buyerAddress: "住所",
+  buyerEmail: "メールアドレス",
+  vehicleName: "車種名",
+  vehicleVin: "車台番号",
+  basePrice: "車両価格",
+  estimateDate: "見積日",
+  validUntil: "有効期限",
+  contractDate: "契約日",
+  deliveryDate: "納車予定日",
+};
+let activeValidationMode = "";
 
 arrangeContractSections();
 removePersistentDraft();
@@ -273,6 +289,9 @@ function getData() {
 }
 
 function openSalesTemplate(autoPrint = true) {
+  if (!validateContract("document")) {
+    return;
+  }
   const payload = {
     data: mapContractToSalesTemplate(getData()),
     autoPrint,
@@ -379,6 +398,9 @@ function mapContractToSalesTemplate(data) {
 }
 
 function saveContractRecord() {
+  if (!validateContract("draft")) {
+    return;
+  }
   const records = getContractRecords();
   const selectedId = contractHistorySelect?.value;
   const existingIndex = records.findIndex((record) => record.id === selectedId);
@@ -482,6 +504,7 @@ function startNewContract() {
   setDefaultDate();
   setDocumentType("契約書");
   setContractStatus("下書き");
+  clearValidationState();
   saveDraft();
   updateSaveStatus("新規作成を開始しました。");
 }
@@ -515,6 +538,7 @@ function exposeContractToolApi() {
     setStatus: updateSaveStatus,
     prepareEstimate: prepareEstimate,
     newRecord: startNewContract,
+    validateFor: validateContract,
   };
 }
 
@@ -626,6 +650,9 @@ function handleFormInput(event) {
   updateSalesPriceTotal();
   syncPaymentTotal();
   saveDraft();
+  if (activeValidationMode) {
+    validateContract(activeValidationMode, { focus: false });
+  }
 }
 
 function restoreDraft() {
@@ -655,6 +682,9 @@ function setPreviewCopy(label) {
 }
 
 function completeContract() {
+  if (!validateContract("complete")) {
+    return;
+  }
   setDocumentType("契約書");
   setContractStatus("完了");
   saveDraft();
@@ -702,6 +732,101 @@ function updatePreviewStatus() {
   }
   if (completeContractButton) {
     completeContractButton.hidden = isEstimate;
+  }
+}
+
+function validateContract(mode = "draft", options = {}) {
+  if (!form) {
+    return false;
+  }
+
+  const errors = [];
+  form.querySelectorAll('[aria-invalid="true"]').forEach((field) => field.removeAttribute("aria-invalid"));
+  const requiredFields = mode === "complete"
+    ? ["estimateNo", "buyerName", "buyerAddress", "vehicleName", "vehicleVin", "basePrice"]
+    : mode === "estimate" || mode === "document"
+      ? ["buyerName", "vehicleName", "basePrice"]
+      : [];
+
+  requiredFields.forEach((name) => {
+    const field = form.elements[name];
+    if (name !== "basePrice" && !String(field?.value || "").trim()) {
+      addValidationError(errors, field, `${validationFieldLabels[name] || name}を入力してください。`);
+    }
+  });
+
+  const basePrice = form.elements.basePrice;
+  if (requiredFields.includes("basePrice") && parseAmount(basePrice?.value) <= 0) {
+    addValidationError(errors, basePrice, "車両価格は1円以上で入力してください。");
+  }
+
+  const email = form.elements.buyerEmail;
+  if (email?.value && !email.validity.valid) {
+    addValidationError(errors, email, "メールアドレスの形式を確認してください。");
+  }
+
+  const postalCode = String(form.elements.buyerZip?.value || "").trim();
+  if (postalCode && !/^\d{3}-?\d{4}$/.test(postalCode)) {
+    addValidationError(errors, form.elements.buyerZip, "郵便番号は7桁で入力してください。例：731-5124");
+  }
+
+  validateDateOrder(errors, "estimateDate", "validUntil", "有効期限は見積日以降の日付にしてください。");
+  validateDateOrder(errors, "contractDate", "deliveryDate", "納車予定日は契約日以降の日付にしてください。");
+
+  form.querySelectorAll(".money-input").forEach((field) => {
+    if (String(field.value || "").trim().startsWith("-")) {
+      addValidationError(errors, field, `${getValidationFieldLabel(field)}は0円以上で入力してください。`);
+    }
+  });
+
+  if (!errors.length) {
+    clearValidationState();
+    return true;
+  }
+
+  activeValidationMode = mode;
+  contractValidationSummary.innerHTML = `
+    <strong>入力内容を確認してください</strong>
+    <ul>${errors.map((error) => `<li>${error.message}</li>`).join("")}</ul>
+  `;
+  contractValidationSummary.hidden = false;
+  updateSaveStatus("入力内容に確認が必要な項目があります。");
+  if (options.focus !== false && errors[0]?.field) {
+    errors[0].field.focus({ preventScroll: true });
+    errors[0].field.scrollIntoView({ block: "center", behavior: "smooth" });
+  }
+  return false;
+}
+
+function addValidationError(errors, field, message) {
+  if (!field || errors.some((error) => error.field === field && error.message === message)) {
+    return;
+  }
+  field.setAttribute("aria-invalid", "true");
+  errors.push({ field, message });
+}
+
+function validateDateOrder(errors, startName, endName, message) {
+  const start = form.elements[startName];
+  const end = form.elements[endName];
+  if (start?.value && end?.value && end.value < start.value) {
+    addValidationError(errors, end, message);
+  }
+}
+
+function getValidationFieldLabel(field) {
+  return validationFieldLabels[field.name]
+    || field.getAttribute("aria-label")
+    || field.closest("label")?.querySelector(":scope > span")?.textContent?.trim()
+    || "金額";
+}
+
+function clearValidationState() {
+  activeValidationMode = "";
+  form?.querySelectorAll('[aria-invalid="true"]').forEach((field) => field.removeAttribute("aria-invalid"));
+  if (contractValidationSummary) {
+    contractValidationSummary.hidden = true;
+    contractValidationSummary.innerHTML = "";
   }
 }
 

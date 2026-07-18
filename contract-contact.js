@@ -129,6 +129,11 @@ async function generateConsentUrl() {
     setStatus("契約作成ページで送信する契約を入力してください。");
     return;
   }
+  const validationError = getRemoteContractValidationError(data);
+  if (validationError) {
+    setStatus(validationError);
+    return;
+  }
 
   generateConsentUrlButton.disabled = true;
   setStatus("確認URLを生成しています。");
@@ -144,6 +149,25 @@ async function generateConsentUrl() {
   } finally {
     generateConsentUrlButton.disabled = false;
   }
+}
+
+function getRemoteContractValidationError(data) {
+  const missing = [];
+  if (!String(data.buyerName || "").trim()) {
+    missing.push("氏名");
+  }
+  if (!String(data.vehicleName || "").trim()) {
+    missing.push("車種名");
+  }
+  if (!formatYen(data.totalPrice || calculateTotal(data))) {
+    missing.push("支払総額");
+  }
+  if ((data.documentType || "契約書") !== "見積書" && !String(data.vehicleVin || "").trim()) {
+    missing.push("車台番号");
+  }
+  return missing.length
+    ? `確認URLを作成する前に、${missing.join("・")}を入力してください。`
+    : "";
 }
 
 async function generateSupabaseConsentUrl(data) {
