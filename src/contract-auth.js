@@ -557,6 +557,9 @@ function getFilteredDisplayContracts() {
       contract.totalPrice,
       contract.documentType,
       status,
+      contract.data?.contractNumber,
+      contract.data?.estimateNo,
+      contract.data?.controlNo,
     ].join(" ").toLowerCase();
     const matchesSearch = !activeSearchTerm || searchSource.includes(activeSearchTerm);
     return matchesStatus && matchesSearch;
