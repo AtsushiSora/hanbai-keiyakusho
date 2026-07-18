@@ -12,6 +12,7 @@ const loginForm = document.querySelector("#adminLoginForm");
 const authStatus = document.querySelector("#authStatus");
 const adminUserLabel = document.querySelector("#adminUserLabel");
 const logoutButton = document.querySelector("#adminLogoutButton");
+const testLoginBox = document.querySelector("#testLoginBox");
 const testLoginButton = document.querySelector("#testLoginButton");
 const refreshServerContractsButton = document.querySelector("#refreshServerContractsButton");
 const serverContractSelect = document.querySelector("#serverContractSelect");
@@ -150,6 +151,9 @@ async function handleLogout() {
 }
 
 function setupTestLoginButton() {
+  if (testLoginBox) {
+    testLoginBox.hidden = !ENABLE_TEST_LOGIN;
+  }
   if (!testLoginButton) {
     return;
   }

@@ -2474,6 +2474,37 @@ pre {
   width: 100%;
 }
 
+.test-login-box {
+  display: grid;
+  gap: 8px;
+  margin: 0 0 18px;
+  padding: 16px;
+  background: #fff8ef;
+  border: 1px solid #ffd8ad;
+  border-radius: var(--radius);
+}
+
+.test-login-box[hidden] {
+  display: none;
+}
+
+.test-login-box strong {
+  color: var(--orange-dark);
+  font-weight: 900;
+}
+
+.test-login-box p {
+  margin: 0;
+  color: #6f563a;
+  font-size: 0.9rem;
+}
+
+.test-login-button {
+  width: 100%;
+  color: var(--orange-dark);
+  border-color: #ffc987;
+}
+
 .auth-status {
   min-height: 24px;
   margin-top: 12px !important;

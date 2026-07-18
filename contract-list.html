@@ -43,6 +43,11 @@
             <p class="section-kicker">ADMIN LOGIN</p>
             <h2>管理者ログイン</h2>
             <p>Supabaseに登録した管理者アカウントでログインします。契約データはクラウド保存されます。</p>
+            <div class="test-login-box" id="testLoginBox">
+              <strong>テスト用</strong>
+              <p>登録なしで各機能を確認できます。入力内容はこのブラウザ内だけに保存されます。</p>
+              <button class="secondary-button test-login-button" type="button" id="testLoginButton">テスト用ログイン</button>
+            </div>
             <form id="adminLoginForm" autocomplete="off">
               <label>
                 <span>メールアドレス</span>
@@ -108,6 +113,6 @@
       </section>
     </main>
 
-    <script type="module" src="contract-auth.bundle.js?v=supabase5"></script>
+    <script type="module" src="contract-auth.bundle.js?v=supabase6"></script>
   </body>
 </html>

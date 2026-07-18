@@ -4,5 +4,5 @@ export const SUPABASE_CONFIG = {
   // Legacy projects can use anonKey instead of publishableKey.
   anonKey: "",
   tableName: "order_auto_contracts",
-  enableTestLogin: false,
+  enableTestLogin: true,
 };
