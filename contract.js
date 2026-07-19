@@ -29,6 +29,11 @@ const companyContact = [
   "TEL 080-2912-8616",
 ].join("\n");
 const maxSalesOptionRows = 14;
+const salesOptionTypes = [
+  { value: "dealer", label: "販売店OP" },
+  { value: "maker", label: "メーカーOP" },
+  { value: "custom", label: "加装・加修" },
+];
 const moneyFieldNames = new Set([
   "basePrice",
   "customPrice",
@@ -131,6 +136,7 @@ shopCopyButton?.addEventListener("click", () => setPreviewCopy("店控え"));
 completeContractButton?.addEventListener("click", completeContract);
 contractPdfPreview?.addEventListener("load", updatePdfPreview);
 window.addEventListener("message", handlePdfPreviewMessage);
+salesOptionRows?.addEventListener("click", handleOptionTypeClick);
 
 function arrangeContractSections() {
   contractSectionOrder.forEach((sectionName) => {
@@ -900,12 +906,25 @@ function sumOptionPrices(data) {
 }
 
 function syncOptionTotal() {
-  const customPrice = form?.elements.customPrice;
-  if (!customPrice) {
+  if (!form) {
     return;
   }
-  const total = sumOptionPrices(Object.fromEntries(new FormData(form).entries()));
-  customPrice.value = total > 0 ? total.toLocaleString("ja-JP") : "";
+  const data = Object.fromEntries(new FormData(form).entries());
+  const totals = { dealer: 0, maker: 0, custom: 0 };
+  range(maxSalesOptionRows).forEach((number) => {
+    const type = normalizeOptionType(data[`optionType${number}`]);
+    totals[type] += parseAmount(data[`optionPrice${number}`]);
+  });
+  Object.entries({
+    dealerOptionPrice: totals.dealer,
+    makerOptionPrice: totals.maker,
+    customPrice: totals.custom,
+  }).forEach(([name, total]) => {
+    const field = form.elements[name];
+    if (field) {
+      field.value = total > 0 ? total.toLocaleString("ja-JP") : "";
+    }
+  });
 }
 
 function syncTaxInsuranceTotal() {
@@ -978,13 +997,52 @@ function appendSalesOptionRow(number, data = {}) {
   if (!salesOptionRows || number > maxSalesOptionRows) {
     return;
   }
+  const optionType = normalizeOptionType(data[`optionType${number}`]);
   salesOptionRows.insertAdjacentHTML("beforeend", `
-    <div class="dynamic-option-row">
+    <div class="dynamic-option-row" data-option-row="${number}">
+      ${renderOptionTypeTabs(number, optionType)}
       <input name="optionName${number}" type="text" placeholder="例）ドライブレコーダー" value="${escapeHtml(data[`optionName${number}`] || "")}" />
       <input name="optionPrice${number}" inputmode="numeric" type="text" placeholder="例）40537" value="${escapeHtml(data[`optionPrice${number}`] || "")}" />
     </div>
   `);
   setupMoneyFields(salesOptionRows);
+}
+
+function renderOptionTypeTabs(number, selectedType) {
+  return `
+    <div class="option-type-tabs" role="group" aria-label="オプション${number}の区分">
+      <input name="optionType${number}" type="hidden" value="${selectedType}" />
+      ${salesOptionTypes.map(({ value, label }) => `
+        <button class="option-type-tab${value === selectedType ? " is-active" : ""}" type="button" data-option-type="${value}" aria-pressed="${value === selectedType}">${label}</button>
+      `).join("")}
+    </div>
+  `;
+}
+
+function handleOptionTypeClick(event) {
+  const button = event.target.closest("button[data-option-type]");
+  if (!button || !salesOptionRows?.contains(button)) {
+    return;
+  }
+  const tabs = button.closest(".option-type-tabs");
+  const input = tabs?.querySelector('input[type="hidden"]');
+  if (!tabs || !input) {
+    return;
+  }
+  input.value = normalizeOptionType(button.dataset.optionType);
+  tabs.querySelectorAll("button[data-option-type]").forEach((tab) => {
+    const isActive = tab === button;
+    tab.classList.toggle("is-active", isActive);
+    tab.setAttribute("aria-pressed", String(isActive));
+  });
+  syncOptionTotal();
+  updateSalesPriceTotal();
+  syncPaymentTotal();
+  saveDraft();
+}
+
+function normalizeOptionType(value) {
+  return salesOptionTypes.some((type) => type.value === value) ? value : "dealer";
 }
 
 function setupMoneyFields(root = document) {
@@ -1113,7 +1171,10 @@ function addOptionRowWhenNeeded(target) {
   const currentRows = getCurrentOptionRowCount();
   const rowNumber = getOptionRowNumber(target.name);
   if (rowNumber === currentRows && target.value.trim() && currentRows < maxSalesOptionRows) {
-    appendSalesOptionRow(currentRows + 1);
+    const nextNumber = currentRows + 1;
+    appendSalesOptionRow(nextNumber, {
+      [`optionType${nextNumber}`]: form?.elements[`optionType${rowNumber}`]?.value || "dealer",
+    });
   }
 }
 

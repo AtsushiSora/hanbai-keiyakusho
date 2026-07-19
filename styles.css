@@ -1293,7 +1293,7 @@ input[type="month"]::-webkit-calendar-picker-indicator {
 .dynamic-option-head,
 .dynamic-option-row {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(120px, 0.8fr);
+  grid-template-columns: minmax(210px, 0.95fr) minmax(180px, 1.3fr) minmax(120px, 0.7fr);
   gap: 12px;
 }
 
@@ -1305,6 +1305,42 @@ input[type="month"]::-webkit-calendar-picker-indicator {
 
 .dynamic-option-row input {
   min-height: 48px;
+}
+
+.option-type-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  min-height: 48px;
+  overflow: hidden;
+  border: 1px solid #cbd9e8;
+  border-radius: 6px;
+}
+
+.option-type-tab {
+  min-width: 0;
+  min-height: 46px;
+  padding: 6px 4px;
+  color: #46556b;
+  background: #f4f7fb;
+  border: 0;
+  border-right: 1px solid #cbd9e8;
+  border-radius: 0;
+  font-size: 0.68rem;
+  font-weight: 900;
+  line-height: 1.2;
+}
+
+.option-type-tab:last-child {
+  border-right: 0;
+}
+
+.option-type-tab:hover {
+  background: #e8f3ed;
+}
+
+.option-type-tab.is-active {
+  color: #fff;
+  background: var(--blue-dark);
 }
 
 .optional-fields {
@@ -3117,6 +3153,15 @@ pre {
   .contact-layout,
   .form-grid {
     grid-template-columns: 1fr;
+  }
+
+  .dynamic-option-head {
+    display: none;
+  }
+
+  .dynamic-option-row {
+    grid-template-columns: 1fr;
+    gap: 8px;
   }
 
   .consent-summary dl div {
