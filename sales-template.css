@@ -298,6 +298,43 @@ textarea.tpl-field {
   outline: 1px solid #c97800;
 }
 
+body.preview-embed {
+  overflow: hidden;
+  background: #fff;
+}
+
+body.preview-embed .template-toolbar,
+body.preview-embed .template-control-panel {
+  display: none;
+}
+
+body.preview-embed .template-page-wrap {
+  display: block;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body.preview-embed .pdf-template-form {
+  overflow: hidden;
+}
+
+body.preview-embed .pdf-template-sheet {
+  width: 906px;
+  max-width: 100%;
+  margin: 0 auto;
+  box-shadow: none;
+}
+
+body.preview-embed .tpl-field,
+body.preview-embed .tpl-output {
+  pointer-events: none;
+}
+
+body.preview-embed .tpl-field {
+  background: transparent;
+}
+
 @page {
   size: A4 portrait;
   margin: 0;

@@ -10,6 +10,7 @@ const contractSaveStatus = document.querySelector("#contractSaveStatus");
 const previewStatusLabel = document.querySelector("#previewStatusLabel");
 const previewDocumentTypeLabel = document.querySelector("#previewDocumentTypeLabel");
 const previewCopyLabel = document.querySelector("#previewCopyLabel");
+const contractPdfPreview = document.querySelector("#contractPdfPreview");
 const customerCopyButton = document.querySelector("#customerCopyButton");
 const shopCopyButton = document.querySelector("#shopCopyButton");
 const convertEstimateButton = document.querySelector("#convertEstimateButton");
@@ -128,6 +129,8 @@ clearAllRecordsButton?.addEventListener("click", clearAllContractRecords);
 customerCopyButton?.addEventListener("click", () => setPreviewCopy("お客様控え"));
 shopCopyButton?.addEventListener("click", () => setPreviewCopy("店控え"));
 completeContractButton?.addEventListener("click", completeContract);
+contractPdfPreview?.addEventListener("load", updatePdfPreview);
+window.addEventListener("message", handlePdfPreviewMessage);
 
 function arrangeContractSections() {
   contractSectionOrder.forEach((sectionName) => {
@@ -733,6 +736,28 @@ function updatePreviewStatus() {
   if (completeContractButton) {
     completeContractButton.hidden = isEstimate;
   }
+  updatePdfPreview();
+}
+
+function updatePdfPreview() {
+  if (!contractPdfPreview?.contentWindow || !form) {
+    return;
+  }
+  contractPdfPreview.contentWindow.postMessage({
+    type: "order-auto-preview-data",
+    data: mapContractToSalesTemplate(getData()),
+  }, window.location.origin);
+}
+
+function handlePdfPreviewMessage(event) {
+  if (
+    event.origin !== window.location.origin
+    || event.source !== contractPdfPreview?.contentWindow
+    || event.data?.type !== "order-auto-preview-ready"
+  ) {
+    return;
+  }
+  updatePdfPreview();
 }
 
 function validateContract(mode = "draft", options = {}) {

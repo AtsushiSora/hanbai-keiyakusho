@@ -2638,13 +2638,22 @@ pre {
   font-weight: 900;
 }
 
-.pdf-preview-frame img {
+.pdf-preview-frame img,
+.pdf-preview-frame iframe {
   display: block;
   width: 100%;
   min-width: 520px;
-  height: auto;
   background: #fff;
   box-shadow: 0 14px 28px rgba(23, 33, 31, 0.12);
+}
+
+.pdf-preview-frame img {
+  height: auto;
+}
+
+.pdf-preview-frame iframe {
+  aspect-ratio: 906 / 1280;
+  border: 0;
 }
 
 .contract-preview-support {
@@ -3156,7 +3165,8 @@ pre {
     grid-template-columns: 1fr;
   }
 
-  .pdf-preview-frame img {
+  .pdf-preview-frame img,
+  .pdf-preview-frame iframe {
     min-width: 0;
   }
 

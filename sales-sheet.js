@@ -9,6 +9,7 @@ const layoutModeControl = document.querySelector("#layoutModeControl");
 const layoutGroupSelect = document.querySelector("#layoutGroupSelect");
 const optionRows = document.querySelector("#optionRows");
 const feeExtraRows = document.querySelector("#feeExtraRows");
+const isPreviewMode = new URLSearchParams(window.location.search).get("preview") === "1";
 
 const storageKey = "orderAutoSalesSheetRecords";
 const draftKey = "orderAutoSalesSheetDraft";
@@ -20,6 +21,10 @@ const companyContact = [
   "TEL 080-2912-8616",
 ].join("\n");
 let activeRecordId = "";
+
+if (isPreviewMode) {
+  document.body.classList.add("preview-embed");
+}
 
 const layoutFieldGroups = {
   customer: [
@@ -63,6 +68,7 @@ const importedContract = consumeImportedContract();
 setValueIfEmpty("contactMemo", companyContact);
 renderRecordOptions(activeRecordId);
 calculateTotals();
+setupPreviewBridge();
 if (importedContract?.autoPrint) {
   schedulePrint();
 }
@@ -102,6 +108,27 @@ function setupLayoutMode() {
     window.history.replaceState(null, "", `${window.location.pathname}?${params.toString()}`);
     applyLayoutGroup(group);
   });
+}
+
+function setupPreviewBridge() {
+  if (!isPreviewMode || window.parent === window) {
+    return;
+  }
+  window.addEventListener("message", (event) => {
+    if (
+      event.origin !== window.location.origin
+      || event.source !== window.parent
+      || event.data?.type !== "order-auto-preview-data"
+      || !event.data.data
+    ) {
+      return;
+    }
+    form.reset();
+    setDefaultValues();
+    applyFormData(event.data.data);
+    calculateTotals();
+  });
+  window.parent.postMessage({ type: "order-auto-preview-ready" }, window.location.origin);
 }
 
 function applyLayoutGroup(group) {
