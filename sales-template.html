@@ -6,7 +6,7 @@
     <title>販売契約書PDFテンプレート | オーダーオート</title>
     <meta name="description" content="添付写真をPDF化した販売契約書テンプレートに入力、上書き保存、印刷、PDF保存できます。" />
     <meta name="robots" content="noindex, nofollow" />
-    <link rel="stylesheet" href="sales-template.css?v=template10" />
+    <link rel="stylesheet" href="sales-template.css?v=template11" />
   </head>
   <body>
     <header class="template-toolbar">
@@ -69,6 +69,9 @@
           <input name="paymentMethod" type="hidden" />
           <input name="paymentDue" type="hidden" />
           <input name="bankAccount" type="hidden" />
+          <input name="signatureDataUrl" type="hidden" />
+          <input name="signerName" type="hidden" />
+          <input name="signedAt" type="hidden" />
 
           <input class="tpl-field document-date" style="--x: 77.7%; --y: 2.25%; --w: 18.0%; --h: 1.2%;" name="estimateDate" type="date" />
           <input class="tpl-field document-date" style="--x: 77.7%; --y: 3.58%; --w: 18.0%; --h: 1.2%;" name="validUntil" type="date" />
@@ -192,10 +195,16 @@
 
           <textarea class="tpl-field small company-contact" style="--x: 53.8%; --y: 90.05%; --w: 19.0%; --h: 8.2%;" name="contactMemo"></textarea>
           <textarea class="tpl-field small" style="--x: 75.0%; --y: 90.05%; --w: 20.5%; --h: 8.2%;" name="memo"></textarea>
+          <section class="electronic-signature-block" id="electronicSignatureBlock" aria-label="電子署名" hidden>
+            <span>電子署名</span>
+            <img id="electronicSignatureImage" alt="契約者の電子署名" />
+            <strong id="electronicSignerName"></strong>
+            <small id="electronicSignedAt"></small>
+          </section>
         </section>
       </form>
     </main>
 
-    <script src="sales-sheet.js?v=alignment7"></script>
+    <script src="sales-sheet.js?v=alignment8"></script>
   </body>
 </html>

@@ -2843,6 +2843,10 @@ pre {
   background: #eef5f1;
 }
 
+.consent-page [hidden] {
+  display: none !important;
+}
+
 .consent-card {
   max-width: 920px;
 }

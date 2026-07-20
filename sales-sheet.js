@@ -9,7 +9,9 @@ const layoutModeControl = document.querySelector("#layoutModeControl");
 const layoutGroupSelect = document.querySelector("#layoutGroupSelect");
 const optionRows = document.querySelector("#optionRows");
 const feeExtraRows = document.querySelector("#feeExtraRows");
-const isPreviewMode = new URLSearchParams(window.location.search).get("preview") === "1";
+const pageParams = new URLSearchParams(window.location.search);
+const isPreviewMode = pageParams.get("preview") === "1";
+const isSignedMode = pageParams.get("signed") === "1";
 
 const storageKey = "orderAutoSalesSheetRecords";
 const draftKey = "orderAutoSalesSheetDraft";
@@ -68,6 +70,9 @@ const importedContract = consumeImportedContract();
 setValueIfEmpty("contactMemo", companyContact);
 renderRecordOptions(activeRecordId);
 calculateTotals();
+if (isSignedMode) {
+  setupSignedDocumentMode();
+}
 setupPreviewBridge();
 if (importedContract?.autoPrint) {
   schedulePrint();
@@ -342,21 +347,182 @@ function consumeImportedContract() {
   try {
     const payload = JSON.parse(sessionStorage.getItem(importKey) || "{}");
     sessionStorage.removeItem(importKey);
-    if (!payload?.data) {
+    const importedData = payload?.rawContractData
+      ? mapRawContractToTemplate(payload.rawContractData)
+      : payload?.data;
+    if (!importedData) {
       return null;
     }
 
     activeRecordId = "";
     form.reset();
     setDefaultValues();
-    applyFormData(payload.data);
+    applyFormData({
+      ...importedData,
+      signatureDataUrl: payload.signatureDataUrl || importedData.signatureDataUrl || "",
+      signerName: payload.signerName || importedData.signerName || "",
+      signedAt: payload.signedAt || importedData.signedAt || "",
+    });
     saveDraft();
-    setStatus("契約書作成ページの内容を帳票型PDFへ転記しました。");
+    setStatus(isSignedMode
+      ? "電子署名を反映した署名済み契約書です。印刷画面からPDF保存または印刷できます。"
+      : "契約書作成ページの内容を帳票型PDFへ転記しました。");
     return payload;
   } catch {
     removeStorage(importKey);
     return null;
   }
+}
+
+function mapRawContractToTemplate(data) {
+  const totalPrice = data.totalPrice || calculateRawContractTotal(data);
+  return {
+    estimateDate: data.estimateDate || data.contractDate || new Date().toISOString().slice(0, 10),
+    validUntil: data.validUntil || "",
+    estimateNo: data.estimateNo || "",
+    controlNo: data.controlNo || "",
+    carType: data.carType || "中古車",
+    buyerKana: data.buyerKana || "",
+    buyerName: data.buyerName || "",
+    buyerZip: data.buyerZip || "",
+    buyerBirthday: formatTemplateDate(data.buyerBirthday),
+    buyerPhone: data.buyerPhone || "",
+    buyerMobile: data.buyerMobile || "",
+    buyerEmail: data.buyerEmail || "",
+    buyerWorkplace: data.buyerWorkplace || "",
+    buyerAddress: data.buyerAddress || "",
+    notice: data.notice || data.specialNotes || "",
+    warranty: buildTemplateWarranty(data),
+    inspectionStatus: data.inspectionStatus || "",
+    repairHistory: [data.repairHistory, data.repairDetail].filter(Boolean).join(" / "),
+    vehicleName: data.vehicleName || "",
+    vehicleGrade: data.vehicleGrade || "",
+    vehicleYear: data.vehicleYear || "",
+    vin: data.vehicleVin || "",
+    engineSize: formatTemplateMeasurement(data.engineSize, "cc"),
+    mileage: formatTemplateMeasurement(data.vehicleMileage, "km"),
+    inspectionDate: formatTemplateDate(data.inspectionDate),
+    plateNo: data.vehiclePlate || "",
+    mission: data.mission || "",
+    capacity: data.capacity || "",
+    bodyColor: data.vehicleColor || "",
+    equipment: data.equipment || "",
+    basePrice: data.basePrice || "",
+    storeDeliveryPrice: data.basePrice || "",
+    dealerOptionPrice: data.dealerOptionPrice || "",
+    makerOptionPrice: data.makerOptionPrice || "",
+    ...Object.fromEntries(range(14).flatMap((number) => [
+      [`optionName${number}`, data[`optionName${number}`] || ""],
+      [`optionPrice${number}`, data[`optionPrice${number}`] || ""],
+    ])),
+    customPrice: data.customPrice || "",
+    discount: data.discount || "",
+    taxInsurance: data.taxInsurance || data.taxes || "",
+    salesExpense: data.salesExpense || data.fees || "",
+    otherExpense: data.otherExpense || "",
+    optionalExpense: data.optionalExpense || "",
+    includedTax: data.includedTax || calculateTemplateIncludedTax(totalPrice),
+    autoTaxMonth: data.autoTaxMonth || "",
+    autoTaxAmount: data.autoTaxAmount || "",
+    weightTax: data.weightTax || "",
+    liabilityInsuranceMonth: data.liabilityInsuranceMonth || "",
+    liabilityInsurance: data.liabilityInsurance || "",
+    inspectionRegisterFee: data.inspectionRegisterFee || "",
+    parkingCertificateFee: data.parkingCertificateFee || "",
+    autoTaxAdjustment: data.autoTaxAdjustment || "",
+    liabilityAdjustment: data.liabilityAdjustment || "",
+    fundManagementFee: data.fundManagementFee || "",
+    parkingActualFee: data.parkingActualFee || "",
+    parkingCertificateActualFee: data.parkingCertificateActualFee || "",
+    recycleDeposit: data.recycleDeposit || data.recycleFee || "",
+    depositTotal: data.depositTotal || calculateRawRecycleTotal(data),
+    cashPayment: data.cashPayment || totalPrice || "",
+    loanPrincipal: data.loanPrincipal || "",
+    loanFee: data.loanFee || "",
+    tradePrice: data.tradePrice || "",
+    unpaidAutoTax: data.unpaidAutoTax || "",
+    tradeDebt: data.tradeDebt || "",
+    tradeVehicleYear: data.tradeVehicleYear || "",
+    tradeVehicleName: data.tradeVehicleName || "",
+    tradeVehicleGrade: data.tradeVehicleGrade || "",
+    tradeModelCode: data.tradeModelCode || "",
+    tradePlateNo: data.tradePlateNo || "",
+    tradeVin: data.tradeVin || "",
+    tradeInspectionDate: formatTemplateDate(data.tradeInspectionDate),
+    tradeMileage: formatTemplateMeasurement(data.tradeMileage, "km"),
+    tradeBodyColor: data.tradeBodyColor || "",
+    tradeMemo: data.tradeMemo || "",
+    recycleStatus: data.recycleStatus || "",
+    recycleManagementFee: data.recycleManagementFee || "",
+    shredderFee: data.shredderFee || "",
+    airbagFee: data.airbagFee || "",
+    fluorocarbonFee: data.fluorocarbonFee || "",
+    recycleInfoFee: data.recycleInfoFee || "",
+    paymentMethod: data.paymentMethod || "",
+    paymentDue: data.paymentDue || "",
+    bankAccount: data.bankAccount || "",
+    contactMemo: data.contactMemo || companyContact,
+    memo: data.memo || data.specialNotes || "",
+  };
+}
+
+function calculateRawContractTotal(data) {
+  const detailedOptions = sum(range(14).map((number) => data[`optionPrice${number}`]));
+  const summaryOptions = sum([data.dealerOptionPrice, data.makerOptionPrice, data.customPrice]);
+  const summaryExpenses = sum([data.taxInsurance, data.salesExpense, data.otherExpense, data.optionalExpense]);
+  const detailedExpenses = sum([
+    data.taxes, data.fees, data.recycleFee, data.autoTaxAmount, data.weightTax,
+    data.liabilityInsurance, data.inspectionRegisterFee, data.parkingCertificateFee,
+    data.autoTaxAdjustment, data.liabilityAdjustment, data.fundManagementFee,
+    data.parkingActualFee, data.parkingCertificateActualFee, data.recycleDeposit,
+  ]);
+  const total = parseAmount(data.basePrice)
+    + (detailedOptions || summaryOptions)
+    + (summaryExpenses || detailedExpenses)
+    - parseAmount(data.discount);
+  return total > 0 ? String(total) : "";
+}
+
+function calculateRawRecycleTotal(data) {
+  const total = sum([
+    data.recycleManagementFee,
+    data.shredderFee,
+    data.airbagFee,
+    data.fluorocarbonFee,
+    data.recycleInfoFee,
+  ]);
+  return total > 0 ? String(total) : "";
+}
+
+function calculateTemplateIncludedTax(value) {
+  const total = parseAmount(value);
+  return total > 0 ? String(Math.floor(total / 11)) : "";
+}
+
+function formatTemplateDate(value) {
+  const text = String(value || "");
+  const dateMatch = text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (dateMatch) {
+    return `${dateMatch[1]}年${Number(dateMatch[2])}月${Number(dateMatch[3])}日`;
+  }
+  const monthMatch = text.match(/^(\d{4})-(\d{2})$/);
+  return monthMatch ? `${monthMatch[1]}年${Number(monthMatch[2])}月` : text;
+}
+
+function formatTemplateMeasurement(value, unit) {
+  const text = String(value || "").trim();
+  if (!text) {
+    return "";
+  }
+  const digits = text.replace(/\D/g, "");
+  return digits ? `${Number(digits).toLocaleString("ja-JP")} ${unit}` : text;
+}
+
+function buildTemplateWarranty(data) {
+  const warranty = data.warranty || data.warrantyType || "";
+  const period = data.warrantyPeriod || "";
+  const mileage = formatTemplateMeasurement(data.warrantyMileage, "km");
+  return [warranty, period, mileage].filter(Boolean).join(" / ");
 }
 
 function schedulePrint() {
@@ -384,7 +550,47 @@ function calculateTotals() {
   setOutput("afterTradeTotal", getPaymentTotal(data) - getTradeTotal(data));
   setOutput("paymentInputTotal", getPaymentInputTotal(data));
   setOutput("recycleTotal", getRecycleTotal(data));
+  renderElectronicSignature(data);
   fitTemplateFields();
+}
+
+function setupSignedDocumentMode() {
+  document.body.classList.add("signed-document-mode");
+  document.title = "署名済み販売契約書 | オーダーオート";
+  form?.querySelectorAll("input, textarea, select").forEach((field) => {
+    if (field.type !== "hidden") {
+      field.tabIndex = -1;
+      field.readOnly = true;
+    }
+  });
+}
+
+function renderElectronicSignature(data) {
+  const block = document.querySelector("#electronicSignatureBlock");
+  const image = document.querySelector("#electronicSignatureImage");
+  const signer = document.querySelector("#electronicSignerName");
+  const signedAt = document.querySelector("#electronicSignedAt");
+  if (!block || !image || !signer || !signedAt) {
+    return;
+  }
+  const signatureDataUrl = String(data.signatureDataUrl || "");
+  const hasValidSignature = /^data:image\/png;base64,[A-Za-z0-9+/=]+$/.test(signatureDataUrl);
+  block.hidden = !hasValidSignature;
+  document.querySelector(".pdf-template-sheet")?.classList.toggle("has-electronic-signature", hasValidSignature);
+  if (!hasValidSignature) {
+    image.removeAttribute("src");
+    signer.textContent = "";
+    signedAt.textContent = "";
+    return;
+  }
+  image.src = signatureDataUrl;
+  signer.textContent = `署名者: ${data.signerName || ""}`;
+  signedAt.textContent = `署名日時: ${formatSignedDateTime(data.signedAt)}`;
+}
+
+function formatSignedDateTime(value) {
+  const date = new Date(value || "");
+  return Number.isNaN(date.getTime()) ? String(value || "") : date.toLocaleString("ja-JP");
 }
 
 function fitTemplateFields() {

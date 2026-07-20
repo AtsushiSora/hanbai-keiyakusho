@@ -2,16 +2,22 @@ import { isSupabaseConfigured, supabase } from "./src/supabase-client.js";
 
 const ORDER_AUTO_EMAIL = "sora29128616@gmail.com";
 const DEFAULT_CRYPTO_ITERATIONS = 200000;
+const salesTemplateImportKey = "orderAutoSalesTemplateImport";
 
 let loadedContract = null;
 let isDrawing = false;
 let hasSignature = false;
 let remoteAccessToken = "";
 let remotePasscode = "";
+let completedSignature = null;
+let completionEmailBody = "";
 
 document.querySelector("#unlockConsentButton")?.addEventListener("click", unlockConsent);
 document.querySelector("#completeConsentButton")?.addEventListener("click", completeConsent);
 document.querySelector("#clearSignatureButton")?.addEventListener("click", clearSignature);
+document.querySelector("#viewSignedContractButton")?.addEventListener("click", () => openSignedContract(false));
+document.querySelector("#printSignedContractButton")?.addEventListener("click", () => openSignedContract(true));
+document.querySelector("#completionEmailButton")?.addEventListener("click", openCompletionEmail);
 setupSignature();
 
 function base64UrlToBytes(value) {
@@ -162,18 +168,20 @@ async function completeConsent() {
   }
 
   const consentItems = checks.map((item) => item.value);
+  const canvas = document.querySelector("#customerSignature");
+  const signatureDataUrl = canvas.toDataURL("image/png");
+  const completedAt = new Date().toISOString();
   if (loadedContract?.source === "supabase") {
     const completeButton = document.querySelector("#completeConsentButton");
     completeButton.disabled = true;
     showCompletionStatus("署名を保存しています。");
     try {
-      const canvas = document.querySelector("#customerSignature");
       const { data: completed, error } = await supabase.rpc("complete_order_auto_remote_contract", {
         p_access_token: remoteAccessToken,
         p_passcode: remotePasscode,
         p_signer_name: customerName,
         p_consent_items: consentItems,
-        p_signature_data_url: canvas.toDataURL("image/png"),
+        p_signature_data_url: signatureDataUrl,
       });
       if (error || completed !== true) {
         throw new Error("Remote contract completion failed");
@@ -188,7 +196,12 @@ async function completeConsent() {
   }
 
   const data = loadedContract?.data || {};
-  const body = [
+  completedSignature = {
+    signerName: customerName,
+    signatureDataUrl,
+    signedAt: completedAt,
+  };
+  completionEmailBody = [
     "販売契約の確認が完了しました。",
     "",
     `買主氏名: ${customerName}`,
@@ -199,7 +212,57 @@ async function completeConsent() {
     "確認項目:",
     ...consentItems.map((item) => `・${item}`),
   ].join("\n");
-  window.location.href = `mailto:${ORDER_AUTO_EMAIL}?subject=${encodeURIComponent("販売契約確認完了")}&body=${encodeURIComponent(body)}`;
+  lockCompletedConsent();
+  document.querySelector("#signedDocumentActions").hidden = false;
+  showCompletionStatus("署名と同意内容を保存し、契約を完了しました。署名済み契約書を保存できます。");
+}
+
+function openSignedContract(autoPrint) {
+  if (!loadedContract?.data || !completedSignature) {
+    showError("署名済み契約書を作成できませんでした。もう一度署名を完了してください。");
+    return;
+  }
+  const payload = {
+    rawContractData: loadedContract.data,
+    ...completedSignature,
+    autoPrint,
+    importedAt: new Date().toISOString(),
+  };
+  try {
+    sessionStorage.setItem(salesTemplateImportKey, JSON.stringify(payload));
+  } catch {
+    showError("署名済み契約書を開けませんでした。ブラウザの保存設定を確認してください。");
+    return;
+  }
+  window.location.href = autoPrint
+    ? "sales-template.html?signed=1&print=1"
+    : "sales-template.html?signed=1";
+}
+
+function openCompletionEmail() {
+  if (!completionEmailBody) {
+    showError("先に電子署名を完了してください。");
+    return;
+  }
+  window.location.href = `mailto:${ORDER_AUTO_EMAIL}?subject=${encodeURIComponent("販売契約確認完了")}&body=${encodeURIComponent(completionEmailBody)}`;
+}
+
+function lockCompletedConsent() {
+  document.querySelectorAll("[name='customerConsent']").forEach((item) => {
+    item.disabled = true;
+  });
+  const customerName = document.querySelector("#customerName");
+  if (customerName) {
+    customerName.readOnly = true;
+  }
+  const clearButton = document.querySelector("#clearSignatureButton");
+  const completeButton = document.querySelector("#completeConsentButton");
+  if (clearButton) {
+    clearButton.hidden = true;
+  }
+  if (completeButton) {
+    completeButton.hidden = true;
+  }
 }
 
 function showCompletionStatus(message) {

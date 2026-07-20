@@ -6,7 +6,7 @@
     <title>販売書類の確認｜オーダーオート</title>
     <meta name="description" content="オーダーオートの車両販売契約書・見積書を安全に確認するページです。" />
     <meta name="robots" content="noindex, nofollow" />
-    <link rel="stylesheet" href="styles.css?v=contract14" />
+    <link rel="stylesheet" href="styles.css?v=contract16" />
   </head>
   <body class="contract-page sales-contract-system consent-page">
     <header class="site-header admin-header">
@@ -72,14 +72,24 @@
             <p class="field-error-message" id="signatureError" hidden>氏名と電子署名を入力してください。</p>
             <div class="remote-action-grid">
               <button class="secondary-button" type="button" id="clearSignatureButton">署名クリア</button>
-              <button class="primary-link" type="button" id="completeConsentButton">同意して完了メールを作成</button>
+              <button class="primary-link" type="button" id="completeConsentButton">同意して電子署名を完了</button>
             </div>
             <p class="contract-save-status" id="consentCompletionStatus" aria-live="polite"></p>
+          </section>
+
+          <section class="consent-summary signed-document-actions" id="signedDocumentActions" hidden>
+            <h2>署名済み契約書</h2>
+            <p>電子署名を契約書へ反映しました。表示後、タブレットの印刷画面からPDF保存または印刷できます。</p>
+            <div class="remote-action-grid">
+              <button class="secondary-button" type="button" id="viewSignedContractButton">署名済み契約書を表示</button>
+              <button class="primary-link" type="button" id="printSignedContractButton">印刷・PDF保存</button>
+              <button class="secondary-button" type="button" id="completionEmailButton">完了メールを作成</button>
+            </div>
           </section>
         </div>
       </section>
     </main>
 
-    <script type="module" src="sales-consent.js?v=supabase2"></script>
+    <script type="module" src="sales-consent.js?v=supabase3"></script>
   </body>
 </html>

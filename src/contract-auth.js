@@ -5,6 +5,8 @@ const ENABLE_TEST_LOGIN = SUPABASE_CONFIG.enableTestLogin === true;
 const testLoginStorageKey = "orderAutoTestLogin";
 const draftStorageKey = "orderAutoContractDraft";
 const tableName = SUPABASE_CONFIG.tableName || "order_auto_contracts";
+const remoteTableName = "order_auto_remote_contracts";
+const salesTemplateImportKey = "orderAutoSalesTemplateImport";
 const maxSalesOptionRows = 14;
 const authRequestTimeoutMs = 15000;
 
@@ -557,8 +559,51 @@ function handleContractCardAction(event) {
     loadContractById(id, "remote");
   } else if (action === "convert") {
     convertStoredEstimateToContract(id);
+  } else if (action === "signed-pdf") {
+    openSignedPdfById(id);
   } else if (action === "delete") {
     deleteContractById(id);
+  }
+}
+
+async function openSignedPdfById(contractId) {
+  const selected = cloudContracts.find((contract) => contract.id === contractId);
+  if (!selected) {
+    setStoredStatus("署名済み契約書を読み込めませんでした。");
+    return;
+  }
+  if (isTestLogin || !supabase || !currentUser) {
+    setStoredStatus("署名済みPDFはSupabaseへ保存された完了契約から表示できます。");
+    return;
+  }
+
+  setStoredStatus("電子署名を読み込んでいます。");
+  const { data, error } = await supabase
+    .from(remoteTableName)
+    .select("contract_data, signer_name, signature_data_url, completed_at")
+    .eq("contract_id", contractId)
+    .eq("owner_user_id", currentUser.id)
+    .eq("status", "完了")
+    .order("completed_at", { ascending: false })
+    .limit(1);
+  const signedRecord = data?.[0];
+  if (error || !signedRecord?.signature_data_url) {
+    setStoredStatus("電子署名データを読み込めませんでした。署名完了状態を確認してください。");
+    return;
+  }
+
+  try {
+    sessionStorage.setItem(salesTemplateImportKey, JSON.stringify({
+      rawContractData: signedRecord.contract_data || selected.data || {},
+      signerName: signedRecord.signer_name || "",
+      signatureDataUrl: signedRecord.signature_data_url,
+      signedAt: signedRecord.completed_at || "",
+      autoPrint: false,
+      importedAt: new Date().toISOString(),
+    }));
+    window.location.href = "sales-template.html?signed=1";
+  } catch {
+    setStoredStatus("署名済み契約書を開けませんでした。ブラウザの保存設定を確認してください。");
   }
 }
 
@@ -591,6 +636,9 @@ function renderContractCards(selectedId = "") {
     const convertButton = contract.documentType === "見積書"
       ? `<button class="secondary-button compact convert-contract-button" type="button" data-contract-action="convert" data-contract-id="${escapeHtml(contract.id)}">契約書に変換</button>`
       : "";
+    const signedPdfButton = !isTestLogin && contract.documentType !== "見積書" && contract.status === "完了"
+      ? `<button class="secondary-button compact" type="button" data-contract-action="signed-pdf" data-contract-id="${escapeHtml(contract.id)}">署名済みPDF</button>`
+      : "";
     return `
       <article class="contract-list-card${selectedClass}">
         <div class="contract-card-main">
@@ -601,6 +649,7 @@ function renderContractCards(selectedId = "") {
           <span class="document-type-pill">${escapeHtml(contract.documentType)}</span>
           <span class="status-pill">${escapeHtml(contract.status || "下書き")}</span>
           ${convertButton}
+          ${signedPdfButton}
           <button class="secondary-button compact" type="button" data-contract-action="remote" data-contract-id="${escapeHtml(contract.id)}">${remoteButtonLabel}</button>
           <button class="secondary-button compact" type="button" data-contract-action="edit" data-contract-id="${escapeHtml(contract.id)}">編集</button>
           <button class="secondary-button compact danger" type="button" data-contract-action="delete" data-contract-id="${escapeHtml(contract.id)}">削除</button>
