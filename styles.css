@@ -1307,40 +1307,15 @@ input[type="month"]::-webkit-calendar-picker-indicator {
   min-height: 48px;
 }
 
-.option-type-tabs {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+.option-type-select {
+  width: 100%;
   min-height: 48px;
-  overflow: hidden;
+  padding: 0 40px 0 14px;
+  color: #33435a;
+  background: #f7f9fc;
   border: 1px solid #cbd9e8;
   border-radius: 6px;
-}
-
-.option-type-tab {
-  min-width: 0;
-  min-height: 46px;
-  padding: 6px 4px;
-  color: #46556b;
-  background: #f4f7fb;
-  border: 0;
-  border-right: 1px solid #cbd9e8;
-  border-radius: 0;
-  font-size: 0.68rem;
   font-weight: 900;
-  line-height: 1.2;
-}
-
-.option-type-tab:last-child {
-  border-right: 0;
-}
-
-.option-type-tab:hover {
-  background: #e8f3ed;
-}
-
-.option-type-tab.is-active {
-  color: #fff;
-  background: var(--blue-dark);
 }
 
 .optional-fields {

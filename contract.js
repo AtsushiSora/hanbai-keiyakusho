@@ -136,7 +136,6 @@ shopCopyButton?.addEventListener("click", () => setPreviewCopy("店控え"));
 completeContractButton?.addEventListener("click", completeContract);
 contractPdfPreview?.addEventListener("load", updatePdfPreview);
 window.addEventListener("message", handlePdfPreviewMessage);
-salesOptionRows?.addEventListener("click", handleOptionTypeClick);
 
 function arrangeContractSections() {
   contractSectionOrder.forEach((sectionName) => {
@@ -644,7 +643,7 @@ function saveDraft() {
 
 function handleFormInput(event) {
   addOptionRowWhenNeeded(event?.target);
-  if (/^optionPrice\d+$/.test(event?.target?.name || "")) {
+  if (/^(optionPrice|optionType)\d+$/.test(event?.target?.name || "")) {
     syncOptionTotal();
   }
   if (["autoTaxAmount", "weightTax", "liabilityInsurance"].includes(event?.target?.name || "")) {
@@ -1000,7 +999,7 @@ function appendSalesOptionRow(number, data = {}) {
   const optionType = normalizeOptionType(data[`optionType${number}`]);
   salesOptionRows.insertAdjacentHTML("beforeend", `
     <div class="dynamic-option-row" data-option-row="${number}">
-      ${renderOptionTypeTabs(number, optionType)}
+      ${renderOptionTypeSelect(number, optionType)}
       <input name="optionName${number}" type="text" placeholder="例）ドライブレコーダー" value="${escapeHtml(data[`optionName${number}`] || "")}" />
       <input name="optionPrice${number}" inputmode="numeric" type="text" placeholder="例）40537" value="${escapeHtml(data[`optionPrice${number}`] || "")}" />
     </div>
@@ -1008,37 +1007,12 @@ function appendSalesOptionRow(number, data = {}) {
   setupMoneyFields(salesOptionRows);
 }
 
-function renderOptionTypeTabs(number, selectedType) {
+function renderOptionTypeSelect(number, selectedType) {
   return `
-    <div class="option-type-tabs" role="group" aria-label="オプション${number}の区分">
-      <input name="optionType${number}" type="hidden" value="${selectedType}" />
-      ${salesOptionTypes.map(({ value, label }) => `
-        <button class="option-type-tab${value === selectedType ? " is-active" : ""}" type="button" data-option-type="${value}" aria-pressed="${value === selectedType}">${label}</button>
-      `).join("")}
-    </div>
+    <select class="option-type-select" name="optionType${number}" aria-label="オプション${number}の区分">
+      ${salesOptionTypes.map(({ value, label }) => `<option value="${value}"${value === selectedType ? " selected" : ""}>${label}</option>`).join("")}
+    </select>
   `;
-}
-
-function handleOptionTypeClick(event) {
-  const button = event.target.closest("button[data-option-type]");
-  if (!button || !salesOptionRows?.contains(button)) {
-    return;
-  }
-  const tabs = button.closest(".option-type-tabs");
-  const input = tabs?.querySelector('input[type="hidden"]');
-  if (!tabs || !input) {
-    return;
-  }
-  input.value = normalizeOptionType(button.dataset.optionType);
-  tabs.querySelectorAll("button[data-option-type]").forEach((tab) => {
-    const isActive = tab === button;
-    tab.classList.toggle("is-active", isActive);
-    tab.setAttribute("aria-pressed", String(isActive));
-  });
-  syncOptionTotal();
-  updateSalesPriceTotal();
-  syncPaymentTotal();
-  saveDraft();
 }
 
 function normalizeOptionType(value) {
