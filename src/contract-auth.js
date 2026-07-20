@@ -6,6 +6,7 @@ const testLoginStorageKey = "orderAutoTestLogin";
 const draftStorageKey = "orderAutoContractDraft";
 const tableName = SUPABASE_CONFIG.tableName || "order_auto_contracts";
 const maxSalesOptionRows = 14;
+const authRequestTimeoutMs = 15000;
 
 const loginPanel = document.querySelector("#loginPanel");
 const loginForm = document.querySelector("#adminLoginForm");
@@ -79,25 +80,43 @@ async function initAdminAuth() {
     return;
   }
 
-  const { data } = await supabase.auth.getSession();
-  currentUser = data.session?.user || null;
+  let sessionData;
+  try {
+    ({ data: sessionData } = await withAuthTimeout(supabase.auth.getSession()));
+  } catch {
+    applyLoggedOutState("認証サーバーに接続できませんでした。通信状態を確認して、もう一度お試しください。");
+    return;
+  }
+  currentUser = sessionData.session?.user || null;
   if (currentUser) {
     await activateCloudLogin();
   } else {
     applyLoggedOutState("Supabaseに登録した管理者アカウントでログインしてください。");
   }
 
-  supabase.auth.onAuthStateChange(async (_event, session) => {
+  supabase.auth.onAuthStateChange((_event, session) => {
     if (isTestLogin) {
       return;
     }
-    currentUser = session?.user || null;
-    if (currentUser) {
-      await activateCloudLogin();
-    } else {
-      applyLoggedOutState("Supabaseに登録した管理者アカウントでログインしてください。");
-    }
+    window.setTimeout(() => applyAuthSessionChange(session), 0);
   });
+}
+
+async function applyAuthSessionChange(session) {
+  if (isTestLogin) {
+    return;
+  }
+  const sessionUser = session?.user || null;
+  if (sessionUser) {
+    if (currentUser?.id === sessionUser.id && document.body.classList.contains("is-admin-authenticated")) {
+      return;
+    }
+    currentUser = sessionUser;
+    await activateCloudLogin();
+    return;
+  }
+  currentUser = null;
+  applyLoggedOutState("Supabaseに登録した管理者アカウントでログインしてください。");
 }
 
 async function handleLoginSubmit(event) {
@@ -121,8 +140,17 @@ async function handleLoginSubmit(event) {
 
   setLoginFormDisabled(true);
   setAuthStatus("ログインしています。");
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-  setLoginFormDisabled(false);
+  let authResult;
+  try {
+    authResult = await withAuthTimeout(supabase.auth.signInWithPassword({ email, password }));
+  } catch {
+    setAuthStatus("認証サーバーから応答がありません。通信状態を確認して、もう一度お試しください。");
+    return;
+  } finally {
+    setLoginFormDisabled(false);
+  }
+
+  const { data, error } = authResult;
 
   if (error || !data.user) {
     setAuthStatus("ログインできませんでした。メールアドレスまたはパスワードを確認してください。");
@@ -134,6 +162,14 @@ async function handleLoginSubmit(event) {
   sessionStorage.removeItem(testLoginStorageKey);
   loginForm.reset();
   await activateCloudLogin();
+}
+
+function withAuthTimeout(request) {
+  let timeoutId;
+  const timeout = new Promise((_, reject) => {
+    timeoutId = window.setTimeout(() => reject(new Error("AUTH_TIMEOUT")), authRequestTimeoutMs);
+  });
+  return Promise.race([request, timeout]).finally(() => window.clearTimeout(timeoutId));
 }
 
 async function handleLogout() {
