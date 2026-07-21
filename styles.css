@@ -2141,6 +2141,34 @@ pre {
   line-height: 1.55;
 }
 
+.top-create-card {
+  grid-template-columns: minmax(0, 0.35fr) minmax(0, 1fr);
+  align-items: center;
+  min-height: 104px;
+  color: #fff;
+  background: var(--contract-green);
+  border-color: var(--contract-green);
+}
+
+.top-create-card:hover,
+.top-create-card:focus-visible {
+  background: var(--contract-green-dark);
+  border-color: var(--contract-amber);
+}
+
+.top-create-card span,
+.top-create-card small {
+  color: #fff;
+}
+
+.top-create-card span {
+  font-size: 1.4rem;
+}
+
+.top-create-card small {
+  color: rgba(255, 255, 255, 0.86);
+}
+
 .contract-create-page .contract-menu-section,
 .contract-list-page .contract-menu-section {
   display: none;
@@ -3195,6 +3223,11 @@ pre {
 
   .dynamic-option-head {
     display: none;
+  }
+
+  .top-create-card {
+    grid-template-columns: 1fr;
+    min-height: 124px;
   }
 
   .dynamic-option-row {
