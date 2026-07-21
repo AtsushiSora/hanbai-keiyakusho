@@ -5,8 +5,6 @@ const saveButton = document.querySelector("#saveButton");
 const deleteButton = document.querySelector("#deleteButton");
 const printButton = document.querySelector("#printButton");
 const sheetStatus = document.querySelector("#sheetStatus");
-const layoutModeControl = document.querySelector("#layoutModeControl");
-const layoutGroupSelect = document.querySelector("#layoutGroupSelect");
 const optionRows = document.querySelector("#optionRows");
 const feeExtraRows = document.querySelector("#feeExtraRows");
 const pageParams = new URLSearchParams(window.location.search);
@@ -28,42 +26,7 @@ if (isPreviewMode) {
   document.body.classList.add("preview-embed");
 }
 
-const layoutFieldGroups = {
-  customer: [
-    "estimateDate", "validUntil", "estimateNo", "controlNo", "carType",
-    "buyerKana", "buyerName", "buyerZip", "buyerAddress", "buyerBirthday",
-    "buyerPhone", "buyerMobile", "buyerEmail", "buyerWorkplace", "notice",
-    "warranty", "inspectionStatus", "repairHistory",
-  ],
-  vehicle: [
-    "vehicleName", "vehicleGrade", "vehicleYear", "mission", "equipment", "vin",
-    "engineSize", "mileage", "capacity", "inspectionDate", "plateNo", "bodyColor",
-  ],
-  price: [
-    "basePrice", "discount", "discountLabel", "storeDeliveryPrice", "customPrice", "vehicleTotal",
-  ],
-  expenses: [
-    "taxInsurance", "salesExpense", "otherExpense", "optionalExpense", "expenseTotal",
-    "paymentTotal", "includedTax", "autoTaxMonth", "autoTaxAmount", "weightTax",
-    "liabilityInsuranceMonth", "liabilityInsurance", "inspectionRegisterFee",
-    "parkingCertificateFee", "autoTaxAdjustment", "liabilityAdjustment",
-    "fundManagementFee", "parkingActualFee", "parkingCertificateActualFee", "recycleDeposit",
-  ],
-  trade: [
-    "tradePrice", "unpaidAutoTax", "tradeDebt", "tradeTotal", "afterTradeTotal",
-    "tradeVehicleYear", "tradeVehicleName", "tradeVehicleGrade", "tradeModelCode",
-    "tradePlateNo", "tradeVin", "tradeInspectionDate", "tradeMileage", "tradeBodyColor", "tradeMemo",
-  ],
-  loan: ["cashPayment", "loanPrincipal", "loanFee", "paymentInputTotal"],
-  recycle: [
-    "recycleStatus", "recycleManagementFee", "shredderFee", "airbagFee",
-    "fluorocarbonFee", "recycleInfoFee", "recycleTotal",
-  ],
-  notes: ["contactMemo", "memo"],
-};
-
 createRepeatingRows();
-setupLayoutMode();
 setDefaultValues();
 restoreDraft();
 const importedContract = consumeImportedContract();
@@ -92,29 +55,6 @@ saveButton?.addEventListener("click", saveRecord);
 deleteButton?.addEventListener("click", deleteRecord);
 printButton?.addEventListener("click", () => window.print());
 
-function setupLayoutMode() {
-  const params = new URLSearchParams(window.location.search);
-  if (!params.has("layout")) {
-    return;
-  }
-
-  document.body.classList.add("layout-adjustment");
-  layoutModeControl.hidden = false;
-  const requestedGroup = params.get("layout") || "customer";
-  const validGroup = requestedGroup === "all" || Object.prototype.hasOwnProperty.call(layoutFieldGroups, requestedGroup)
-    ? requestedGroup
-    : "customer";
-  layoutGroupSelect.value = validGroup;
-  applyLayoutGroup(layoutGroupSelect.value);
-
-  layoutGroupSelect.addEventListener("change", () => {
-    const group = layoutGroupSelect.value;
-    params.set("layout", group);
-    window.history.replaceState(null, "", `${window.location.pathname}?${params.toString()}`);
-    applyLayoutGroup(group);
-  });
-}
-
 function setupPreviewBridge() {
   if (!isPreviewMode || window.parent === window) {
     return;
@@ -134,21 +74,6 @@ function setupPreviewBridge() {
     calculateTotals();
   });
   window.parent.postMessage({ type: "order-auto-preview-ready" }, window.location.origin);
-}
-
-function applyLayoutGroup(group) {
-  const sheet = document.querySelector(".pdf-template-sheet");
-  if (!sheet) {
-    return;
-  }
-
-  sheet.classList.toggle("layout-mode", group !== "all");
-  const visibleFields = new Set(layoutFieldGroups[group] || []);
-  sheet.querySelectorAll(".tpl-field, .tpl-output").forEach((field) => {
-    const key = field.name || field.id;
-    const isOption = group === "options" && /^option(?:Name|Price)\d+$/.test(key);
-    field.classList.toggle("layout-hidden", group !== "all" && !visibleFields.has(key) && !isOption);
-  });
 }
 
 function createRepeatingRows() {
