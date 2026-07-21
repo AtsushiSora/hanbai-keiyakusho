@@ -318,6 +318,7 @@ function openSalesTemplate(autoPrint = true) {
 
 function mapContractToSalesTemplate(data) {
   return {
+    documentType: data.documentType || "契約書",
     estimateDate: data.estimateDate || data.contractDate || new Date().toISOString().slice(0, 10),
     validUntil: data.validUntil || "",
     estimateNo: data.estimateNo || "",

@@ -6,7 +6,7 @@
     <title>販売契約書PDFテンプレート | オーダーオート</title>
     <meta name="description" content="添付写真をPDF化した販売契約書テンプレートに入力、上書き保存、印刷、PDF保存できます。" />
     <meta name="robots" content="noindex, nofollow" />
-    <link rel="stylesheet" href="sales-template.css?v=template11" />
+    <link rel="stylesheet" href="sales-template.css?v=template12" />
   </head>
   <body>
     <header class="template-toolbar">
@@ -72,6 +72,9 @@
           <input name="signatureDataUrl" type="hidden" />
           <input name="signerName" type="hidden" />
           <input name="signedAt" type="hidden" />
+          <input name="documentType" type="hidden" value="契約書" />
+
+          <output class="tpl-output document-title" id="documentTitle" style="--x: 28.0%; --y: 2.7%; --w: 39.0%; --h: 3.8%;">契約書</output>
 
           <input class="tpl-field document-date" style="--x: 77.7%; --y: 2.25%; --w: 18.0%; --h: 1.2%;" name="estimateDate" type="date" />
           <input class="tpl-field document-date" style="--x: 77.7%; --y: 3.58%; --w: 18.0%; --h: 1.2%;" name="validUntil" type="date" />
@@ -205,6 +208,6 @@
       </form>
     </main>
 
-    <script src="sales-sheet.js?v=alignment8"></script>
+    <script src="sales-sheet.js?v=alignment9"></script>
   </body>
 </html>

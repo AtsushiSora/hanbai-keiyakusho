@@ -178,7 +178,7 @@ function createRepeatingRows() {
 }
 
 function setDefaultValues() {
-  setValueIfEmpty("documentTitle", "お見積書");
+  setValueIfEmpty("documentType", "契約書");
   setValueIfEmpty("estimateDate", new Date().toISOString().slice(0, 10));
   setValueIfEmpty("carType", "中古車");
   setValueIfEmpty("warranty", "なし");
@@ -377,6 +377,7 @@ function consumeImportedContract() {
 function mapRawContractToTemplate(data) {
   const totalPrice = data.totalPrice || calculateRawContractTotal(data);
   return {
+    documentType: data.documentType || "契約書",
     estimateDate: data.estimateDate || data.contractDate || new Date().toISOString().slice(0, 10),
     validUntil: data.validUntil || "",
     estimateNo: data.estimateNo || "",
@@ -542,6 +543,7 @@ function schedulePrint() {
 
 function calculateTotals() {
   const data = getFormData();
+  renderDocumentTitle(data);
   updateDiscountRow(data);
   setOutput("vehicleTotal", getVehicleTotal(data));
   setOutput("expenseTotal", getExpenseTotal(data));
@@ -552,6 +554,14 @@ function calculateTotals() {
   setOutput("recycleTotal", getRecycleTotal(data));
   renderElectronicSignature(data);
   fitTemplateFields();
+}
+
+function renderDocumentTitle(data) {
+  const title = document.querySelector("#documentTitle");
+  if (!title) {
+    return;
+  }
+  title.textContent = data.documentType === "見積書" ? "お見積書" : "契約書";
 }
 
 function setupSignedDocumentMode() {
