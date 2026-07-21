@@ -3051,6 +3051,34 @@ pre {
     padding: 8px 14px;
   }
 
+  .sales-contract-system .site-header {
+    min-height: 62px;
+    gap: 8px;
+    padding: 8px 12px;
+  }
+
+  .sales-contract-system .brand {
+    flex: 1 1 auto;
+    min-width: 0;
+    gap: 8px;
+    overflow: hidden;
+  }
+
+  .sales-contract-system .brand > span:last-child {
+    min-width: 0;
+  }
+
+  .sales-contract-system .brand strong {
+    overflow: hidden;
+    font-size: 0.88rem;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .sales-contract-system .brand small {
+    font-size: 0.6rem;
+  }
+
   .brand strong {
     font-size: 0.95rem;
   }
@@ -3182,19 +3210,21 @@ pre {
   .contract-header-actions {
     display: flex;
     flex: 0 0 auto;
+    flex-wrap: nowrap;
+    gap: 0;
     margin-left: auto;
   }
 
-  .contract-header-actions > :not(.header-logout-button) {
+  .sales-contract-system .contract-header-actions > :not(.header-logout-button) {
     display: none;
   }
 
   .sales-contract-system .contract-header-actions .header-logout-button {
     display: inline-flex;
     width: auto;
-    min-height: 38px;
-    padding: 0 12px;
-    font-size: 0.78rem;
+    min-height: 36px;
+    padding: 0 10px;
+    font-size: 0.74rem;
   }
 
   .contract-side {
