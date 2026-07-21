@@ -3,6 +3,9 @@ import { isSupabaseConfigured, supabase } from "./src/supabase-client.js";
 const ORDER_AUTO_EMAIL = "sora29128616@gmail.com";
 const DEFAULT_CRYPTO_ITERATIONS = 200000;
 const salesTemplateImportKey = "orderAutoSalesTemplateImport";
+const inPersonContextKey = "orderAutoInPersonContract";
+const inPersonPasscodeKey = "orderAutoInPersonPasscode";
+const isInPersonMode = new URLSearchParams(window.location.search).get("inperson") === "1";
 
 let loadedContract = null;
 let isDrawing = false;
@@ -11,6 +14,7 @@ let remoteAccessToken = "";
 let remotePasscode = "";
 let completedSignature = null;
 let completionEmailBody = "";
+let inPersonContext = null;
 
 document.querySelector("#unlockConsentButton")?.addEventListener("click", unlockConsent);
 document.querySelector("#completeConsentButton")?.addEventListener("click", completeConsent);
@@ -19,6 +23,41 @@ document.querySelector("#viewSignedContractButton")?.addEventListener("click", (
 document.querySelector("#printSignedContractButton")?.addEventListener("click", () => openSignedContract(true));
 document.querySelector("#completionEmailButton")?.addEventListener("click", openCompletionEmail);
 setupSignature();
+if (isInPersonMode) {
+  loadInPersonConsent();
+}
+
+async function loadInPersonConsent() {
+  const headerAction = document.querySelector("#consentHeaderAction");
+  if (headerAction) {
+    headerAction.href = "contract-list.html?mode=in-person";
+    headerAction.textContent = "契約一覧へ";
+  }
+  document.querySelector("#consentUnlock").hidden = true;
+
+  try {
+    const token = getRemoteToken();
+    const passcode = sessionStorage.getItem(inPersonPasscodeKey) || "";
+    if (token && passcode && isSupabaseConfigured()) {
+      await unlockSupabaseConsent(token, passcode);
+      return;
+    }
+
+    inPersonContext = JSON.parse(sessionStorage.getItem(inPersonContextKey) || "null");
+    if (!inPersonContext?.data) {
+      throw new Error("Missing in-person contract");
+    }
+    loadedContract = {
+      source: "in-person-test",
+      contractId: inPersonContext.contractId || inPersonContext.data.__recordId || "",
+      data: inPersonContext.data,
+    };
+    renderContract();
+  } catch {
+    loadedContract = null;
+    showError("対面署名の契約データを開けませんでした。契約一覧から選び直してください。");
+  }
+}
 
 function base64UrlToBytes(value) {
   const base64 = value.replaceAll("-", "+").replaceAll("_", "/");
@@ -201,6 +240,9 @@ async function completeConsent() {
     signatureDataUrl,
     signedAt: completedAt,
   };
+  if (loadedContract?.source === "in-person-test") {
+    completeLocalInPersonContract(customerName, completedAt);
+  }
   completionEmailBody = [
     "販売契約の確認が完了しました。",
     "",
@@ -230,6 +272,10 @@ function openSignedContract(autoPrint) {
   };
   try {
     sessionStorage.setItem(salesTemplateImportKey, JSON.stringify(payload));
+    if (isInPersonMode) {
+      sessionStorage.removeItem(inPersonContextKey);
+      sessionStorage.removeItem(inPersonPasscodeKey);
+    }
   } catch {
     showError("署名済み契約書を開けませんでした。ブラウザの保存設定を確認してください。");
     return;
@@ -237,6 +283,32 @@ function openSignedContract(autoPrint) {
   window.location.href = autoPrint
     ? "sales-template.html?signed=1&print=1"
     : "sales-template.html?signed=1";
+}
+
+function completeLocalInPersonContract(signerName, completedAt) {
+  try {
+    const records = JSON.parse(localStorage.getItem("orderAutoContractRecords") || "[]");
+    const contractId = loadedContract?.contractId || inPersonContext?.contractId || "";
+    const index = Array.isArray(records) ? records.findIndex((record) => record.id === contractId) : -1;
+    if (index < 0) {
+      return;
+    }
+    records[index] = {
+      ...records[index],
+      status: "完了",
+      updatedAt: completedAt,
+      data: {
+        ...(records[index].data || {}),
+        contractStatus: "完了",
+        remoteStatus: "完了",
+        signerName,
+        completedAt,
+      },
+    };
+    localStorage.setItem("orderAutoContractRecords", JSON.stringify(records));
+  } catch {
+    // テスト用保存に失敗しても署名済み帳票は表示できる。
+  }
 }
 
 function openCompletionEmail() {
@@ -336,7 +408,16 @@ function isEstimateDocument(data = {}) {
 }
 
 function updateConsentPageCopy(isEstimate) {
-  const copy = isEstimate
+  const copy = isInPersonMode && !isEstimate
+    ? {
+      brandTitle: "オーダーオート 対面電子署名",
+      kicker: "In-person Signature",
+      pageTitle: "対面電子署名",
+      introduction: "契約内容と重要事項をご確認のうえ、タブレットにご署名ください。",
+      summaryTitle: "署名する契約",
+      browserTitle: "対面電子署名｜オーダーオート",
+    }
+    : isEstimate
     ? {
       brandTitle: "オーダーオート 見積確認",
       kicker: "Estimate",

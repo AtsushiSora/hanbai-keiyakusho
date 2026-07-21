@@ -7,8 +7,14 @@ const draftStorageKey = "orderAutoContractDraft";
 const tableName = SUPABASE_CONFIG.tableName || "order_auto_contracts";
 const remoteTableName = "order_auto_remote_contracts";
 const salesTemplateImportKey = "orderAutoSalesTemplateImport";
+const inPersonContextKey = "orderAutoInPersonContract";
+const inPersonPasscodeKey = "orderAutoInPersonPasscode";
 const maxSalesOptionRows = 14;
 const authRequestTimeoutMs = 15000;
+const pageParams = new URLSearchParams(window.location.search);
+const isInPersonMode = pageParams.get("mode") === "in-person";
+const isRemoteSignatureMode = pageParams.get("mode") === "remote";
+const isSignatureSelectionMode = isInPersonMode || isRemoteSignatureMode;
 
 const loginPanel = document.querySelector("#loginPanel");
 const loginForm = document.querySelector("#adminLoginForm");
@@ -30,6 +36,9 @@ const contractStatusTabs = document.querySelector("#contractStatusTabs");
 const exportContractsButton = document.querySelector("#exportContractsButton");
 const importContractsButton = document.querySelector("#importContractsButton");
 const importContractsFile = document.querySelector("#importContractsFile");
+const contractListKicker = document.querySelector("#contractListKicker");
+const contractListTitle = document.querySelector("#contractListTitle");
+const contractListDescription = document.querySelector("#contractListDescription");
 
 let currentUser = null;
 let cloudContracts = [];
@@ -42,6 +51,7 @@ let isSavingCloud = false;
 initAdminAuth();
 
 async function initAdminAuth() {
+  setupContractListMode();
   setupTestLoginButton();
 
   loginForm?.addEventListener("submit", handleLoginSubmit);
@@ -561,9 +571,133 @@ function handleContractCardAction(event) {
     convertStoredEstimateToContract(id);
   } else if (action === "signed-pdf") {
     openSignedPdfById(id);
+  } else if (action === "in-person") {
+    button.disabled = true;
+    startInPersonSignature(id)
+      .catch(() => setStoredStatus("対面署名を開始できませんでした。通信状態を確認してください。"))
+      .finally(() => {
+        button.disabled = false;
+      });
   } else if (action === "delete") {
     deleteContractById(id);
   }
+}
+
+function setupContractListMode() {
+  if (!isSignatureSelectionMode) {
+    return;
+  }
+  document.body.classList.add("signature-selection-mode");
+  const pageCopy = isInPersonMode
+    ? {
+      title: "対面電子署名",
+      kicker: "IN-PERSON SIGNATURE",
+      description: "その場で署名する契約を選んでください。完了済み契約は再署名できません。",
+    }
+    : {
+      title: "メール・LINEで署名",
+      kicker: "REMOTE SIGNATURE",
+      description: "先方のスマホ・タブレットへ送る契約を選んでください。",
+    };
+  document.title = `${pageCopy.title}｜オーダーオート`;
+  if (contractListKicker) {
+    contractListKicker.textContent = pageCopy.kicker;
+  }
+  if (contractListTitle) {
+    contractListTitle.textContent = pageCopy.title;
+  }
+  if (contractListDescription) {
+    contractListDescription.hidden = false;
+    contractListDescription.textContent = pageCopy.description;
+  }
+}
+
+async function startInPersonSignature(contractId) {
+  const selected = cloudContracts.find((contract) => contract.id === contractId);
+  if (!selected) {
+    setStoredStatus("署名する契約を読み込めませんでした。");
+    return;
+  }
+  const display = toDisplayContract(selected);
+  if (display.documentType === "見積書") {
+    setStoredStatus("見積書には署名できません。先に契約書へ変換してください。");
+    return;
+  }
+  if (display.status === "完了") {
+    setStoredStatus("この契約は署名完了済みです。");
+    return;
+  }
+  const validationError = getInPersonValidationError(display.data || {});
+  if (validationError) {
+    setStoredStatus(validationError);
+    return;
+  }
+
+  setStoredStatus("対面署名画面を準備しています。");
+  if (isTestLogin) {
+    sessionStorage.setItem(inPersonContextKey, JSON.stringify({
+      contractId,
+      data: { ...(display.data || {}), __recordId: contractId },
+      testMode: true,
+      selectedAt: new Date().toISOString(),
+    }));
+    window.location.href = "sales-consent.html?inperson=1";
+    return;
+  }
+
+  if (!supabase || !currentUser) {
+    setStoredStatus("Supabaseへログインし直してください。");
+    return;
+  }
+
+  const passcode = generatePasscode();
+  const accessToken = generateAccessToken();
+  const expiresAt = new Date(Date.now() + 24 * 60 * 60 * 1000).toISOString();
+  const { data: remoteRows, error } = await supabase.rpc("create_order_auto_remote_contract", {
+    p_contract_id: contractId,
+    p_access_token: accessToken,
+    p_passcode: passcode,
+    p_expires_at: expiresAt,
+  });
+  if (error || !remoteRows?.length) {
+    setStoredStatus("対面署名を開始できませんでした。Supabaseの設定を確認してください。");
+    return;
+  }
+
+  await supabase
+    .from(tableName)
+    .update({
+      status: "署名待ち",
+      data: { ...(display.data || {}), remoteStatus: "署名待ち" },
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", contractId)
+    .eq("user_id", currentUser.id);
+
+  sessionStorage.setItem(inPersonPasscodeKey, passcode);
+  const url = new URL("sales-consent.html", window.location.href);
+  url.searchParams.set("inperson", "1");
+  url.hash = `token=${encodeURIComponent(accessToken)}`;
+  window.location.href = url.toString();
+}
+
+function getInPersonValidationError(data) {
+  const missing = [];
+  if (!String(data.buyerName || "").trim()) {
+    missing.push("氏名");
+  }
+  if (!String(data.vehicleName || "").trim()) {
+    missing.push("車種名");
+  }
+  if (!String(data.vehicleVin || "").trim()) {
+    missing.push("車台番号");
+  }
+  if (toNumber(data.totalPrice || calculateTotal(data)) <= 0) {
+    missing.push("支払総額");
+  }
+  return missing.length
+    ? `対面署名の前に、${missing.join("・")}を入力して保存してください。`
+    : "";
 }
 
 async function openSignedPdfById(contractId) {
@@ -639,6 +773,24 @@ function renderContractCards(selectedId = "") {
     const signedPdfButton = !isTestLogin && contract.documentType !== "見積書" && contract.status === "完了"
       ? `<button class="secondary-button compact" type="button" data-contract-action="signed-pdf" data-contract-id="${escapeHtml(contract.id)}">署名済みPDF</button>`
       : "";
+    const standardActions = `
+      ${convertButton}
+      ${signedPdfButton}
+      <button class="secondary-button compact" type="button" data-contract-action="remote" data-contract-id="${escapeHtml(contract.id)}">${remoteButtonLabel}</button>
+      <button class="secondary-button compact" type="button" data-contract-action="edit" data-contract-id="${escapeHtml(contract.id)}">編集</button>
+      <button class="secondary-button compact danger" type="button" data-contract-action="delete" data-contract-id="${escapeHtml(contract.id)}">削除</button>
+    `;
+    const inPersonActions = contract.status === "完了"
+      ? signedPdfButton || '<span class="completed-signature-label">署名完了済み</span>'
+      : `<button class="primary-link compact" type="button" data-contract-action="in-person" data-contract-id="${escapeHtml(contract.id)}">この契約に署名</button>`;
+    const remoteSelectionActions = contract.status === "完了"
+      ? signedPdfButton || '<span class="completed-signature-label">署名完了済み</span>'
+      : `<button class="primary-link compact" type="button" data-contract-action="remote" data-contract-id="${escapeHtml(contract.id)}">メール・LINEで送る</button>`;
+    const selectionActions = isInPersonMode
+      ? inPersonActions
+      : isRemoteSignatureMode
+        ? remoteSelectionActions
+        : standardActions;
     return `
       <article class="contract-list-card${selectedClass}">
         <div class="contract-card-main">
@@ -648,11 +800,7 @@ function renderContractCards(selectedId = "") {
         <div class="contract-card-actions">
           <span class="document-type-pill">${escapeHtml(contract.documentType)}</span>
           <span class="status-pill">${escapeHtml(contract.status || "下書き")}</span>
-          ${convertButton}
-          ${signedPdfButton}
-          <button class="secondary-button compact" type="button" data-contract-action="remote" data-contract-id="${escapeHtml(contract.id)}">${remoteButtonLabel}</button>
-          <button class="secondary-button compact" type="button" data-contract-action="edit" data-contract-id="${escapeHtml(contract.id)}">編集</button>
-          <button class="secondary-button compact danger" type="button" data-contract-action="delete" data-contract-id="${escapeHtml(contract.id)}">削除</button>
+          ${selectionActions}
         </div>
       </article>
     `;
@@ -663,6 +811,7 @@ function getFilteredDisplayContracts() {
   return cloudContracts.map(toDisplayContract).filter((contract) => {
     const status = contract.status || "下書き";
     const matchesStatus = activeStatusFilter === "all" || status === activeStatusFilter;
+    const matchesDocumentType = !isSignatureSelectionMode || contract.documentType !== "見積書";
     const searchSource = [
       contract.id,
       contract.buyerName,
@@ -675,7 +824,7 @@ function getFilteredDisplayContracts() {
       contract.data?.controlNo,
     ].join(" ").toLowerCase();
     const matchesSearch = !activeSearchTerm || searchSource.includes(activeSearchTerm);
-    return matchesStatus && matchesSearch;
+    return matchesStatus && matchesDocumentType && matchesSearch;
   });
 }
 
@@ -887,6 +1036,19 @@ function formatPrice(value) {
 function toNumber(value) {
   const number = Number(String(value || "").replace(/[^\d.-]/g, ""));
   return Number.isFinite(number) ? number : 0;
+}
+
+function generatePasscode() {
+  const bytes = new Uint8Array(4);
+  crypto.getRandomValues(bytes);
+  const number = bytes.reduce((total, byte) => total * 256 + byte, 0) % 100000000;
+  return String(number).padStart(8, "0");
+}
+
+function generateAccessToken() {
+  const bytes = crypto.getRandomValues(new Uint8Array(32));
+  const binary = Array.from(bytes, (byte) => String.fromCharCode(byte)).join("");
+  return btoa(binary).replaceAll("+", "-").replaceAll("/", "_").replaceAll("=", "");
 }
 
 function formatDate(value) {

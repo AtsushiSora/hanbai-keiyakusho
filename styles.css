@@ -2170,6 +2170,22 @@ pre {
   font-size: 1.5rem;
 }
 
+.contract-list-description {
+  margin: 0;
+  padding: 12px 14px;
+  color: #355047;
+  background: #f1f8f4;
+  border: 1px solid rgba(15, 122, 77, 0.2);
+  border-radius: 8px;
+  font-weight: 800;
+}
+
+.signature-selection-mode .backup-actions,
+.signature-selection-mode .status-tabs,
+.signature-selection-mode .contract-list-head-actions a[href="contract-create.html"] {
+  display: none;
+}
+
 .contract-list-head-actions,
 .backup-actions,
 .contract-card-actions,
@@ -2298,6 +2314,21 @@ pre {
   min-height: 46px;
   margin: 0;
   padding-inline: 16px;
+}
+
+.contract-card-actions .primary-link.compact {
+  width: auto;
+  min-height: 46px;
+  margin: 0;
+  padding: 0 16px;
+}
+
+.completed-signature-label {
+  display: inline-flex;
+  align-items: center;
+  min-height: 46px;
+  color: #426258;
+  font-weight: 900;
 }
 
 .contract-card-actions .convert-contract-button,

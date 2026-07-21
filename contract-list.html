@@ -6,7 +6,7 @@
     <title>契約一覧｜オーダーオート</title>
     <meta name="description" content="オーダーオートの車両販売契約書を入力フォームからPDF保存・印刷・メール・LINE送信用に作成できる契約作成システムです。" />
     <meta name="robots" content="noindex, nofollow" />
-    <link rel="stylesheet" href="styles.css?v=contract24" />
+    <link rel="stylesheet" href="styles.css?v=contract25" />
   </head>
   <body class="admin-page contract-page sales-contract-system contract-list-page auth-loading">
     <header class="site-header admin-header">
@@ -21,7 +21,7 @@
         <a class="secondary-link" href="contract.html">トップ</a>
         <a class="secondary-link" href="contract-create.html">契約書作成</a>
         <a class="secondary-link" href="contract-list.html">契約一覧</a>
-        <a class="secondary-link" href="contract-contact.html">メール・LINE契約</a>
+        <a class="secondary-link" href="contract-list.html?mode=remote">メール・LINE署名</a>
         <span class="admin-user-chip admin-only" id="adminUserLabel">ログイン中</span>
         <button class="secondary-link header-logout-button admin-only" type="button" id="adminLogoutButton">ログアウト</button>
       </div>
@@ -69,14 +69,16 @@
           <div class="server-contract-panel contract-list-panel" id="list">
             <div class="contract-list-head">
               <div>
-                <p class="section-kicker">CONTRACTS</p>
-                <h2>契約一覧</h2>
+                <p class="section-kicker" id="contractListKicker">CONTRACTS</p>
+                <h2 id="contractListTitle">契約一覧</h2>
               </div>
               <div class="contract-list-head-actions">
                 <a class="secondary-button compact" href="contract.html">TOPに戻る</a>
                 <a class="secondary-button compact" href="contract-create.html">追加</a>
               </div>
             </div>
+
+            <p class="contract-list-description" id="contractListDescription" hidden></p>
 
             <div class="backup-actions" aria-label="バックアップ操作">
               <button class="secondary-button compact" type="button" id="exportContractsButton">JSON出力</button>
@@ -105,6 +107,6 @@
       </section>
     </main>
 
-    <script type="module" src="src/contract-auth.js?v=supabase13"></script>
+    <script type="module" src="src/contract-auth.js?v=supabase14"></script>
   </body>
 </html>
