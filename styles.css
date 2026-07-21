@@ -2151,11 +2151,6 @@ pre {
   font-size: 1.4rem;
 }
 
-.contract-create-page .contract-menu-section,
-.contract-list-page .contract-menu-section {
-  display: none;
-}
-
 .contract-list-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
