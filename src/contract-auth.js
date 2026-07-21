@@ -103,7 +103,10 @@ async function initAdminAuth() {
   if (currentUser) {
     await activateCloudLogin();
   } else {
-    applyLoggedOutState("Supabaseに登録した管理者アカウントでログインしてください。");
+    const message = pageParams.get("logged-out") === "1"
+      ? "ログアウトしました。"
+      : "Supabaseに登録した管理者アカウントでログインしてください。";
+    applyLoggedOutState(message);
   }
 
   supabase.auth.onAuthStateChange((_event, session) => {
@@ -128,7 +131,10 @@ async function applyAuthSessionChange(session) {
     return;
   }
   currentUser = null;
-  applyLoggedOutState("Supabaseに登録した管理者アカウントでログインしてください。");
+  const message = pageParams.get("logged-out") === "1"
+    ? "ログアウトしました。"
+    : "Supabaseに登録した管理者アカウントでログインしてください。";
+  applyLoggedOutState(message);
 }
 
 async function handleLoginSubmit(event) {
@@ -185,14 +191,47 @@ function withAuthTimeout(request) {
 }
 
 async function handleLogout() {
-  sessionStorage.removeItem(testLoginStorageKey);
-  isTestLogin = false;
-  currentUser = null;
-  cloudContracts = [];
-  if (supabase) {
-    await supabase.auth.signOut();
+  if (logoutButton?.disabled) {
+    return;
   }
-  applyLoggedOutState("ログアウトしました。");
+  const wasTestLogin = isTestLogin;
+  const originalLabel = logoutButton?.textContent || "ログアウト";
+  if (logoutButton) {
+    logoutButton.disabled = true;
+    logoutButton.textContent = "ログアウト中";
+  }
+
+  try {
+    if (supabase && !wasTestLogin) {
+      const { error } = await withAuthTimeout(supabase.auth.signOut());
+      if (error) {
+        throw error;
+      }
+    }
+    clearPrivateSessionData();
+    isTestLogin = false;
+    currentUser = null;
+    cloudContracts = [];
+    window.location.replace("contract.html?logged-out=1");
+  } catch {
+    setStoredStatus("ログアウトできませんでした。通信状態を確認して、もう一度お試しください。");
+  } finally {
+    if (logoutButton) {
+      logoutButton.disabled = false;
+      logoutButton.textContent = originalLabel;
+    }
+  }
+}
+
+function clearPrivateSessionData() {
+  [
+    testLoginStorageKey,
+    draftStorageKey,
+    salesTemplateImportKey,
+    inPersonContextKey,
+    inPersonPasscodeKey,
+    "orderAutoSalesSheetDraft",
+  ].forEach((key) => sessionStorage.removeItem(key));
 }
 
 function setupTestLoginButton() {

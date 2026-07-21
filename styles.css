@@ -3180,7 +3180,21 @@ pre {
   }
 
   .contract-header-actions {
+    display: flex;
+    flex: 0 0 auto;
+    margin-left: auto;
+  }
+
+  .contract-header-actions > :not(.header-logout-button) {
     display: none;
+  }
+
+  .sales-contract-system .contract-header-actions .header-logout-button {
+    display: inline-flex;
+    width: auto;
+    min-height: 38px;
+    padding: 0 12px;
+    font-size: 0.78rem;
   }
 
   .contract-side {
