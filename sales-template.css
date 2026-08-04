@@ -531,7 +531,7 @@ body.preview-embed .tpl-field {
   }
 
   .pdf-template-form {
-    width: 210mm;
+    width: 202mm;
     max-width: none;
     height: auto;
     margin: 0;
@@ -540,10 +540,11 @@ body.preview-embed .tpl-field {
 
   .pdf-template-sheet,
   .contract-terms-sheet {
-    width: 210mm;
+    width: 202mm;
     max-width: none;
-    height: 297mm;
-    margin: 0;
+    height: 286mm;
+    margin: 0 auto;
+    overflow: hidden;
     box-shadow: none;
   }
 
