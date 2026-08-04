@@ -483,10 +483,15 @@ function calculateTotals() {
 
 function renderDocumentTitle(data) {
   const title = document.querySelector("#documentTitle");
-  if (!title) {
-    return;
+  if (title) {
+    title.textContent = data.documentType === "見積書" ? "お見積書" : "契約書";
   }
-  title.textContent = data.documentType === "見積書" ? "お見積書" : "契約書";
+  const isContract = data.documentType !== "見積書";
+  const termsSheet = document.querySelector("#contractTermsSheet");
+  if (termsSheet) {
+    termsSheet.hidden = !isContract;
+  }
+  document.body.classList.toggle("has-terms-page", isContract);
 }
 
 function setupSignedDocumentMode() {

@@ -191,6 +191,8 @@ textarea {
 }
 
 .pdf-template-form {
+  display: grid;
+  gap: 24px;
   min-width: 0;
   overflow-x: auto;
 }
@@ -211,6 +213,110 @@ textarea {
   height: 100%;
   user-select: none;
   pointer-events: none;
+}
+
+.contract-terms-sheet {
+  display: grid;
+  grid-template-rows: auto minmax(0, 1fr) auto;
+  width: 906px;
+  max-width: 100%;
+  aspect-ratio: 906 / 1280;
+  margin: 0 auto;
+  padding: 34px 38px 28px;
+  color: #111;
+  background: #fff;
+  box-shadow: 0 18px 48px rgba(19, 44, 28, 0.18);
+  font-family: "Yu Mincho", "Hiragino Mincho ProN", "Hiragino Mincho Pro", serif;
+}
+
+.contract-terms-sheet[hidden] {
+  display: none;
+}
+
+.terms-header {
+  position: relative;
+  padding-bottom: 9px;
+  border-bottom: 2px solid #111;
+}
+
+.terms-header > span {
+  position: absolute;
+  top: 0;
+  right: 0;
+  font-size: clamp(5.5px, 1.1vw, 10px);
+  font-weight: 700;
+}
+
+.terms-header h2 {
+  margin: 0;
+  text-align: center;
+  font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", "YuGothic", sans-serif;
+  font-size: clamp(14px, 2.65vw, 24px);
+  letter-spacing: 0;
+}
+
+.terms-header p {
+  margin: 7px 0 0;
+  font-size: clamp(5.5px, 1.05vw, 9.5px);
+  line-height: 1.45;
+}
+
+.terms-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  min-height: 0;
+  padding-top: 10px;
+}
+
+.terms-column {
+  padding: 0 14px 0 0;
+}
+
+.terms-column + .terms-column {
+  padding: 0 0 0 14px;
+  border-left: 1px solid #111;
+}
+
+.terms-column article {
+  break-inside: avoid;
+  margin-bottom: 6px;
+}
+
+.terms-column h3 {
+  margin: 0 0 2px;
+  font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", "YuGothic", sans-serif;
+  font-size: clamp(6px, 1.22vw, 11px);
+  line-height: 1.25;
+}
+
+.terms-column p {
+  margin: 0;
+  font-size: clamp(5.5px, 1.13vw, 10.2px);
+  line-height: 1.42;
+  text-align: justify;
+}
+
+.terms-footer {
+  padding-top: 8px;
+  border-top: 2px solid #111;
+  font-size: clamp(5.5px, 1.05vw, 9.5px);
+}
+
+.terms-footer > p {
+  margin: 0 0 7px;
+  padding: 5px;
+  border: 1px solid #111;
+  text-align: center;
+  font-weight: 700;
+}
+
+.terms-footer > div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 18px;
+  align-items: baseline;
+  justify-content: center;
 }
 
 .tpl-field,
@@ -354,7 +460,8 @@ body.signed-document-mode .tpl-field {
 }
 
 body.preview-embed {
-  overflow: hidden;
+  overflow-x: hidden;
+  overflow-y: auto;
   background: #fff;
 }
 
@@ -378,6 +485,16 @@ body.preview-embed .pdf-template-sheet {
   width: 906px;
   max-width: 100%;
   margin: 0 auto;
+  box-shadow: none;
+}
+
+body.preview-embed .pdf-template-form {
+  gap: 12px;
+}
+
+body.preview-embed .contract-terms-sheet {
+  width: 906px;
+  max-width: 100%;
   box-shadow: none;
 }
 
@@ -413,13 +530,63 @@ body.preview-embed .tpl-field {
     overflow: visible;
   }
 
-  .pdf-template-form,
-  .pdf-template-sheet {
+  .pdf-template-form {
+    width: 210mm;
+    max-width: none;
+    height: auto;
+    margin: 0;
+    box-shadow: none;
+  }
+
+  .pdf-template-sheet,
+  .contract-terms-sheet {
     width: 210mm;
     max-width: none;
     height: 297mm;
     margin: 0;
     box-shadow: none;
+  }
+
+  .pdf-template-form {
+    display: block;
+    overflow: visible;
+  }
+
+  body.has-terms-page .front-sheet {
+    break-after: page;
+    page-break-after: always;
+  }
+
+  .contract-terms-sheet {
+    break-after: auto;
+    page-break-after: auto;
+    padding: 8mm 9mm 7mm;
+  }
+
+  .terms-header > span {
+    font-size: 7.5pt;
+  }
+
+  .terms-header h2 {
+    font-size: 18pt;
+  }
+
+  .terms-header p,
+  .terms-footer {
+    font-size: 7.2pt;
+  }
+
+  .terms-column h3 {
+    font-size: 8pt;
+  }
+
+  .terms-column p {
+    font-size: 7.2pt;
+    line-height: 1.38;
+  }
+
+  .terms-column article {
+    margin-bottom: 1.4mm;
   }
 
   .tpl-field,
