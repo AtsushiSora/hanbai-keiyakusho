@@ -2667,9 +2667,28 @@ pre {
   height: auto;
 }
 
-.pdf-preview-frame iframe {
+.pdf-preview-canvas {
+  --pdf-preview-scale: 1;
+  position: relative;
+  width: 100%;
   aspect-ratio: 906 / 1280;
+  overflow: hidden;
+  background: #fff;
+  box-shadow: 0 14px 28px rgba(23, 33, 31, 0.12);
+}
+
+.pdf-preview-canvas iframe {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 906px;
+  min-width: 906px;
+  height: 1280px;
+  aspect-ratio: auto;
   border: 0;
+  box-shadow: none;
+  transform: scale(var(--pdf-preview-scale));
+  transform-origin: top left;
 }
 
 .contract-preview-support {

@@ -478,11 +478,13 @@ body.preview-embed .template-page-wrap {
 }
 
 body.preview-embed .pdf-template-form {
+  width: 100%;
+  min-width: 0;
   overflow: hidden;
 }
 
 body.preview-embed .pdf-template-sheet {
-  width: 906px;
+  width: 100%;
   max-width: 100%;
   margin: 0 auto;
   box-shadow: none;
@@ -493,7 +495,7 @@ body.preview-embed .pdf-template-form {
 }
 
 body.preview-embed .contract-terms-sheet {
-  width: 906px;
+  width: 100%;
   max-width: 100%;
   box-shadow: none;
 }

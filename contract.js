@@ -11,6 +11,7 @@ const previewStatusLabel = document.querySelector("#previewStatusLabel");
 const previewDocumentTypeLabel = document.querySelector("#previewDocumentTypeLabel");
 const previewCopyLabel = document.querySelector("#previewCopyLabel");
 const contractPdfPreview = document.querySelector("#contractPdfPreview");
+const pdfPreviewCanvas = document.querySelector("#pdfPreviewCanvas");
 const customerCopyButton = document.querySelector("#customerCopyButton");
 const shopCopyButton = document.querySelector("#shopCopyButton");
 const convertEstimateButton = document.querySelector("#convertEstimateButton");
@@ -118,6 +119,7 @@ setupYearSelects();
 renderSalesOptionRows(1);
 setupMoneyFields();
 setupMeasurementFields();
+setupPdfPreviewFit();
 restoreDraft();
 renderHistoryOptions();
 exposeContractToolApi();
@@ -136,6 +138,22 @@ shopCopyButton?.addEventListener("click", () => setPreviewCopy("店控え"));
 completeContractButton?.addEventListener("click", completeContract);
 contractPdfPreview?.addEventListener("load", updatePdfPreview);
 window.addEventListener("message", handlePdfPreviewMessage);
+
+function setupPdfPreviewFit() {
+  if (!pdfPreviewCanvas) {
+    return;
+  }
+  const updateScale = () => {
+    const scale = Math.min(1, pdfPreviewCanvas.clientWidth / 906);
+    pdfPreviewCanvas.style.setProperty("--pdf-preview-scale", String(scale));
+  };
+  updateScale();
+  if ("ResizeObserver" in window) {
+    new ResizeObserver(updateScale).observe(pdfPreviewCanvas);
+  } else {
+    window.addEventListener("resize", updateScale);
+  }
+}
 
 function arrangeContractSections() {
   contractSectionOrder.forEach((sectionName) => {
