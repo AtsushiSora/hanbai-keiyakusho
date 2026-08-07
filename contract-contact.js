@@ -7,7 +7,6 @@ const COMPANY = {
   address: "広島県広島市佐伯区皆賀1-10-20",
 };
 
-const CRYPTO_ITERATIONS = 200000;
 const contractDraftKey = "orderAutoContractDraft";
 
 const remoteSelectedContract = document.querySelector("#remoteSelectedContract");
@@ -142,12 +141,11 @@ async function generateConsentUrl() {
   generateConsentUrlButton.disabled = true;
   setStatus("確認URLを生成しています。");
   try {
-    const isTestLogin = sessionStorage.getItem("orderAutoTestLogin") === "1";
-    if (isSupabaseConfigured() && !isTestLogin) {
-      await generateSupabaseConsentUrl(data);
+    if (!isSupabaseConfigured()) {
+      setStatus("Supabase設定を確認してから確認URLを生成してください。");
       return;
     }
-    await generateEncryptedConsentUrl(data);
+    await generateSupabaseConsentUrl(data);
   } catch {
     setStatus("確認URLを生成できませんでした。通信状態を確認して、もう一度お試しください。");
   } finally {
@@ -205,24 +203,6 @@ async function generateSupabaseConsentUrl(data) {
   url.hash = `token=${encodeURIComponent(accessToken)}`;
   setGeneratedConsent(url.toString(), passcode);
   setStatus("Supabaseに期限付き確認URLを保存しました。パスコードは別送してください。");
-}
-
-async function generateEncryptedConsentUrl(data) {
-  const passcode = generatePasscode();
-  const payload = {
-    id: data.contractNumber || data.estimateNo || `sales-${Date.now()}`,
-    createdAt: new Date().toISOString(),
-    expiresAt: Date.now() + 7 * 24 * 60 * 60 * 1000,
-    data,
-    company: COMPANY,
-  };
-  const encrypted = await encryptPayload(payload, passcode);
-  const encoded = bytesToBase64Url(new TextEncoder().encode(JSON.stringify(encrypted)));
-  const url = new URL("sales-consent.html", window.location.href);
-  url.hash = `payload=${encoded}`;
-
-  setGeneratedConsent(url.toString(), passcode);
-  setStatus("テスト用の暗号化URLと開封パスコードを生成しました。パスコードは別送してください。");
 }
 
 function setGeneratedConsent(url, passcode) {
@@ -304,34 +284,6 @@ function generatePasscode() {
 
 function generateAccessToken() {
   return bytesToBase64Url(crypto.getRandomValues(new Uint8Array(32)));
-}
-
-async function deriveEncryptionKey(passcode, salt) {
-  const material = await crypto.subtle.importKey("raw", new TextEncoder().encode(passcode), "PBKDF2", false, ["deriveKey"]);
-  return crypto.subtle.deriveKey(
-    { name: "PBKDF2", salt, iterations: CRYPTO_ITERATIONS, hash: "SHA-256" },
-    material,
-    { name: "AES-GCM", length: 256 },
-    false,
-    ["encrypt"],
-  );
-}
-
-async function encryptPayload(payload, passcode) {
-  const salt = crypto.getRandomValues(new Uint8Array(16));
-  const iv = crypto.getRandomValues(new Uint8Array(12));
-  const key = await deriveEncryptionKey(passcode, salt);
-  const encoded = new TextEncoder().encode(JSON.stringify(payload));
-  const ciphertext = await crypto.subtle.encrypt({ name: "AES-GCM", iv }, key, encoded);
-
-  return {
-    v: 1,
-    kdf: "PBKDF2-SHA256",
-    iterations: CRYPTO_ITERATIONS,
-    salt: bytesToBase64Url(salt),
-    iv: bytesToBase64Url(iv),
-    ciphertext: bytesToBase64Url(new Uint8Array(ciphertext)),
-  };
 }
 
 function calculateTotal(data) {

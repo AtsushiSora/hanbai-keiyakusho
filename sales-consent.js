@@ -1,9 +1,7 @@
 import { isSupabaseConfigured, supabase } from "./src/supabase-client.js";
 
 const ORDER_AUTO_EMAIL = "sora29128616@gmail.com";
-const DEFAULT_CRYPTO_ITERATIONS = 200000;
 const salesTemplateImportKey = "orderAutoSalesTemplateImport";
-const inPersonContextKey = "orderAutoInPersonContract";
 const inPersonPasscodeKey = "orderAutoInPersonPasscode";
 const isInPersonMode = new URLSearchParams(window.location.search).get("inperson") === "1";
 
@@ -14,7 +12,6 @@ let remoteAccessToken = "";
 let remotePasscode = "";
 let completedSignature = null;
 let completionEmailBody = "";
-let inPersonContext = null;
 
 document.querySelector("#unlockConsentButton")?.addEventListener("click", unlockConsent);
 document.querySelector("#completeConsentButton")?.addEventListener("click", completeConsent);
@@ -38,61 +35,14 @@ async function loadInPersonConsent() {
   try {
     const token = getRemoteToken();
     const passcode = sessionStorage.getItem(inPersonPasscodeKey) || "";
-    if (token && passcode && isSupabaseConfigured()) {
-      await unlockSupabaseConsent(token, passcode);
-      return;
+    if (!token || !passcode || !isSupabaseConfigured()) {
+      throw new Error("Missing in-person credentials");
     }
-
-    inPersonContext = JSON.parse(sessionStorage.getItem(inPersonContextKey) || "null");
-    if (!inPersonContext?.data) {
-      throw new Error("Missing in-person contract");
-    }
-    loadedContract = {
-      source: "in-person-test",
-      contractId: inPersonContext.contractId || inPersonContext.data.__recordId || "",
-      data: inPersonContext.data,
-    };
-    renderContract();
+    await unlockSupabaseConsent(token, passcode);
   } catch {
     loadedContract = null;
     showError("対面署名の契約データを開けませんでした。契約一覧から選び直してください。");
   }
-}
-
-function base64UrlToBytes(value) {
-  const base64 = value.replaceAll("-", "+").replaceAll("_", "/");
-  const padded = base64.padEnd(Math.ceil(base64.length / 4) * 4, "=");
-  return Uint8Array.from(atob(padded), (char) => char.charCodeAt(0));
-}
-
-function decodeEnvelope() {
-  const params = new URLSearchParams(window.location.hash.replace(/^#/, ""));
-  const encoded = params.get("payload");
-  if (!encoded) {
-    return null;
-  }
-  const bytes = base64UrlToBytes(encoded);
-  return JSON.parse(new TextDecoder().decode(bytes));
-}
-
-async function deriveDecryptionKey(passcode, salt, iterations) {
-  const material = await crypto.subtle.importKey("raw", new TextEncoder().encode(passcode), "PBKDF2", false, ["deriveKey"]);
-  return crypto.subtle.deriveKey(
-    { name: "PBKDF2", salt, iterations: iterations || DEFAULT_CRYPTO_ITERATIONS, hash: "SHA-256" },
-    material,
-    { name: "AES-GCM", length: 256 },
-    false,
-    ["decrypt"],
-  );
-}
-
-async function decryptEnvelope(envelope, passcode) {
-  const salt = base64UrlToBytes(envelope.salt);
-  const iv = base64UrlToBytes(envelope.iv);
-  const ciphertext = base64UrlToBytes(envelope.ciphertext);
-  const key = await deriveDecryptionKey(passcode, salt, envelope.iterations);
-  const plaintext = await crypto.subtle.decrypt({ name: "AES-GCM", iv }, key, ciphertext);
-  return JSON.parse(new TextDecoder().decode(plaintext));
 }
 
 async function unlockConsent() {
@@ -104,19 +54,10 @@ async function unlockConsent() {
 
   try {
     const token = getRemoteToken();
-    if (token && isSupabaseConfigured()) {
-      await unlockSupabaseConsent(token, passcode.replaceAll("-", ""));
-      return;
+    if (!token || !isSupabaseConfigured()) {
+      throw new Error("Missing remote credentials");
     }
-    const envelope = decodeEnvelope();
-    if (!envelope?.ciphertext || !envelope?.salt || !envelope?.iv) {
-      throw new Error("Missing payload");
-    }
-    loadedContract = await decryptEnvelope(envelope, passcode.replaceAll("-", ""));
-    if (loadedContract.expiresAt && Date.now() > loadedContract.expiresAt) {
-      throw new Error("Expired");
-    }
-    renderContract();
+    await unlockSupabaseConsent(token, passcode.replaceAll("-", ""));
   } catch {
     loadedContract = null;
     showError("書類データを開けませんでした。URL、パスコード、有効期限を確認してください。");
@@ -195,6 +136,10 @@ async function completeConsent() {
     showError("見積書は内容確認のみです。電子署名は必要ありません。");
     return;
   }
+  if (loadedContract?.source !== "supabase") {
+    showError("契約データを確認できませんでした。確認URLを開き直してください。");
+    return;
+  }
   const customerName = document.querySelector("#customerName")?.value.trim();
   const checks = Array.from(document.querySelectorAll("[name='customerConsent']"));
   const allChecked = checks.length && checks.every((item) => item.checked);
@@ -210,29 +155,27 @@ async function completeConsent() {
   const canvas = document.querySelector("#customerSignature");
   const signatureDataUrl = canvas.toDataURL("image/png");
   const completedAt = new Date().toISOString();
-  if (loadedContract?.source === "supabase") {
-    const completeButton = document.querySelector("#completeConsentButton");
-    completeButton.disabled = true;
-    showCompletionStatus("署名を保存しています。");
-    try {
-      const { data: completed, error } = await supabase.rpc("complete_order_auto_remote_contract", {
-        p_access_token: remoteAccessToken,
-        p_passcode: remotePasscode,
-        p_signer_name: customerName,
-        p_consent_items: consentItems,
-        p_signature_data_url: signatureDataUrl,
-      });
-      if (error || completed !== true) {
-        throw new Error("Remote contract completion failed");
-      }
-    } catch {
-      completeButton.disabled = false;
-      showCompletionStatus("");
-      showError("契約を完了できませんでした。URLの有効期限を確認し、もう一度お試しください。");
-      return;
+  const completeButton = document.querySelector("#completeConsentButton");
+  completeButton.disabled = true;
+  showCompletionStatus("署名を保存しています。");
+  try {
+    const { data: completed, error } = await supabase.rpc("complete_order_auto_remote_contract", {
+      p_access_token: remoteAccessToken,
+      p_passcode: remotePasscode,
+      p_signer_name: customerName,
+      p_consent_items: consentItems,
+      p_signature_data_url: signatureDataUrl,
+    });
+    if (error || completed !== true) {
+      throw new Error("Remote contract completion failed");
     }
-    showCompletionStatus("署名と同意内容を保存し、契約を完了しました。");
+  } catch {
+    completeButton.disabled = false;
+    showCompletionStatus("");
+    showError("契約を完了できませんでした。URLの有効期限を確認し、もう一度お試しください。");
+    return;
   }
+  showCompletionStatus("署名と同意内容を保存し、契約を完了しました。");
 
   const data = loadedContract?.data || {};
   completedSignature = {
@@ -240,9 +183,6 @@ async function completeConsent() {
     signatureDataUrl,
     signedAt: completedAt,
   };
-  if (loadedContract?.source === "in-person-test") {
-    completeLocalInPersonContract(customerName, completedAt);
-  }
   completionEmailBody = [
     "販売契約の確認が完了しました。",
     "",
@@ -273,7 +213,6 @@ function openSignedContract(autoPrint) {
   try {
     sessionStorage.setItem(salesTemplateImportKey, JSON.stringify(payload));
     if (isInPersonMode) {
-      sessionStorage.removeItem(inPersonContextKey);
       sessionStorage.removeItem(inPersonPasscodeKey);
     }
   } catch {
@@ -283,32 +222,6 @@ function openSignedContract(autoPrint) {
   window.location.href = autoPrint
     ? "sales-template.html?signed=1&print=1"
     : "sales-template.html?signed=1";
-}
-
-function completeLocalInPersonContract(signerName, completedAt) {
-  try {
-    const records = JSON.parse(localStorage.getItem("orderAutoContractRecords") || "[]");
-    const contractId = loadedContract?.contractId || inPersonContext?.contractId || "";
-    const index = Array.isArray(records) ? records.findIndex((record) => record.id === contractId) : -1;
-    if (index < 0) {
-      return;
-    }
-    records[index] = {
-      ...records[index],
-      status: "完了",
-      updatedAt: completedAt,
-      data: {
-        ...(records[index].data || {}),
-        contractStatus: "完了",
-        remoteStatus: "完了",
-        signerName,
-        completedAt,
-      },
-    };
-    localStorage.setItem("orderAutoContractRecords", JSON.stringify(records));
-  } catch {
-    // テスト用保存に失敗しても署名済み帳票は表示できる。
-  }
 }
 
 function openCompletionEmail() {

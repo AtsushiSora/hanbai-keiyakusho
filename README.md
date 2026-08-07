@@ -39,7 +39,6 @@ export const SUPABASE_CONFIG = {
   publishableKey: "sb_publishable_xxxxx",
   anonKey: "",
   tableName: "order_auto_contracts",
-  enableTestLogin: false,
 };
 ```
 
@@ -49,7 +48,7 @@ export const SUPABASE_CONFIG = {
 
 すべてのテーブルでRow Level Securityを有効にしています。管理者は本人のデータだけを読み書きできます。お客様はテーブルへ直接アクセスせず、期限付きトークンと8桁パスコードを検証するRPCだけを利用します。パスコードを5回間違えると15分間ロックされます。
 
-本番公開前に `enableTestLogin` を `false` にしてください。管理者ユーザーはSupabase DashboardのAuthenticationから作成し、一般ユーザーの新規登録は無効のまま運用してください。
+管理者ユーザーはSupabase DashboardのAuthenticationから作成し、一般ユーザーの新規登録は無効のまま運用してください。
 
 ## 注意点
 

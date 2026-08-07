@@ -1,13 +1,9 @@
 import { SUPABASE_CONFIG, isSupabaseConfigured, supabase } from "./supabase-client.js";
 
-const ENABLE_TEST_LOGIN = SUPABASE_CONFIG.enableTestLogin === true;
-
-const testLoginStorageKey = "orderAutoTestLogin";
 const draftStorageKey = "orderAutoContractDraft";
 const tableName = SUPABASE_CONFIG.tableName || "order_auto_contracts";
 const remoteTableName = "order_auto_remote_contracts";
 const salesTemplateImportKey = "orderAutoSalesTemplateImport";
-const inPersonContextKey = "orderAutoInPersonContract";
 const inPersonPasscodeKey = "orderAutoInPersonPasscode";
 const maxSalesOptionRows = 14;
 const authRequestTimeoutMs = 15000;
@@ -21,8 +17,6 @@ const loginForm = document.querySelector("#adminLoginForm");
 const authStatus = document.querySelector("#authStatus");
 const adminUserLabel = document.querySelector("#adminUserLabel");
 const logoutButton = document.querySelector("#adminLogoutButton");
-const testLoginBox = document.querySelector("#testLoginBox");
-const testLoginButton = document.querySelector("#testLoginButton");
 const serverContractSelect = document.querySelector("#serverContractSelect");
 const loadServerContractButton = document.querySelector("#loadServerContractButton");
 const saveServerContractButton = document.querySelector("#saveServerContractButton");
@@ -42,7 +36,6 @@ const contractListDescription = document.querySelector("#contractListDescription
 
 let currentUser = null;
 let cloudContracts = [];
-let isTestLogin = false;
 let activeStatusFilter = "all";
 let activeSearchTerm = "";
 let isConvertingEstimate = false;
@@ -52,7 +45,6 @@ initAdminAuth();
 
 async function initAdminAuth() {
   setupContractListMode();
-  setupTestLoginButton();
 
   loginForm?.addEventListener("submit", handleLoginSubmit);
   logoutButton?.addEventListener("click", handleLogout);
@@ -82,11 +74,6 @@ async function initAdminAuth() {
   importContractsButton?.addEventListener("click", () => importContractsFile?.click());
   importContractsFile?.addEventListener("change", importContractsJson);
 
-  if (ENABLE_TEST_LOGIN && sessionStorage.getItem(testLoginStorageKey) === "1") {
-    activateTestLogin();
-    return;
-  }
-
   if (!supabase) {
     applyLoggedOutState("Supabase設定が未入力です。src/supabase-config.js にProject URLとPublishable keyを設定してください。");
     return;
@@ -110,17 +97,11 @@ async function initAdminAuth() {
   }
 
   supabase.auth.onAuthStateChange((_event, session) => {
-    if (isTestLogin) {
-      return;
-    }
     window.setTimeout(() => applyAuthSessionChange(session), 0);
   });
 }
 
 async function applyAuthSessionChange(session) {
-  if (isTestLogin) {
-    return;
-  }
   const sessionUser = session?.user || null;
   if (sessionUser) {
     if (currentUser?.id === sessionUser.id && document.body.classList.contains("is-admin-authenticated")) {
@@ -176,8 +157,6 @@ async function handleLoginSubmit(event) {
   }
 
   currentUser = data.user;
-  isTestLogin = false;
-  sessionStorage.removeItem(testLoginStorageKey);
   loginForm.reset();
   await activateCloudLogin();
 }
@@ -194,7 +173,6 @@ async function handleLogout() {
   if (logoutButton?.disabled) {
     return;
   }
-  const wasTestLogin = isTestLogin;
   const originalLabel = logoutButton?.textContent || "ログアウト";
   if (logoutButton) {
     logoutButton.disabled = true;
@@ -202,14 +180,13 @@ async function handleLogout() {
   }
 
   try {
-    if (supabase && !wasTestLogin) {
+    if (supabase) {
       const { error } = await withAuthTimeout(supabase.auth.signOut());
       if (error) {
         throw error;
       }
     }
     clearPrivateSessionData();
-    isTestLogin = false;
     currentUser = null;
     cloudContracts = [];
     window.location.replace("contract.html?logged-out=1");
@@ -225,45 +202,14 @@ async function handleLogout() {
 
 function clearPrivateSessionData() {
   [
-    testLoginStorageKey,
     draftStorageKey,
     salesTemplateImportKey,
-    inPersonContextKey,
     inPersonPasscodeKey,
     "orderAutoSalesSheetDraft",
   ].forEach((key) => sessionStorage.removeItem(key));
 }
 
-function setupTestLoginButton() {
-  if (testLoginBox) {
-    testLoginBox.hidden = !ENABLE_TEST_LOGIN;
-  }
-  if (!testLoginButton) {
-    return;
-  }
-  testLoginButton.hidden = !ENABLE_TEST_LOGIN;
-  testLoginButton.addEventListener("click", activateTestLogin);
-}
-
-function activateTestLogin() {
-  isTestLogin = true;
-  currentUser = { email: "test-admin@example.local" };
-  sessionStorage.setItem(testLoginStorageKey, "1");
-  document.body.classList.remove("auth-loading");
-  document.body.classList.add("is-admin-authenticated");
-  if (loginPanel) {
-    loginPanel.hidden = true;
-  }
-  if (adminUserLabel) {
-    adminUserLabel.textContent = "テスト用ログイン中";
-  }
-  cloudContracts = getLocalTestContracts();
-  renderCloudContracts();
-  setStoredStatus("テスト用ログイン中です。保存はこのブラウザ内だけで確認できます。");
-}
-
 async function activateCloudLogin() {
-  isTestLogin = false;
   document.body.classList.remove("auth-loading");
   document.body.classList.add("is-admin-authenticated");
   if (loginPanel) {
@@ -292,13 +238,6 @@ function applyLoggedOutState(message) {
 }
 
 async function loadCloudContracts() {
-  if (isTestLogin) {
-    cloudContracts = getLocalTestContracts();
-    renderCloudContracts(serverContractSelect?.value || "");
-    setStoredStatus(cloudContracts.length ? `${cloudContracts.length}件の契約を読み込みました。` : "保存済み契約はありません。");
-    return;
-  }
-
   if (!supabase || !currentUser) {
     return;
   }
@@ -385,14 +324,6 @@ async function persistCloudContract(requestedDocumentType = "") {
     data: payload.data || {},
   });
 
-  if (isTestLogin) {
-    saveLocalTestContract(record);
-    cloudContracts = getLocalTestContracts();
-    renderCloudContracts(record.id);
-    setStoredStatus(`テスト用として${documentType}をブラウザ内に保存しました。`);
-    return;
-  }
-
   if (!supabase || !currentUser) {
     setStoredStatus("Supabaseログイン後に保存できます。");
     return;
@@ -440,7 +371,7 @@ async function convertEstimateToContract(sourceData, sourceId = "") {
     setStoredStatus("見積書だけを契約書へ変換できます。");
     return;
   }
-  if (!isTestLogin && (!supabase || !currentUser)) {
+  if (!supabase || !currentUser) {
     setStoredStatus("Supabaseログイン後に契約書へ変換できます。");
     return;
   }
@@ -465,13 +396,6 @@ async function convertEstimateToContract(sourceData, sourceId = "") {
     });
 
     setStoredStatus("見積書から契約書を作成しています。");
-    if (isTestLogin) {
-      saveLocalTestContract(record);
-      cloudContracts = getLocalTestContracts();
-      finishEstimateConversion(record);
-      return;
-    }
-
     const { data, error } = await supabase
       .from(tableName)
       .insert(toSupabaseRecord(record, currentUser.id))
@@ -560,14 +484,6 @@ async function deleteContractById(selectedId) {
   const selected = cloudContracts.find((contract) => contract.id === selectedId);
   const label = selected ? getStoredContractLabel(selected) : "選択した契約";
   if (!window.confirm(`${label}を削除します。よろしいですか。`)) {
-    return;
-  }
-
-  if (isTestLogin) {
-    deleteLocalTestContract(selectedId);
-    cloudContracts = getLocalTestContracts();
-    renderCloudContracts();
-    setStoredStatus("契約を削除しました。");
     return;
   }
 
@@ -673,17 +589,6 @@ async function startInPersonSignature(contractId) {
   }
 
   setStoredStatus("対面署名画面を準備しています。");
-  if (isTestLogin) {
-    sessionStorage.setItem(inPersonContextKey, JSON.stringify({
-      contractId,
-      data: { ...(display.data || {}), __recordId: contractId },
-      testMode: true,
-      selectedAt: new Date().toISOString(),
-    }));
-    window.location.href = "sales-consent.html?inperson=1";
-    return;
-  }
-
   if (!supabase || !currentUser) {
     setStoredStatus("Supabaseへログインし直してください。");
     return;
@@ -745,7 +650,7 @@ async function openSignedPdfById(contractId) {
     setStoredStatus("署名済み契約書を読み込めませんでした。");
     return;
   }
-  if (isTestLogin || !supabase || !currentUser) {
+  if (!supabase || !currentUser) {
     setStoredStatus("署名済みPDFはSupabaseへ保存された完了契約から表示できます。");
     return;
   }
@@ -809,7 +714,7 @@ function renderContractCards(selectedId = "") {
     const convertButton = contract.documentType === "見積書"
       ? `<button class="secondary-button compact convert-contract-button" type="button" data-contract-action="convert" data-contract-id="${escapeHtml(contract.id)}">契約書に変換</button>`
       : "";
-    const signedPdfButton = !isTestLogin && contract.documentType !== "見積書" && contract.status === "完了"
+    const signedPdfButton = contract.documentType !== "見積書" && contract.status === "完了"
       ? `<button class="secondary-button compact" type="button" data-contract-action="signed-pdf" data-contract-id="${escapeHtml(contract.id)}">署名済みPDF</button>`
       : "";
     const standardActions = `
@@ -870,7 +775,7 @@ function getFilteredDisplayContracts() {
 function exportContractsJson() {
   const payload = {
     exportedAt: new Date().toISOString(),
-    source: isTestLogin ? "test-local" : "supabase",
+    source: "supabase",
     contracts: cloudContracts,
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: "application/json" });
@@ -900,14 +805,6 @@ async function importContractsJson() {
     }
 
     const normalized = incoming.map(normalizeContractRecord);
-    if (isTestLogin) {
-      normalized.forEach(saveLocalTestContract);
-      cloudContracts = getLocalTestContracts();
-      renderCloudContracts();
-      setStoredStatus(`${normalized.length}件の契約を取り込みました。`);
-      return;
-    }
-
     if (!supabase || !currentUser) {
       setStoredStatus("Supabaseログイン後にJSON取込できます。");
       return;
@@ -1003,31 +900,6 @@ function getStoredContractLabel(contract) {
   const vehicle = display.vehicleName || "車両未入力";
   const price = display.totalPrice || "金額未入力";
   return `${formatDate(display.updatedAt)} / ${display.documentType} / ${buyer} / ${vehicle} / ${price}`;
-}
-
-function getLocalTestContracts() {
-  try {
-    const parsed = JSON.parse(localStorage.getItem("orderAutoContractRecords") || "[]");
-    return Array.isArray(parsed) ? parsed.map(normalizeContractRecord) : [];
-  } catch {
-    return [];
-  }
-}
-
-function saveLocalTestContract(record) {
-  const records = getLocalTestContracts();
-  const index = records.findIndex((item) => item.id === record.id);
-  if (index >= 0) {
-    records[index] = normalizeContractRecord(record);
-  } else {
-    records.unshift(normalizeContractRecord(record));
-  }
-  localStorage.setItem("orderAutoContractRecords", JSON.stringify(records.slice(0, 100)));
-}
-
-function deleteLocalTestContract(id) {
-  const records = getLocalTestContracts().filter((record) => record.id !== id);
-  localStorage.setItem("orderAutoContractRecords", JSON.stringify(records));
 }
 
 function calculateTotal(data) {

@@ -16,9 +16,8 @@
 2. SQL Editorで `supabase-schema.sql` を実行する
 3. Authenticationで管理者ユーザーを作成する
 4. Project URL と Publishable key を `src/supabase-config.js` に設定する
-5. `enableTestLogin` を本番では `false` にする
-6. GitHubへ反映してGitHub Pagesで読み込める状態にする
-7. SupabaseのSite URLを `https://atsushisora.github.io/hanbai-keiyakusho/admin-invite.html` に設定する
+5. GitHubへ反映してGitHub Pagesで読み込める状態にする
+6. SupabaseのSite URLを `https://atsushisora.github.io/hanbai-keiyakusho/admin-invite.html` に設定する
 
 チェック項目:
 
@@ -40,7 +39,6 @@ https://atsushisora.github.io/hanbai-keiyakusho/
 
 - 管理者ログイン画面が表示される
 - Supabaseに登録したメールアドレスとパスワードで入れる
-- テスト期間中だけ `テスト用ログイン` で作成画面に入れる
 - `紙で印刷 / メール・LINEで署名 / 対面電子署名` の3方式が表示される
 - `EDITOR / 新規契約作成` の操作パネルが表示される
 - スマホ幅でも文字やボタンが重ならない
@@ -186,7 +184,6 @@ https://atsushisora.github.io/hanbai-keiyakusho/
 
 ## 8. 本番前の確認
 
-- `src/supabase-config.js` の `enableTestLogin` を `false` にする
 - Supabaseの管理者ユーザーを強いパスワードにする
 - SupabaseのRLSポリシーが有効なことを確認する
 - GitHubにSecret key、`service_role` キー、管理者パスワードが含まれていないことを確認する
