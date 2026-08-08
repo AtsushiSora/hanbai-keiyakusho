@@ -331,6 +331,19 @@ body.pdf-capture-mode .pdf-capture-value.document-date {
   justify-content: flex-start;
 }
 
+body.pdf-capture-mode .pdf-capture-value.customer-field {
+  transform: translateY(-1px);
+}
+
+body.pdf-capture-mode .pdf-capture-value.customer-kana {
+  transform: translateY(-2px);
+}
+
+body.pdf-capture-mode .pdf-capture-value.customer-address {
+  padding-right: 5px;
+  font-size: 8.8px !important;
+}
+
 body.pdf-capture-mode .pdf-capture-value.pdf-capture-multiline {
   display: block;
   padding-top: 2px;
