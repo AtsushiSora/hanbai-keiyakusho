@@ -281,18 +281,18 @@ body.pdf-capture-mode .terms-column + .terms-column {
 }
 
 body.pdf-capture-mode .terms-column article {
-  margin-bottom: 6px;
+  margin-bottom: 7px;
 }
 
 body.pdf-capture-mode .terms-column h3 {
   margin-bottom: 2px;
-  font-size: 11px;
+  font-size: 12.5px;
   line-height: 1.22;
 }
 
 body.pdf-capture-mode .terms-column p {
-  font-size: 10px;
-  line-height: 1.4;
+  font-size: 11.5px;
+  line-height: 1.38;
 }
 
 body.pdf-capture-mode .terms-footer {
@@ -307,6 +307,35 @@ body.pdf-capture-mode .terms-footer > p {
 
 body.pdf-capture-mode .terms-footer > div {
   gap: 3px 14px;
+}
+
+body.pdf-capture-mode .pdf-capture-value {
+  display: flex;
+  align-items: center;
+  padding: 0 3px;
+  overflow: hidden;
+  background: transparent;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+body.pdf-capture-mode .pdf-capture-value.amount {
+  justify-content: flex-end;
+}
+
+body.pdf-capture-mode .pdf-capture-value.center {
+  justify-content: center;
+}
+
+body.pdf-capture-mode .pdf-capture-value.document-date {
+  justify-content: flex-start;
+}
+
+body.pdf-capture-mode .pdf-capture-value.pdf-capture-multiline {
+  display: block;
+  padding-top: 2px;
+  line-height: 1.25;
+  white-space: pre-wrap;
 }
 
 .terms-header {

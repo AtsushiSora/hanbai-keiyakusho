@@ -530,6 +530,7 @@ async function openPrintablePdf() {
         windowHeight: 1600,
         onclone(clonedDocument) {
           clonedDocument.body.classList.add("pdf-capture-mode");
+          prepareClonedPdfFields(clonedDocument);
         },
       });
       addCanvasToA4Page(pdf, canvas);
@@ -550,6 +551,48 @@ async function openPrintablePdf() {
       printButton.removeAttribute("aria-busy");
     }
   }
+}
+
+function prepareClonedPdfFields(clonedDocument) {
+  const clonedWindow = clonedDocument.defaultView;
+  clonedDocument.querySelectorAll(".front-sheet .tpl-field").forEach((field) => {
+    const replacement = clonedDocument.createElement("div");
+    replacement.className = `${field.className} pdf-capture-value`;
+    replacement.setAttribute("style", field.getAttribute("style") || "");
+    replacement.textContent = getPrintableFieldValue(field);
+
+    if (field.tagName === "TEXTAREA") {
+      replacement.classList.add("pdf-capture-multiline");
+    }
+    if (clonedWindow) {
+      const fieldStyle = clonedWindow.getComputedStyle(field);
+      replacement.style.visibility = fieldStyle.visibility;
+      if (fieldStyle.fontSize) {
+        replacement.style.fontSize = fieldStyle.fontSize;
+      }
+    }
+    field.replaceWith(replacement);
+  });
+}
+
+function getPrintableFieldValue(field) {
+  if (field.tagName === "SELECT") {
+    return field.selectedOptions?.[0]?.textContent?.trim() || "";
+  }
+
+  const value = String(field.value || "").trim();
+  if (!value) {
+    return "";
+  }
+  if (field.type === "date") {
+    const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+    return match ? `${match[1]}/${match[2]}/${match[3]}` : value;
+  }
+  if (field.type === "month") {
+    const match = value.match(/^(\d{4})-(\d{2})$/);
+    return match ? `${match[1]}/${match[2]}` : value;
+  }
+  return value;
 }
 
 function addCanvasToA4Page(pdf, canvas) {
