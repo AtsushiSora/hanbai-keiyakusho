@@ -21,6 +21,7 @@ const companyContact = [
   "TEL 080-2912-8616",
 ].join("\n");
 let activeRecordId = "";
+let isGeneratingPdf = false;
 
 if (isPreviewMode) {
   document.body.classList.add("preview-embed");
@@ -53,7 +54,7 @@ recordSelect?.addEventListener("change", loadSelectedRecord);
 newButton?.addEventListener("click", startNew);
 saveButton?.addEventListener("click", saveRecord);
 deleteButton?.addEventListener("click", deleteRecord);
-printButton?.addEventListener("click", () => window.print());
+printButton?.addEventListener("click", openPrintablePdf);
 
 function setupPreviewBridge() {
   if (!isPreviewMode || window.parent === window) {
@@ -453,17 +454,143 @@ function buildTemplateWarranty(data) {
 
 function schedulePrint() {
   const image = document.querySelector(".pdf-template-sheet > img");
-  const print = () => {
-    setTimeout(() => window.print(), 350);
+  const createPdf = () => {
+    setTimeout(openPrintablePdf, 350);
   };
 
   if (!image || image.complete) {
-    print();
+    createPdf();
     return;
   }
 
-  image.addEventListener("load", print, { once: true });
-  image.addEventListener("error", print, { once: true });
+  image.addEventListener("load", createPdf, { once: true });
+  image.addEventListener("error", createPdf, { once: true });
+}
+
+async function openPrintablePdf() {
+  if (isGeneratingPdf) {
+    return;
+  }
+  if (!window.html2canvas || !window.jspdf?.jsPDF) {
+    setStatus("PDF作成機能を読み込めませんでした。再読み込みしてからお試しください。");
+    return;
+  }
+
+  isGeneratingPdf = true;
+  if (printButton) {
+    printButton.disabled = true;
+    printButton.setAttribute("aria-busy", "true");
+  }
+  setStatus("印刷用PDFを作成しています...");
+
+  try {
+    await waitForPdfAssets();
+    fitTemplateFields();
+
+    const sheets = [document.querySelector('[data-pdf-page="front"]')];
+    const termsSheet = document.querySelector('[data-pdf-page="terms"]');
+    if (termsSheet && !termsSheet.hidden) {
+      sheets.push(termsSheet);
+    }
+
+    const { jsPDF } = window.jspdf;
+    const pdf = new jsPDF({
+      orientation: "portrait",
+      unit: "mm",
+      format: "a4",
+      compress: true,
+    });
+    const data = getFormData();
+    const documentName = data.documentType === "見積書"
+      ? "お見積書"
+      : isSignedMode
+        ? "署名済み販売契約書"
+        : "販売契約書";
+    pdf.setProperties({
+      title: `${documentName} | オーダーオート`,
+      subject: documentName,
+      author: "オーダーオート",
+      creator: "オーダーオート 契約作成システム",
+    });
+
+    for (const [index, sheet] of sheets.entries()) {
+      if (!sheet) {
+        continue;
+      }
+      if (index > 0) {
+        pdf.addPage("a4", "portrait");
+      }
+
+      const canvas = await window.html2canvas(sheet, {
+        backgroundColor: "#ffffff",
+        scale: 2,
+        useCORS: true,
+        logging: false,
+        windowWidth: 1200,
+        windowHeight: 1600,
+        onclone(clonedDocument) {
+          clonedDocument.body.classList.add("pdf-capture-mode");
+        },
+      });
+      addCanvasToA4Page(pdf, canvas);
+      canvas.width = 1;
+      canvas.height = 1;
+    }
+
+    const blobUrl = URL.createObjectURL(pdf.output("blob"));
+    setStatus(`${sheets.length}ページのPDFを開きます。`);
+    window.location.assign(blobUrl);
+  } catch (error) {
+    console.error("PDF generation failed", error);
+    setStatus("PDFを作成できませんでした。再読み込みしてからお試しください。");
+  } finally {
+    isGeneratingPdf = false;
+    if (printButton) {
+      printButton.disabled = false;
+      printButton.removeAttribute("aria-busy");
+    }
+  }
+}
+
+function addCanvasToA4Page(pdf, canvas) {
+  const pageWidth = 210;
+  const pageHeight = 297;
+  const margin = 5;
+  const availableWidth = pageWidth - (margin * 2);
+  const availableHeight = pageHeight - (margin * 2);
+  const scale = Math.min(availableWidth / canvas.width, availableHeight / canvas.height);
+  const imageWidth = canvas.width * scale;
+  const imageHeight = canvas.height * scale;
+  const x = (pageWidth - imageWidth) / 2;
+  const y = (pageHeight - imageHeight) / 2;
+
+  pdf.addImage(
+    canvas.toDataURL("image/jpeg", 0.95),
+    "JPEG",
+    x,
+    y,
+    imageWidth,
+    imageHeight,
+    undefined,
+    "FAST",
+  );
+}
+
+async function waitForPdfAssets() {
+  if (document.fonts?.ready) {
+    await document.fonts.ready;
+  }
+
+  const images = Array.from(form?.querySelectorAll("img[src]") || []);
+  await Promise.all(images.map((image) => {
+    if (image.complete) {
+      return Promise.resolve();
+    }
+    return new Promise((resolve) => {
+      image.addEventListener("load", resolve, { once: true });
+      image.addEventListener("error", resolve, { once: true });
+    });
+  }));
 }
 
 function calculateTotals() {

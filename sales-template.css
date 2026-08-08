@@ -233,6 +233,22 @@ textarea {
   display: none;
 }
 
+body.pdf-capture-mode .pdf-template-sheet,
+body.pdf-capture-mode .contract-terms-sheet {
+  width: 906px !important;
+  max-width: none !important;
+  height: 1280px !important;
+  aspect-ratio: auto !important;
+  margin: 0 !important;
+  overflow: hidden !important;
+  box-shadow: none !important;
+}
+
+body.pdf-capture-mode .contract-terms-sheet:not([hidden]) {
+  display: grid !important;
+  padding: 34px 38px 28px !important;
+}
+
 .terms-header {
   position: relative;
   padding-bottom: 9px;

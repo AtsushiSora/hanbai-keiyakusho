@@ -6,7 +6,7 @@
     <title>販売契約書PDFテンプレート | オーダーオート</title>
     <meta name="description" content="添付写真をPDF化した販売契約書テンプレートに入力、上書き保存、印刷、PDF保存できます。" />
     <meta name="robots" content="noindex, nofollow" />
-    <link rel="stylesheet" href="sales-template.css?v=template20" />
+    <link rel="stylesheet" href="sales-template.css?v=template21" />
   </head>
   <body>
     <header class="template-toolbar">
@@ -38,17 +38,17 @@
           <button type="button" id="saveButton">上書き保存</button>
           <button type="button" id="deleteButton">削除</button>
           <a class="template-button secondary" href="assets/sales-contract-template.pdf?v=clean2" download="sales-contract-template.pdf">ベースPDF</a>
-          <button type="button" id="printButton">印刷・PDF保存</button>
+          <button type="button" id="printButton">2ページPDFを作成</button>
         </div>
         <p class="template-status" id="sheetStatus" aria-live="polite"></p>
         <div class="template-note">
           <strong>使い方</strong>
-          <span>右側のPDFテンプレート上に直接入力し、上書き保存または印刷・PDF保存します。</span>
+          <span>2ページPDFを作成して開き、共有メニューから印刷または保存します。</span>
         </div>
       </aside>
 
       <form class="pdf-template-form" id="salesSheetForm" autocomplete="off">
-        <section class="pdf-template-sheet front-sheet" aria-label="販売契約書PDFテンプレート表面">
+        <section class="pdf-template-sheet front-sheet" data-pdf-page="front" aria-label="販売契約書PDFテンプレート表面">
           <img src="assets/sales-contract-template.jpg?v=clean2" alt="販売契約書テンプレート" />
           <input name="depositTotal" type="hidden" />
           <input name="paymentMethod" type="hidden" />
@@ -191,7 +191,7 @@
           </section>
         </section>
 
-        <section class="contract-terms-sheet" id="contractTermsSheet" aria-label="車両販売契約特約事項">
+        <section class="contract-terms-sheet" id="contractTermsSheet" data-pdf-page="terms" aria-label="車両販売契約特約事項">
           <header class="terms-header">
             <span>契約書 裏面</span>
             <h2>車両販売契約 特約事項</h2>
@@ -307,6 +307,8 @@
       </form>
     </main>
 
-    <script src="sales-sheet.js?v=alignment11"></script>
+    <script src="assets/vendor/html2canvas.min.js?v=1.4.1"></script>
+    <script src="assets/vendor/jspdf.umd.min.js?v=4.2.1"></script>
+    <script src="sales-sheet.js?v=alignment12"></script>
   </body>
 </html>
