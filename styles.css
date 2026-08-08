@@ -2820,7 +2820,7 @@ pre {
 
 .remote-send-panel input,
 .remote-send-panel textarea,
-.consent-card input {
+.consent-card input:not([type="checkbox"]) {
   width: 100%;
   padding: 14px;
   color: #17211f;
@@ -2911,8 +2911,23 @@ pre {
   display: flex;
   gap: 10px;
   align-items: center;
+  min-width: 0;
   color: #17211f;
   font-weight: 900;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
+.consent-check-list input[type="checkbox"] {
+  flex: 0 0 22px;
+  width: 22px;
+  min-width: 22px;
+  height: 22px;
+  min-height: 22px;
+  margin: 0;
+  padding: 0;
+  border-radius: 4px;
+  accent-color: var(--contract-green, #0f7a4d);
 }
 
 #customerSignature {
