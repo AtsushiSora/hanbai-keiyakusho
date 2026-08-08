@@ -629,7 +629,7 @@ body.preview-embed .tpl-field {
   }
 }
 
-@media (max-width: 900px) {
+@media screen and (max-width: 900px) {
   .template-toolbar {
     grid-template-columns: 1fr;
   }
@@ -651,4 +651,17 @@ body.preview-embed .tpl-field {
     position: static;
   }
 
+  .pdf-template-form {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .pdf-template-sheet,
+  .contract-terms-sheet {
+    width: 100%;
+    max-width: 100%;
+    height: auto;
+    aspect-ratio: 906 / 1280;
+  }
 }
