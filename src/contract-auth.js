@@ -17,12 +17,9 @@ const loginForm = document.querySelector("#adminLoginForm");
 const authStatus = document.querySelector("#authStatus");
 const adminUserLabel = document.querySelector("#adminUserLabel");
 const logoutButton = document.querySelector("#adminLogoutButton");
-const serverContractSelect = document.querySelector("#serverContractSelect");
-const loadServerContractButton = document.querySelector("#loadServerContractButton");
 const saveServerContractButton = document.querySelector("#saveServerContractButton");
 const saveEstimateButton = document.querySelector("#saveEstimateButton");
 const convertEstimateButton = document.querySelector("#convertEstimateButton");
-const deleteServerContractButton = document.querySelector("#deleteServerContractButton");
 const serverContractStatus = document.querySelector("#serverContractStatus") || document.querySelector("#contractSaveStatus");
 const contractCardList = document.querySelector("#contractCardList");
 const contractListSearch = document.querySelector("#contractListSearch");
@@ -51,12 +48,9 @@ async function initAdminAuth() {
   saveServerContractButton?.addEventListener("click", () => saveCloudContract());
   saveEstimateButton?.addEventListener("click", () => saveCloudContract("見積書"));
   convertEstimateButton?.addEventListener("click", convertCurrentEstimateToContract);
-  loadServerContractButton?.addEventListener("click", () => loadSelectedContract("create"));
-  deleteServerContractButton?.addEventListener("click", deleteSelectedContract);
-  serverContractSelect?.addEventListener("change", () => setCloudButtonsDisabled(!serverContractSelect.value));
   contractListSearch?.addEventListener("input", () => {
     activeSearchTerm = contractListSearch.value.trim().toLowerCase();
-    renderCloudContracts(serverContractSelect?.value || "");
+    renderCloudContracts(getCurrentRecordId());
   });
   contractStatusTabs?.addEventListener("click", (event) => {
     const button = event.target.closest("[data-filter]");
@@ -67,7 +61,7 @@ async function initAdminAuth() {
     contractStatusTabs.querySelectorAll("[data-filter]").forEach((filterButton) => {
       filterButton.classList.toggle("active", filterButton === button);
     });
-    renderCloudContracts(serverContractSelect?.value || "");
+    renderCloudContracts(getCurrentRecordId());
   });
   contractCardList?.addEventListener("click", handleContractCardAction);
   exportContractsButton?.addEventListener("click", exportContractsJson);
@@ -257,24 +251,11 @@ async function loadCloudContracts() {
   }
 
   cloudContracts = (data || []).map(fromSupabaseRecord);
-  renderCloudContracts(serverContractSelect?.value || "");
+  renderCloudContracts(getCurrentRecordId());
   setStoredStatus(cloudContracts.length ? `${cloudContracts.length}件の契約を読み込みました。` : "保存済み契約はありません。");
 }
 
 function renderCloudContracts(selectedId = "") {
-  if (serverContractSelect) {
-    if (!cloudContracts.length) {
-      serverContractSelect.innerHTML = '<option value="">保存済み契約はありません</option>';
-      setCloudButtonsDisabled(true);
-    } else {
-      serverContractSelect.innerHTML = [
-        '<option value="">契約を選択してください</option>',
-        ...cloudContracts.map((contract) => `<option value="${escapeHtml(contract.id)}">${escapeHtml(getStoredContractLabel(contract))}</option>`),
-      ].join("");
-      serverContractSelect.value = selectedId;
-      setCloudButtonsDisabled(!serverContractSelect.value);
-    }
-  }
   renderContractCards(selectedId);
 }
 
@@ -315,7 +296,7 @@ async function persistCloudContract(requestedDocumentType = "") {
     window.contractTool.prepareEstimate();
   }
   const payload = window.contractTool.getRecordPayload();
-  const selectedId = serverContractSelect?.value || "";
+  const selectedId = payload.data?.__recordId || "";
   const documentType = payload.data?.documentType || "契約書";
   const selectedContract = cloudContracts.find((contract) => contract.id === selectedId);
   const canOverwriteSelected = selectedContract && toDisplayContract(selectedContract).documentType === documentType;
@@ -343,7 +324,9 @@ async function persistCloudContract(requestedDocumentType = "") {
   }
 
   await loadCloudContracts();
-  renderCloudContracts(data?.id || record.id);
+  const savedId = data?.id || record.id;
+  window.contractTool.setRecordId(savedId);
+  renderCloudContracts(savedId);
   setStoredStatus(`${documentType}をクラウド保存しました。`);
 }
 
@@ -353,7 +336,7 @@ async function convertCurrentEstimateToContract() {
     return;
   }
   const payload = window.contractTool.getRecordPayload();
-  const selectedId = serverContractSelect?.value || "";
+  const selectedId = payload.data?.__recordId || "";
   await convertEstimateToContract(payload.data || {}, selectedId);
 }
 
@@ -434,16 +417,6 @@ function finishEstimateConversion(record) {
   setStoredStatus("見積書を残して、新しい契約書を下書き保存しました。");
 }
 
-function loadSelectedContract(targetPage = "create") {
-  const selectedId = serverContractSelect?.value || "";
-  if (!selectedId) {
-    setStoredStatus("読み込む契約を選択してください。");
-    return;
-  }
-
-  loadContractById(selectedId, targetPage);
-}
-
 function loadContractById(selectedId, targetPage = "create") {
   const selected = cloudContracts.find((contract) => contract.id === selectedId);
   if (!selected) {
@@ -468,16 +441,6 @@ function loadContractById(selectedId, targetPage = "create") {
   }
   window.contractTool.loadRecordPayload(selected);
   setStoredStatus("契約情報をフォームに読み込みました。");
-}
-
-async function deleteSelectedContract() {
-  const selectedId = serverContractSelect?.value || "";
-  if (!selectedId) {
-    setStoredStatus("削除する契約を選択してください。");
-    return;
-  }
-
-  await deleteContractById(selectedId);
 }
 
 async function deleteContractById(selectedId) {
@@ -994,19 +957,14 @@ function setStoredStatus(message) {
   }
 }
 
+function getCurrentRecordId() {
+  return window.contractTool?.getRecordPayload().data?.__recordId || "";
+}
+
 function setLoginFormDisabled(disabled) {
   loginForm?.querySelectorAll("input, button").forEach((element) => {
     element.disabled = disabled;
   });
-}
-
-function setCloudButtonsDisabled(disabled) {
-  if (loadServerContractButton) {
-    loadServerContractButton.disabled = disabled;
-  }
-  if (deleteServerContractButton) {
-    deleteServerContractButton.disabled = disabled;
-  }
 }
 
 function setCloudSaveButtonsDisabled(disabled) {

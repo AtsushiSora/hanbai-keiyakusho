@@ -2499,7 +2499,6 @@ pre {
 .server-contract-panel,
 .contract-editor-panel,
 .contract-form,
-.contract-history-panel,
 .contract-preview-panel {
   padding: 24px;
   background: #fff;
@@ -2536,8 +2535,7 @@ pre {
   font-weight: 900 !important;
 }
 
-.admin-session-actions,
-.server-contract-actions {
+.admin-session-actions {
   display: grid;
   gap: 10px;
 }
@@ -2691,10 +2689,6 @@ pre {
   transform-origin: top left;
 }
 
-.contract-preview-support {
-  display: none;
-}
-
 .secondary-button.danger {
   width: 100%;
   margin-top: 10px;
@@ -2719,26 +2713,6 @@ pre {
   min-height: 40px;
   padding: 0 14px;
   font-size: 0.88rem;
-}
-
-.contract-history-head {
-  display: flex;
-  align-items: start;
-  justify-content: space-between;
-  gap: 16px;
-  margin-bottom: 12px;
-}
-
-.contract-history-panel h2 {
-  margin: 0;
-  color: var(--blue-dark);
-  font-size: 1.2rem;
-}
-
-.contract-history-panel p {
-  margin: 0 0 14px;
-  color: var(--muted);
-  font-weight: 700;
 }
 
 .contract-hero-actions {
@@ -2954,10 +2928,6 @@ pre {
 .contract-save-status.warning {
   color: #b72d2d;
   font-weight: 900;
-}
-
-.contract-history-panel select {
-  margin-top: 4px;
 }
 
 .contract-save-status {
