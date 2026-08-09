@@ -321,7 +321,7 @@ body.pdf-capture-mode .pdf-capture-value {
 
 body.pdf-capture-mode .pdf-capture-value.amount {
   justify-content: flex-end;
-  transform: translateY(-1px);
+  transform: translateY(-2px);
 }
 
 body.pdf-capture-mode .pdf-capture-value.amount,
@@ -332,6 +332,13 @@ body.pdf-capture-mode .tpl-output.amount {
 }
 
 body.pdf-capture-mode .tpl-output.amount {
+  transform: translateY(-2px);
+}
+
+body.pdf-capture-mode #discountLabel {
+  font-size: 10px !important;
+  font-weight: 900;
+  line-height: 1;
   transform: translateY(-2px);
 }
 
