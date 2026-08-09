@@ -252,6 +252,7 @@ function applyFormData(data) {
 
 function normalizeTaxMonthAmounts(data = {}) {
   const normalizedData = { ...data };
+  let movedAdjustment = false;
   [
     ["autoTaxMonth", "autoTaxAmount", "autoTaxAdjustment"],
     ["liabilityInsuranceMonth", "liabilityInsurance", "liabilityAdjustment"],
@@ -259,11 +260,37 @@ function normalizeTaxMonthAmounts(data = {}) {
     const hasMonth = String(normalizedData[monthName] || "").trim();
     const amount = parseAmount(normalizedData[amountName]);
     const adjustment = parseAmount(normalizedData[adjustmentName]);
-    if (hasMonth && !amount && adjustment) {
-      normalizedData[amountName] = normalizedData[adjustmentName];
+    if (hasMonth && adjustment) {
+      if (!amount) {
+        normalizedData[amountName] = normalizedData[adjustmentName];
+      }
       normalizedData[adjustmentName] = "";
+      movedAdjustment = true;
     }
   });
+
+  const taxDetailNames = ["autoTaxAmount", "weightTax", "liabilityInsurance"];
+  const salesExpenseDetailNames = [
+    "inspectionRegisterFee",
+    "parkingCertificateFee",
+    "autoTaxAdjustment",
+    "liabilityAdjustment",
+    "fundManagementFee",
+  ];
+  const hasTaxDetails = taxDetailNames.some((name) => parseAmount(normalizedData[name]) > 0);
+  const hasSalesExpenseDetails = salesExpenseDetailNames
+    .some((name) => parseAmount(normalizedData[name]) > 0);
+  const taxTotal = sum(taxDetailNames.map((name) => normalizedData[name]));
+  const salesExpenseTotal = sum(salesExpenseDetailNames.map((name) => normalizedData[name]));
+
+  if (hasTaxDetails) {
+    normalizedData.taxInsurance = taxTotal.toLocaleString("ja-JP");
+  }
+  if (hasSalesExpenseDetails || movedAdjustment || hasTaxDetails) {
+    normalizedData.salesExpense = salesExpenseTotal > 0
+      ? salesExpenseTotal.toLocaleString("ja-JP")
+      : "";
+  }
   return normalizedData;
 }
 
