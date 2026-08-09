@@ -530,7 +530,7 @@ async function openPrintablePdf() {
         windowHeight: 1600,
         onclone(clonedDocument) {
           clonedDocument.body.classList.add("pdf-capture-mode");
-          prepareClonedPdfFields(clonedDocument);
+          prepareClonedPdfFields(clonedDocument, data);
           fitClonedTermsPage(clonedDocument);
         },
       });
@@ -554,13 +554,13 @@ async function openPrintablePdf() {
   }
 }
 
-function prepareClonedPdfFields(clonedDocument) {
+function prepareClonedPdfFields(clonedDocument, sourceData = {}) {
   const clonedWindow = clonedDocument.defaultView;
   clonedDocument.querySelectorAll(".front-sheet .tpl-field").forEach((field) => {
     const replacement = clonedDocument.createElement("div");
     replacement.className = `${field.className} pdf-capture-value`;
     replacement.setAttribute("style", field.getAttribute("style") || "");
-    replacement.textContent = getPrintableFieldValue(field);
+    replacement.textContent = getPrintableFieldValue(field, sourceData);
 
     if (field.tagName === "TEXTAREA") {
       replacement.classList.add("pdf-capture-multiline");
@@ -576,12 +576,15 @@ function prepareClonedPdfFields(clonedDocument) {
   });
 }
 
-function getPrintableFieldValue(field) {
+function getPrintableFieldValue(field, sourceData = {}) {
   if (field.tagName === "SELECT") {
     return field.selectedOptions?.[0]?.textContent?.trim() || "";
   }
 
-  const value = String(field.value || "").trim();
+  const sourceValue = field.name && Object.prototype.hasOwnProperty.call(sourceData, field.name)
+    ? sourceData[field.name]
+    : field.value;
+  const value = String(sourceValue || "").trim();
   if (!value) {
     return "";
   }
