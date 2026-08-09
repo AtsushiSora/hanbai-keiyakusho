@@ -792,6 +792,7 @@ body.preview-embed .tpl-field {
     width: 100%;
     max-width: 100%;
     overflow-x: hidden;
+    container-type: inline-size;
   }
 
   .pdf-template-sheet,
@@ -800,5 +801,71 @@ body.preview-embed .tpl-field {
     max-width: 100%;
     height: auto;
     aspect-ratio: 906 / 1280;
+  }
+
+  .contract-terms-sheet {
+    padding: 3.1cqw 3.55cqw 2.65cqw;
+  }
+
+  .terms-header {
+    padding-bottom: 0.88cqw;
+    border-bottom-width: max(1px, 0.22cqw);
+  }
+
+  .terms-header > span {
+    font-size: 0.94cqw;
+  }
+
+  .terms-header h2 {
+    font-size: 2.43cqw;
+  }
+
+  .terms-header p {
+    margin-top: 0.66cqw;
+    font-size: 0.97cqw;
+    line-height: 1.4;
+  }
+
+  .terms-columns {
+    padding-top: 0.99cqw;
+  }
+
+  .terms-column {
+    padding-right: 1.32cqw;
+  }
+
+  .terms-column + .terms-column {
+    padding-right: 0;
+    padding-left: 1.32cqw;
+  }
+
+  .terms-column article {
+    margin-bottom: 0.55cqw;
+  }
+
+  .terms-column h3 {
+    margin-bottom: 0.22cqw;
+    font-size: 1.325cqw;
+    line-height: 1.22;
+  }
+
+  .terms-column p {
+    font-size: 1.19cqw;
+    line-height: 1.34;
+  }
+
+  .terms-footer {
+    padding-top: 0.77cqw;
+    border-top-width: max(1px, 0.22cqw);
+    font-size: 0.88cqw;
+  }
+
+  .terms-footer > p {
+    margin-bottom: 0.55cqw;
+    padding: 0.44cqw;
+  }
+
+  .terms-footer > div {
+    gap: 0.33cqw 1.55cqw;
   }
 }
