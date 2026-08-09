@@ -240,13 +240,31 @@ function getFormData() {
 }
 
 function applyFormData(data) {
-  Object.entries(data).forEach(([name, value]) => {
+  const normalizedData = normalizeTaxMonthAmounts(data);
+  Object.entries(normalizedData).forEach(([name, value]) => {
     const field = form.elements[name];
     if (field) {
       field.value = value;
     }
   });
   setValueIfEmpty("contactMemo", companyContact);
+}
+
+function normalizeTaxMonthAmounts(data = {}) {
+  const normalizedData = { ...data };
+  [
+    ["autoTaxMonth", "autoTaxAmount", "autoTaxAdjustment"],
+    ["liabilityInsuranceMonth", "liabilityInsurance", "liabilityAdjustment"],
+  ].forEach(([monthName, amountName, adjustmentName]) => {
+    const hasMonth = String(normalizedData[monthName] || "").trim();
+    const amount = parseAmount(normalizedData[amountName]);
+    const adjustment = parseAmount(normalizedData[adjustmentName]);
+    if (hasMonth && !amount && adjustment) {
+      normalizedData[amountName] = normalizedData[adjustmentName];
+      normalizedData[adjustmentName] = "";
+    }
+  });
+  return normalizedData;
 }
 
 function saveDraft() {
