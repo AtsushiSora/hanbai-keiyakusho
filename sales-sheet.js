@@ -584,6 +584,9 @@ function getPrintableFieldValue(field) {
   if (!value) {
     return "";
   }
+  if (field.classList.contains("amount")) {
+    return formatYen(parseAmount(value));
+  }
   if (field.type === "date") {
     const match = value.match(/^(\d{4})-(\d{2})-(\d{2})$/);
     return match ? `${match[1]}/${match[2]}/${match[3]}` : value;
@@ -802,7 +805,7 @@ function range(length) {
 }
 
 function formatYen(amount) {
-  return `￥${Math.round(amount).toLocaleString("ja-JP")}`;
+  return `¥${Math.round(amount).toLocaleString("ja-JP")}`;
 }
 
 function formatDateTime(value) {

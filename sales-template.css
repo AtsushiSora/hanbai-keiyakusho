@@ -324,6 +324,13 @@ body.pdf-capture-mode .pdf-capture-value.amount {
   transform: translateY(-1px);
 }
 
+body.pdf-capture-mode .pdf-capture-value.amount,
+body.pdf-capture-mode .tpl-output.amount {
+  font-size: 10px !important;
+  font-weight: 900;
+  line-height: 1;
+}
+
 body.pdf-capture-mode .tpl-output.amount {
   transform: translateY(-2px);
 }
