@@ -359,6 +359,16 @@ body.pdf-capture-mode .pdf-capture-value.customer-kana {
   transform: translateY(-2px);
 }
 
+.tpl-field.customer-name {
+  font-size: clamp(9px, 1.05vw, 14px);
+  font-weight: 800;
+}
+
+body.pdf-capture-mode .pdf-capture-value.customer-name {
+  font-size: 14px !important;
+  font-weight: 800;
+}
+
 body.pdf-capture-mode .pdf-capture-value.customer-address {
   padding-right: 5px;
   font-size: 8.8px !important;
