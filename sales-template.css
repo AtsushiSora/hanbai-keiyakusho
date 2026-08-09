@@ -576,13 +576,15 @@ body.signed-document-mode .tpl-field {
 }
 
 .tpl-field.month-count {
-  padding-right: 28px;
+  box-sizing: border-box;
+  padding-right: 22px;
   text-align: right;
 }
 
 body.pdf-capture-mode .pdf-capture-value.month-count {
+  box-sizing: border-box;
   justify-content: flex-end;
-  padding-right: 28px;
+  padding-right: 22px;
 }
 
 .tpl-field.document-date {
