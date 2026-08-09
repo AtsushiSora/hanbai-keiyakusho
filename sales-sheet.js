@@ -531,6 +531,7 @@ async function openPrintablePdf() {
         onclone(clonedDocument) {
           clonedDocument.body.classList.add("pdf-capture-mode");
           prepareClonedPdfFields(clonedDocument);
+          fitClonedTermsPage(clonedDocument);
         },
       });
       addCanvasToA4Page(pdf, canvas);
@@ -596,6 +597,56 @@ function getPrintableFieldValue(field) {
     return match ? `${match[1]}/${match[2]}` : value;
   }
   return value;
+}
+
+function fitClonedTermsPage(clonedDocument) {
+  const sheet = clonedDocument.querySelector(".contract-terms-sheet:not([hidden])");
+  const clonedWindow = clonedDocument.defaultView;
+  if (!sheet || !clonedWindow) {
+    return;
+  }
+
+  const columns = Array.from(sheet.querySelectorAll(".terms-column"));
+  const footer = sheet.querySelector(".terms-footer");
+  const paragraphs = Array.from(sheet.querySelectorAll(".terms-column p"));
+  const headings = Array.from(sheet.querySelectorAll(".terms-column h3"));
+  const articles = Array.from(sheet.querySelectorAll(".terms-column article"));
+  if (!columns.length || !footer || !paragraphs.length || !headings.length) {
+    return;
+  }
+
+  let paragraphSize = Number.parseFloat(clonedWindow.getComputedStyle(paragraphs[0]).fontSize) || 9.4;
+  let headingSize = Number.parseFloat(clonedWindow.getComputedStyle(headings[0]).fontSize) || 10.8;
+  let articleSpacing = Number.parseFloat(clonedWindow.getComputedStyle(articles[0]).marginBottom) || 3;
+  const minimumParagraphSize = 7.5;
+  const minimumHeadingSize = 8.8;
+  const targetClearance = 12;
+
+  for (let attempt = 0; attempt < 8; attempt += 1) {
+    const footerTop = footer.getBoundingClientRect().top - targetClearance;
+    const columnTop = Math.min(...columns.map((column) => column.getBoundingClientRect().top));
+    const lastBottom = Math.max(...columns.map((column) => column.lastElementChild?.getBoundingClientRect().bottom || columnTop));
+    if (lastBottom <= footerTop) {
+      break;
+    }
+
+    const availableHeight = Math.max(1, footerTop - columnTop);
+    const contentHeight = Math.max(1, lastBottom - columnTop);
+    const scale = Math.max(0.88, Math.min(0.97, (availableHeight / contentHeight) * 0.98));
+    paragraphSize = Math.max(minimumParagraphSize, paragraphSize * scale);
+    headingSize = Math.max(minimumHeadingSize, headingSize * scale);
+    articleSpacing = Math.max(1, articleSpacing * scale);
+
+    paragraphs.forEach((paragraph) => {
+      paragraph.style.fontSize = `${paragraphSize}px`;
+    });
+    headings.forEach((heading) => {
+      heading.style.fontSize = `${headingSize}px`;
+    });
+    articles.forEach((article) => {
+      article.style.marginBottom = `${articleSpacing}px`;
+    });
+  }
 }
 
 function addCanvasToA4Page(pdf, canvas) {

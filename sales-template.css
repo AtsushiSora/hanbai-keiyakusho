@@ -247,6 +247,7 @@ body.pdf-capture-mode .contract-terms-sheet {
 body.pdf-capture-mode .contract-terms-sheet:not([hidden]) {
   display: grid !important;
   padding: 28px 32px 24px !important;
+  font-family: -apple-system, BlinkMacSystemFont, "Hiragino Kaku Gothic ProN", "Yu Gothic", "YuGothic", sans-serif;
 }
 
 body.pdf-capture-mode .terms-header {
@@ -281,18 +282,18 @@ body.pdf-capture-mode .terms-column + .terms-column {
 }
 
 body.pdf-capture-mode .terms-column article {
-  margin-bottom: 5px;
+  margin-bottom: 3px;
 }
 
 body.pdf-capture-mode .terms-column h3 {
   margin-bottom: 2px;
-  font-size: 12px;
-  line-height: 1.22;
+  font-size: 10.8px;
+  line-height: 1.18;
 }
 
 body.pdf-capture-mode .terms-column p {
-  font-size: 10.8px;
-  line-height: 1.34;
+  font-size: 9.4px;
+  line-height: 1.26;
 }
 
 body.pdf-capture-mode .terms-footer {
