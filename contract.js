@@ -118,6 +118,7 @@ setupDateFields();
 setupBirthdaySelects();
 setupYearSelects();
 setupPostalAddressLookup();
+setupPhoneNumberFields();
 renderSalesOptionRows(1);
 setupMoneyFields();
 setupMeasurementFields();
@@ -147,6 +148,64 @@ function setupPostalAddressLookup() {
   postalCodeField.setAttribute("autocomplete", "postal-code");
   postalCodeField.addEventListener("input", handlePostalCodeInput);
   postalCodeField.addEventListener("blur", handlePostalCodeInput);
+}
+
+function setupPhoneNumberFields() {
+  ["buyerPhone", "buyerMobile"].forEach((name) => {
+    const field = form?.elements[name];
+    if (!field) {
+      return;
+    }
+
+    field.setAttribute("inputmode", "tel");
+    field.setAttribute("autocomplete", "tel-national");
+    field.addEventListener("input", handlePhoneNumberInput);
+    field.addEventListener("blur", handlePhoneNumberInput);
+  });
+}
+
+function handlePhoneNumberInput(event) {
+  const field = event.currentTarget;
+  const digits = String(field.value || "")
+    .normalize("NFKC")
+    .replace(/\D/g, "")
+    .slice(0, 11);
+  field.value = formatJapanesePhoneNumber(digits);
+}
+
+function formatJapanesePhoneNumber(digits) {
+  if (!digits) {
+    return "";
+  }
+  if (digits.startsWith("0120") || digits.startsWith("0570") || digits.startsWith("0180")) {
+    return formatPhoneNumberGroups(digits, [4, 3, 3]);
+  }
+  if (digits.startsWith("0800")) {
+    return formatPhoneNumberGroups(digits, [4, 3, 4]);
+  }
+  if (/^(020|050|070|080|090)/.test(digits)) {
+    return formatPhoneNumberGroups(digits, [3, 4, 4]);
+  }
+  if (/^(03|06)/.test(digits)) {
+    return formatPhoneNumberGroups(digits, [2, 4, 4]);
+  }
+  if (digits.length > 10) {
+    return formatPhoneNumberGroups(digits, [3, 4, 4]);
+  }
+  return formatPhoneNumberGroups(digits, [3, 3, 4]);
+}
+
+function formatPhoneNumberGroups(digits, groupLengths) {
+  const groups = [];
+  let offset = 0;
+  groupLengths.forEach((length) => {
+    const group = digits.slice(offset, offset + length);
+    if (group) {
+      groups.push(group);
+    }
+    offset += length;
+  });
+  return groups.join("-");
 }
 
 function handlePostalCodeInput(event) {
