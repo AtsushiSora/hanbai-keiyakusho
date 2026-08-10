@@ -19,6 +19,9 @@ const copyConsentUrlButton = document.querySelector("#copyConsentUrlButton");
 const copyConsentPasscodeButton = document.querySelector("#copyConsentPasscodeButton");
 const copyLineMessageButton = document.querySelector("#copyLineMessageButton");
 const openEmailButton = document.querySelector("#openEmailButton");
+const remoteCustomerFlowTitle = document.querySelector("#remoteCustomerFlowTitle");
+const remoteCustomerFlowDescription = document.querySelector("#remoteCustomerFlowDescription");
+const remoteCustomerFlowSteps = document.querySelector("#remoteCustomerFlowSteps");
 
 renderSelectedContract();
 buildEmailBody();
@@ -93,7 +96,9 @@ function buildEmailBody() {
     "",
     "確認URLは暗号化されています。",
     "開封パスコードは安全のため、このメールには記載していません。",
-    copy.emailInstruction,
+    "",
+    copy.customerFlowTitle,
+    ...copy.customerSteps.map((step, index) => `${index + 1}. ${step}`),
     consentPasscodeField?.value.trim() ? "" : "※先に「確認URL生成」を押して確認URLとパスコードを作成してください。",
     "",
     COMPANY.name,
@@ -122,7 +127,9 @@ function buildLineMessage() {
     `確認URL：${url}`,
     "",
     "開封パスコードは安全のため、このLINEには記載していません。",
-    copy.lineInstruction,
+    "",
+    copy.customerFlowTitle,
+    ...copy.customerSteps.map((step, index) => `${index + 1}. ${step}`),
   ].join("\n");
 }
 
@@ -325,9 +332,14 @@ function getDocumentCopy(data = {}) {
       pageKicker: "Remote Estimate",
       amountLabel: "お見積総額",
       emailIntroduction: "車両見積書の内容確認をお願いいたします。",
-      emailInstruction: "別途お伝えするパスコードを入力し、見積内容をご確認ください。見積書の確認だけでは契約は成立しません。",
       lineIntroduction: "車両見積書の内容確認をお願いします。",
-      lineInstruction: "別途お伝えする8桁のパスコードを入力し、見積内容をご確認ください。見積書の確認だけでは契約は成立しません。",
+      customerFlowTitle: "【見積内容の確認手順】",
+      customerFlowDescription: "見積書は内容確認のみで、署名は必要ありません。",
+      customerSteps: [
+        "確認URLを開き、別途届いた8桁の開封パスコードを入力します。",
+        "車両情報とお見積総額をご確認ください。",
+        "見積内容についてご不明な点は、オーダーオートへご連絡ください。",
+      ],
       emailSubject: "車両見積書のご確認",
     };
   }
@@ -340,9 +352,16 @@ function getDocumentCopy(data = {}) {
     pageKicker: "Remote Contract",
     amountLabel: "総支払額",
     emailIntroduction: "車両販売契約の内容確認をお願いいたします。",
-    emailInstruction: "別途お伝えするパスコードを入力し、内容をご確認のうえ、重要事項に同意して契約を完了してください。",
     lineIntroduction: "車両販売契約の内容確認をお願いします。",
-    lineInstruction: "別途お伝えする8桁のパスコードを入力して確認してください。",
+    customerFlowTitle: "【ご契約手続きの流れ】",
+    customerFlowDescription: "契約内容と重要事項の確認後、チェックとご署名を行い、完了メールを送信します。",
+    customerSteps: [
+      "確認URLを開き、別途届いた8桁の開封パスコードを入力します。",
+      "契約内容と重要事項をご確認ください。",
+      "確認・同意項目のすべてにチェックを入れます。",
+      "氏名とご署名を入力し、「署名を完了」を押します。",
+      "完了画面で「完了メールを作成」を押し、メールを送信してください。",
+    ],
     emailSubject: "車両販売契約内容のご確認",
   };
 }
@@ -355,6 +374,18 @@ function updatePageCopy(copy) {
   }
   if (pageTitle) {
     pageTitle.textContent = copy.pageTitle;
+  }
+  if (remoteCustomerFlowTitle) {
+    remoteCustomerFlowTitle.textContent = copy.customerFlowTitle.replace(/[【】]/g, "");
+  }
+  if (remoteCustomerFlowDescription) {
+    remoteCustomerFlowDescription.textContent = copy.customerFlowDescription;
+  }
+  if (remoteCustomerFlowSteps) {
+    remoteCustomerFlowSteps.style.setProperty("--flow-step-count", copy.customerSteps.length);
+    remoteCustomerFlowSteps.innerHTML = copy.customerSteps
+      .map((step, index) => `<li><span>${index + 1}</span><p>${escapeHtml(step)}</p></li>`)
+      .join("");
   }
   document.title = `${copy.pageTitle}｜オーダーオート`;
 }

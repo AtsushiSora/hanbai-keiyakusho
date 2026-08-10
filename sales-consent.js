@@ -4,6 +4,10 @@ const ORDER_AUTO_EMAIL = "sora29128616@gmail.com";
 const salesTemplateImportKey = "orderAutoSalesTemplateImport";
 const inPersonPasscodeKey = "orderAutoInPersonPasscode";
 const isInPersonMode = new URLSearchParams(window.location.search).get("inperson") === "1";
+const consentProgress = document.querySelector("#consentProgress");
+const consentProgressSteps = document.querySelector("#consentProgressSteps");
+const consentDocumentSection = document.querySelector("#consentDocumentSection");
+const consentDocumentPreview = document.querySelector("#consentDocumentPreview");
 
 let loadedContract = null;
 let isDrawing = false;
@@ -19,6 +23,14 @@ document.querySelector("#clearSignatureButton")?.addEventListener("click", clear
 document.querySelector("#viewSignedContractButton")?.addEventListener("click", () => openSignedContract(false));
 document.querySelector("#printSignedContractButton")?.addEventListener("click", () => openSignedContract(true));
 document.querySelector("#completionEmailButton")?.addEventListener("click", openCompletionEmail);
+document.querySelector("#consentChecks")?.addEventListener("focusin", () => setConsentProgress(2));
+document.querySelector("#customerSignSection")?.addEventListener("focusin", () => setConsentProgress(3));
+document.querySelector("#customerSignSection")?.addEventListener("pointerdown", () => setConsentProgress(3));
+document.querySelectorAll("[name='customerConsent']").forEach((item) => {
+  item.addEventListener("change", updateConsentProgressFromChecks);
+});
+consentDocumentPreview?.addEventListener("load", updateConsentDocumentPreview);
+window.addEventListener("message", handleConsentPreviewMessage);
 setupSignature();
 if (isInPersonMode) {
   loadInPersonConsent();
@@ -126,9 +138,74 @@ function renderContract() {
   document.querySelector("#consentUnlock").hidden = true;
   document.querySelector("#consentError").hidden = true;
   document.querySelector("#consentSummary").hidden = false;
+  if (consentDocumentSection) {
+    consentDocumentSection.hidden = false;
+  }
   document.querySelector("#estimateNotice").hidden = !isEstimate;
   document.querySelector("#consentChecks").hidden = isEstimate;
-  document.querySelector("#customerSignSection").hidden = isEstimate;
+  document.querySelectorAll("[name='customerConsent']").forEach((item) => {
+    item.checked = false;
+    item.disabled = false;
+  });
+  document.querySelector("#customerSignSection").hidden = true;
+  const completeButton = document.querySelector("#completeConsentButton");
+  if (completeButton) {
+    completeButton.disabled = true;
+    completeButton.hidden = false;
+  }
+  if (consentProgress) {
+    consentProgress.hidden = false;
+  }
+  setConsentProgress(1);
+  updateConsentDocumentPreview();
+}
+
+function handleConsentPreviewMessage(event) {
+  if (
+    event.origin !== window.location.origin
+    || event.source !== consentDocumentPreview?.contentWindow
+    || event.data?.type !== "order-auto-preview-ready"
+  ) {
+    return;
+  }
+  updateConsentDocumentPreview();
+}
+
+function updateConsentDocumentPreview() {
+  if (!loadedContract?.data || !consentDocumentPreview?.contentWindow) {
+    return;
+  }
+  consentDocumentPreview.contentWindow.postMessage({
+    type: "order-auto-preview-data",
+    rawContractData: loadedContract.data,
+  }, window.location.origin);
+}
+
+function updateConsentProgressFromChecks() {
+  const checks = Array.from(document.querySelectorAll("[name='customerConsent']"));
+  const allChecked = checks.length > 0 && checks.every((item) => item.checked);
+  const signSection = document.querySelector("#customerSignSection");
+  const completeButton = document.querySelector("#completeConsentButton");
+  if (signSection && !isEstimateDocument(loadedContract?.data)) {
+    signSection.hidden = !allChecked;
+  }
+  if (completeButton) {
+    completeButton.disabled = !allChecked;
+  }
+  setConsentProgress(allChecked ? 3 : 2);
+}
+
+function setConsentProgress(currentStep) {
+  consentProgressSteps?.querySelectorAll("li").forEach((item, index) => {
+    const step = index + 1;
+    item.classList.toggle("is-complete", step < currentStep);
+    item.classList.toggle("is-current", step === currentStep);
+    if (step === currentStep) {
+      item.setAttribute("aria-current", "step");
+    } else {
+      item.removeAttribute("aria-current");
+    }
+  });
 }
 
 async function completeConsent() {
@@ -148,6 +225,7 @@ async function completeConsent() {
   document.querySelector("#consentChecksError").hidden = allChecked;
   document.querySelector("#signatureError").hidden = !hasError;
   if (hasError) {
+    setConsentProgress(allChecked ? 3 : 2);
     return;
   }
 
@@ -196,7 +274,8 @@ async function completeConsent() {
   ].join("\n");
   lockCompletedConsent();
   document.querySelector("#signedDocumentActions").hidden = false;
-  showCompletionStatus("署名と同意内容を保存し、契約を完了しました。署名済み契約書を保存できます。");
+  setConsentProgress(4);
+  showCompletionStatus("署名と同意内容を保存し、契約を完了しました。完了メールを作成して送信してください。");
 }
 
 function openSignedContract(autoPrint) {
@@ -327,7 +406,10 @@ function updateConsentPageCopy(isEstimate) {
       kicker: "In-person Signature",
       pageTitle: "対面電子署名",
       introduction: "契約内容と重要事項をご確認のうえ、タブレットにご署名ください。",
-      summaryTitle: "署名する契約",
+      summaryTitle: "1. 契約内容を確認",
+      documentTitle: "契約書・重要事項",
+      documentDescription: "1ページ目の契約内容と、2ページ目の特約事項を最後までご確認ください。",
+      progressSteps: ["内容確認", "重要事項・チェック", "ご署名", "完了"],
       browserTitle: "対面電子署名｜オーダーオート",
     }
     : isEstimate
@@ -336,7 +418,10 @@ function updateConsentPageCopy(isEstimate) {
       kicker: "Estimate",
       pageTitle: "見積内容の確認",
       introduction: "メール・LINEで届いた確認URLと、別途案内された開封パスコードを使って見積内容を確認してください。",
-      summaryTitle: "見積概要",
+      summaryTitle: "1. 見積内容を確認",
+      documentTitle: "お見積書",
+      documentDescription: "車両情報とお見積金額をご確認ください。見積書の確認だけでは契約は成立しません。",
+      progressSteps: ["見積内容を確認"],
       browserTitle: "見積内容の確認｜オーダーオート",
     }
     : {
@@ -344,7 +429,10 @@ function updateConsentPageCopy(isEstimate) {
       kicker: "Agreement",
       pageTitle: "契約内容の確認",
       introduction: "メール・LINEで届いた確認URLと、別途案内された開封パスコードを使って契約内容を確認してください。",
-      summaryTitle: "契約概要",
+      summaryTitle: "1. 契約内容を確認",
+      documentTitle: "契約書・重要事項",
+      documentDescription: "1ページ目の契約内容と、2ページ目の特約事項を最後までご確認ください。",
+      progressSteps: ["内容確認", "重要事項・チェック", "ご署名", "完了"],
       browserTitle: "販売契約内容の確認｜オーダーオート",
     };
   document.querySelector("#consentBrandTitle").textContent = copy.brandTitle;
@@ -352,6 +440,14 @@ function updateConsentPageCopy(isEstimate) {
   document.querySelector("#consentPageTitle").textContent = copy.pageTitle;
   document.querySelector("#consentPageIntroduction").textContent = copy.introduction;
   document.querySelector("#consentSummaryTitle").textContent = copy.summaryTitle;
+  document.querySelector("#consentDocumentTitle").textContent = copy.documentTitle;
+  document.querySelector("#consentDocumentDescription").textContent = copy.documentDescription;
+  if (consentProgressSteps) {
+    consentProgressSteps.style.setProperty("--flow-step-count", copy.progressSteps.length);
+    consentProgressSteps.innerHTML = copy.progressSteps
+      .map((label, index) => `<li><span>${index + 1}</span><strong>${escapeHtml(label)}</strong></li>`)
+      .join("");
+  }
   document.title = copy.browserTitle;
 }
 

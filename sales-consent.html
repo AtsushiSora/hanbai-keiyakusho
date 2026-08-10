@@ -6,7 +6,7 @@
     <title>販売書類の確認｜オーダーオート</title>
     <meta name="description" content="オーダーオートの車両販売契約書・見積書を安全に確認するページです。" />
     <meta name="robots" content="noindex, nofollow" />
-    <link rel="stylesheet" href="styles.css?v=contract36" />
+    <link rel="stylesheet" href="styles.css?v=contract37" />
   </head>
   <body class="contract-page sales-contract-system consent-page">
     <header class="site-header admin-header">
@@ -29,6 +29,10 @@
           <h1 id="consentPageTitle">販売書類の確認</h1>
           <p id="consentPageIntroduction">メール・LINEで届いた確認URLと、別途案内された開封パスコードを使って内容を確認してください。</p>
 
+          <nav class="consent-progress" id="consentProgress" aria-label="お手続きの進行状況" hidden>
+            <ol id="consentProgressSteps"></ol>
+          </nav>
+
           <section class="consent-unlock" id="consentUnlock">
             <h2>開封パスコード</h2>
             <p>パスコードは確認URLとは別に案内されます。電話・SMS・別メール・LINEなどをご確認ください。</p>
@@ -42,8 +46,21 @@
           <p class="contract-save-status warning" id="consentError" hidden>書類データを読み込めませんでした。</p>
 
           <section class="consent-summary" id="consentSummary" hidden>
-            <h2 id="consentSummaryTitle">書類概要</h2>
+            <h2 id="consentSummaryTitle">1. 契約内容を確認</h2>
             <dl id="summaryList"></dl>
+          </section>
+
+          <section class="consent-summary consent-document-section" id="consentDocumentSection" hidden>
+            <div>
+              <h2 id="consentDocumentTitle">契約書・重要事項</h2>
+              <p id="consentDocumentDescription">1ページ目の契約内容と、2ページ目の特約事項を最後までご確認ください。</p>
+            </div>
+            <iframe
+              id="consentDocumentPreview"
+              title="契約書と重要事項のプレビュー"
+              src="sales-template.html?preview=1&amp;source=consent"
+              loading="lazy"
+            ></iframe>
           </section>
 
           <section class="consent-summary" id="estimateNotice" hidden>
@@ -52,9 +69,10 @@
           </section>
 
           <section class="consent-summary" id="consentChecks" hidden>
-            <h2>重要事項</h2>
+            <h2>2. 確認項目にチェック</h2>
+            <p>契約内容と重要事項を確認し、すべての項目にチェックを入れてください。</p>
             <div class="consent-check-list">
-              <label><input type="checkbox" name="customerConsent" value="契約内容を確認しました" />契約内容を確認しました</label>
+              <label><input type="checkbox" name="customerConsent" value="契約内容と重要事項を確認しました" />契約内容と重要事項を確認しました</label>
               <label><input type="checkbox" name="customerConsent" value="車両情報に間違いありません" />車両情報に間違いありません</label>
               <label><input type="checkbox" name="customerConsent" value="総支払額と支払条件に同意します" />総支払額と支払条件に同意します</label>
               <label><input type="checkbox" name="customerConsent" value="保証内容・特記事項を確認しました" />保証内容・特記事項を確認しました</label>
@@ -63,7 +81,8 @@
           </section>
 
           <section class="consent-summary" id="customerSignSection" hidden>
-            <h2>電子署名</h2>
+            <h2>3. ご署名</h2>
+            <p>確認項目にすべてチェックした後、氏名を確認して署名欄へご署名ください。</p>
             <label>
               <span>氏名</span>
               <input id="customerName" autocomplete="name" />
@@ -72,24 +91,24 @@
             <p class="field-error-message" id="signatureError" hidden>氏名と電子署名を入力してください。</p>
             <div class="remote-action-grid">
               <button class="secondary-button" type="button" id="clearSignatureButton">署名クリア</button>
-              <button class="primary-link" type="button" id="completeConsentButton">同意して電子署名を完了</button>
+              <button class="primary-link" type="button" id="completeConsentButton" disabled>署名を完了</button>
             </div>
             <p class="contract-save-status" id="consentCompletionStatus" aria-live="polite"></p>
           </section>
 
           <section class="consent-summary signed-document-actions" id="signedDocumentActions" hidden>
-            <h2>署名済み契約書</h2>
-            <p>電子署名を契約書へ反映しました。表示後、タブレットの印刷画面からPDF保存または印刷できます。</p>
+            <h2>4. 契約完了・完了メール送信</h2>
+            <p>ご署名が完了しました。「完了メールを作成」を押してメールを開き、そのまま送信してください。</p>
             <div class="remote-action-grid">
               <button class="secondary-button" type="button" id="viewSignedContractButton">署名済み契約書を表示</button>
-              <button class="primary-link" type="button" id="printSignedContractButton">印刷・PDF保存</button>
-              <button class="secondary-button" type="button" id="completionEmailButton">完了メールを作成</button>
+              <button class="secondary-button" type="button" id="printSignedContractButton">印刷・PDF保存</button>
+              <button class="primary-link" type="button" id="completionEmailButton">完了メールを作成</button>
             </div>
           </section>
         </div>
       </section>
     </main>
 
-    <script type="module" src="sales-consent.js?v=supabase5"></script>
+    <script type="module" src="sales-consent.js?v=supabase6"></script>
   </body>
 </html>

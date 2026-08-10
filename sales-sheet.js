@@ -65,13 +65,16 @@ function setupPreviewBridge() {
       event.origin !== window.location.origin
       || event.source !== window.parent
       || event.data?.type !== "order-auto-preview-data"
-      || !event.data.data
+      || (!event.data.data && !event.data.rawContractData)
     ) {
       return;
     }
+    const previewData = event.data.rawContractData
+      ? mapRawContractToTemplate(event.data.rawContractData)
+      : event.data.data;
     form.reset();
     setDefaultValues();
-    applyFormData(event.data.data);
+    applyFormData(previewData);
     calculateTotals();
   });
   window.parent.postMessage({ type: "order-auto-preview-ready" }, window.location.origin);

@@ -2746,6 +2746,62 @@ pre {
   box-shadow: 0 14px 36px rgba(20, 66, 116, 0.1);
 }
 
+.remote-flow-guide {
+  display: grid;
+  gap: 14px;
+  padding: 20px 24px;
+  background: #f7fbf8;
+  border: 1px solid rgba(15, 122, 77, 0.24);
+  border-left: 5px solid var(--contract-green, #0f7a4d);
+  border-radius: var(--radius);
+}
+
+.remote-guide-steps,
+.consent-progress ol {
+  display: grid;
+  gap: 10px;
+  padding: 0;
+  margin: 0;
+  list-style: none;
+}
+
+.remote-guide-steps {
+  grid-template-columns: repeat(var(--flow-step-count, 5), minmax(0, 1fr));
+}
+
+.remote-guide-steps li {
+  display: grid;
+  grid-template-columns: 30px minmax(0, 1fr);
+  gap: 8px;
+  align-items: start;
+  min-width: 0;
+  padding: 12px;
+  background: #fff;
+  border: 1px solid rgba(15, 122, 77, 0.18);
+  border-radius: 8px;
+}
+
+.remote-guide-steps span,
+.consent-progress li > span {
+  display: grid;
+  width: 30px;
+  height: 30px;
+  place-items: center;
+  color: #fff;
+  background: var(--contract-green, #0f7a4d);
+  border-radius: 50%;
+  font-weight: 900;
+}
+
+.remote-guide-steps p {
+  margin: 0;
+  color: #17211f;
+  font-size: 0.9rem;
+  font-weight: 800;
+  line-height: 1.55;
+  overflow-wrap: anywhere;
+}
+
 .remote-send-panel {
   align-content: start;
 }
@@ -2860,6 +2916,56 @@ pre {
   font-size: clamp(1.8rem, 4vw, 2.55rem);
 }
 
+.consent-progress {
+  padding: 14px;
+  background: #f7fbf8;
+  border: 1px solid rgba(15, 122, 77, 0.2);
+  border-radius: 8px;
+}
+
+.consent-progress ol {
+  grid-template-columns: repeat(var(--flow-step-count, 4), minmax(0, 1fr));
+}
+
+.consent-progress li {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  min-width: 0;
+  color: var(--muted);
+}
+
+.consent-progress li > span {
+  flex: 0 0 30px;
+  color: var(--contract-green-dark, #0a4f35);
+  background: #fff;
+  border: 1px solid rgba(15, 122, 77, 0.28);
+}
+
+.consent-progress li strong {
+  min-width: 0;
+  font-size: 0.88rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.consent-progress li.is-complete,
+.consent-progress li.is-current {
+  color: var(--contract-green-dark, #0a4f35);
+}
+
+.consent-progress li.is-complete > span,
+.consent-progress li.is-current > span {
+  color: #fff;
+  background: var(--contract-green, #0f7a4d);
+}
+
+.consent-progress li.is-current strong {
+  text-decoration: underline;
+  text-decoration-thickness: 2px;
+  text-underline-offset: 4px;
+}
+
 .consent-card h2 {
   color: var(--contract-green-dark, #0a4f35);
   font-size: 1.24rem;
@@ -2900,6 +3006,30 @@ pre {
   color: #17211f;
   font-weight: 800;
   overflow-wrap: anywhere;
+}
+
+.consent-document-section > div {
+  display: grid;
+  gap: 6px;
+}
+
+#consentDocumentPreview {
+  display: block;
+  width: 100%;
+  height: min(72vh, 820px);
+  min-height: 520px;
+  background: #fff;
+  border: 1px solid rgba(15, 122, 77, 0.24);
+  border-radius: 8px;
+}
+
+#completionEmailButton {
+  grid-column: 1 / -1;
+}
+
+.consent-card button:disabled {
+  cursor: not-allowed;
+  opacity: 0.45;
 }
 
 .consent-check-list {
@@ -3169,6 +3299,20 @@ pre {
   .contact-layout,
   .form-grid {
     grid-template-columns: 1fr;
+  }
+
+  .remote-guide-steps,
+  .consent-progress ol {
+    grid-template-columns: 1fr;
+  }
+
+  .remote-guide-steps li {
+    padding: 10px;
+  }
+
+  #consentDocumentPreview {
+    height: 68vh;
+    min-height: 480px;
   }
 
   .dynamic-option-head {
