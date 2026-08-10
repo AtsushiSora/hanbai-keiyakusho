@@ -19,6 +19,7 @@ const buyerBirthYear = document.querySelector("#buyerBirthYear");
 const buyerBirthMonth = document.querySelector("#buyerBirthMonth");
 const buyerBirthDay = document.querySelector("#buyerBirthDay");
 const contractValidationSummary = document.querySelector("#contractValidationSummary");
+const postalCodeApiUrl = "https://zipcloud.ibsnet.co.jp/api/search";
 const salesTemplateImportKey = "orderAutoSalesTemplateImport";
 const companyContact = [
   "オーダーオート",
@@ -106,6 +107,9 @@ const validationFieldLabels = {
   deliveryDate: "納車予定日",
 };
 let activeValidationMode = "";
+let postalLookupController = null;
+let lastPostalCode = "";
+let lastAutoAddress = "";
 
 arrangeContractSections();
 removePersistentDraft();
@@ -113,6 +117,7 @@ setDefaultDate();
 setupDateFields();
 setupBirthdaySelects();
 setupYearSelects();
+setupPostalAddressLookup();
 renderSalesOptionRows(1);
 setupMoneyFields();
 setupMeasurementFields();
@@ -131,6 +136,90 @@ shopCopyButton?.addEventListener("click", () => setPreviewCopy("店控え"));
 completeContractButton?.addEventListener("click", completeContract);
 contractPdfPreview?.addEventListener("load", updatePdfPreview);
 window.addEventListener("message", handlePdfPreviewMessage);
+
+function setupPostalAddressLookup() {
+  const postalCodeField = form?.elements.buyerZip;
+  if (!postalCodeField) {
+    return;
+  }
+
+  postalCodeField.setAttribute("inputmode", "numeric");
+  postalCodeField.setAttribute("autocomplete", "postal-code");
+  postalCodeField.addEventListener("input", handlePostalCodeInput);
+  postalCodeField.addEventListener("blur", handlePostalCodeInput);
+}
+
+function handlePostalCodeInput(event) {
+  const postalCodeField = event.currentTarget;
+  const digits = String(postalCodeField.value || "").replace(/\D/g, "").slice(0, 7);
+  const formattedPostalCode = digits.length > 3
+    ? `${digits.slice(0, 3)}-${digits.slice(3)}`
+    : digits;
+
+  if (postalCodeField.value !== formattedPostalCode) {
+    postalCodeField.value = formattedPostalCode;
+  }
+
+  if (digits.length !== 7) {
+    postalLookupController?.abort();
+    lastPostalCode = "";
+    return;
+  }
+
+  lookupAddressByPostalCode(digits);
+}
+
+async function lookupAddressByPostalCode(postalCode) {
+  if (postalCode === lastPostalCode) {
+    return;
+  }
+
+  postalLookupController?.abort();
+  postalLookupController = new AbortController();
+  const currentController = postalLookupController;
+  lastPostalCode = postalCode;
+
+  try {
+    const response = await fetch(`${postalCodeApiUrl}?zipcode=${encodeURIComponent(postalCode)}`, {
+      signal: currentController.signal,
+      headers: { Accept: "application/json" },
+    });
+    if (!response.ok) {
+      throw new Error(`Postal lookup failed: ${response.status}`);
+    }
+
+    const payload = await response.json();
+    const result = Array.isArray(payload.results) ? payload.results[0] : null;
+    if (!result || currentController.signal.aborted) {
+      return;
+    }
+
+    const postalCodeField = form?.elements.buyerZip;
+    const addressField = form?.elements.buyerAddress;
+    const currentPostalCode = String(postalCodeField?.value || "").replace(/\D/g, "");
+    if (!addressField || currentPostalCode !== postalCode) {
+      return;
+    }
+
+    const address = [result.address1, result.address2, result.address3].filter(Boolean).join("");
+    const currentAddress = String(addressField.value || "").trim();
+    if (!address || (currentAddress && currentAddress !== lastAutoAddress)) {
+      return;
+    }
+
+    addressField.value = address;
+    lastAutoAddress = address;
+    addressField.dispatchEvent(new Event("input", { bubbles: true }));
+  } catch (error) {
+    if (error.name !== "AbortError") {
+      lastPostalCode = "";
+    }
+  } finally {
+    if (postalLookupController === currentController) {
+      postalLookupController = null;
+    }
+  }
+}
 
 function setupPdfPreviewFit() {
   if (!pdfPreviewCanvas) {
