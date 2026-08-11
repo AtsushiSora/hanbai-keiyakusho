@@ -1,4 +1,5 @@
 import { SUPABASE_CONFIG, isSupabaseConfigured, supabase } from "./supabase-client.js";
+import { createNextDocumentNumber } from "./document-number.js";
 
 const draftStorageKey = "orderAutoContractDraft";
 const tableName = SUPABASE_CONFIG.tableName || "order_auto_contracts";
@@ -312,22 +313,47 @@ async function persistCloudContract(requestedDocumentType = "") {
 
   setStoredStatus(`${documentType}をクラウド保存しています。`);
   const dbRecord = toSupabaseRecord(record, currentUser.id);
-  const { data, error } = await supabase
-    .from(tableName)
-    .upsert(dbRecord, { onConflict: "id" })
+  let { data, error } = await supabase
+    .rpc("save_order_auto_contract", {
+      p_id: dbRecord.id,
+      p_buyer_name: dbRecord.buyer_name,
+      p_buyer_email: dbRecord.buyer_email,
+      p_vehicle_name: dbRecord.vehicle_name,
+      p_total_price: dbRecord.total_price,
+      p_status: dbRecord.status,
+      p_document_type: dbRecord.document_type,
+      p_data: dbRecord.data,
+    })
     .select()
     .single();
 
+  if (isMissingAutoNumberFunction(error)) {
+    const fallbackRecord = withFallbackDocumentNumber(record);
+    if (!fallbackRecord.data?.estimateNo) {
+      setStoredStatus("本日の契約番号が上限の99件に達しました。翌日以降に保存してください。");
+      return;
+    }
+    const fallbackResult = await supabase
+      .from(tableName)
+      .upsert(toSupabaseRecord(fallbackRecord, currentUser.id), { onConflict: "id" })
+      .select()
+      .single();
+    data = fallbackResult.data;
+    error = fallbackResult.error;
+  }
+
   if (error) {
-    setStoredStatus(`${documentType}をクラウド保存できませんでした。SupabaseのRLS設定を確認してください。`);
+    setStoredStatus(`${documentType}をクラウド保存できませんでした。契約番号の自動発行設定を確認してください。`);
     return;
   }
 
   await loadCloudContracts();
   const savedId = data?.id || record.id;
+  const documentNumber = data?.data?.estimateNo || "";
   window.contractTool.setRecordId(savedId);
+  window.contractTool.setDocumentNumber?.(documentNumber);
   renderCloudContracts(savedId);
-  setStoredStatus(`${documentType}をクラウド保存しました。`);
+  setStoredStatus(`${documentType}をクラウド保存しました。番号: ${documentNumber}`);
 }
 
 async function convertCurrentEstimateToContract() {
@@ -854,7 +880,25 @@ function toDisplayContract(record) {
 function getContractCardMeta(contract) {
   const vehicle = contract.vehicleName || "車両未入力";
   const price = contract.totalPrice || "金額未入力";
-  return `${vehicle} / ${contract.documentType} / ${price}`;
+  const documentNumber = contract.data?.estimateNo ? ` / No.${contract.data.estimateNo}` : "";
+  return `${vehicle} / ${contract.documentType}${documentNumber} / ${price}`;
+}
+
+function isMissingAutoNumberFunction(error) {
+  return error?.code === "PGRST202"
+    || String(error?.message || "").includes("save_order_auto_contract");
+}
+
+function withFallbackDocumentNumber(record) {
+  const existing = cloudContracts.find((contract) => contract.id === record.id);
+  const existingNumber = String(existing?.data?.estimateNo || "");
+  const documentNumber = existingNumber
+    ? existingNumber
+    : createNextDocumentNumber(cloudContracts);
+  return normalizeContractRecord({
+    ...record,
+    data: { ...(record.data || {}), estimateNo: documentNumber },
+  });
 }
 
 function getStoredContractLabel(contract) {

@@ -20,6 +20,14 @@ alter table public.order_auto_contracts
   add column if not exists document_type text not null default '契約書',
   add column if not exists completed_at timestamptz;
 
+create table if not exists public.order_auto_document_counters (
+  owner_user_id uuid not null references auth.users(id) on delete cascade,
+  issue_date date not null,
+  last_value integer not null default 0 check (last_value between 0 and 99),
+  updated_at timestamptz not null default now(),
+  primary key (owner_user_id, issue_date)
+);
+
 create table if not exists public.order_auto_remote_contracts (
   id uuid primary key default gen_random_uuid(),
   contract_id text not null references public.order_auto_contracts(id) on delete cascade,
@@ -71,6 +79,7 @@ before update on public.order_auto_remote_contracts
 for each row execute function public.set_order_auto_updated_at();
 
 alter table public.order_auto_contracts enable row level security;
+alter table public.order_auto_document_counters enable row level security;
 alter table public.order_auto_remote_contracts enable row level security;
 alter table public.order_auto_remote_events enable row level security;
 
@@ -129,6 +138,112 @@ using ((select auth.uid()) is not null and (select auth.uid()) = owner_user_id);
 
 create index if not exists order_auto_contracts_user_updated_idx
 on public.order_auto_contracts (user_id, updated_at desc);
+
+create or replace function public.save_order_auto_contract(
+  p_id text,
+  p_buyer_name text,
+  p_buyer_email text,
+  p_vehicle_name text,
+  p_total_price text,
+  p_status text,
+  p_document_type text,
+  p_data jsonb
+)
+returns setof public.order_auto_contracts
+language plpgsql
+security definer
+set search_path = ''
+as $$
+declare
+  v_user_id uuid := auth.uid();
+  v_existing public.order_auto_contracts%rowtype;
+  v_exists boolean := false;
+  v_issue_date date := (now() at time zone 'Asia/Tokyo')::date;
+  v_sequence integer;
+  v_document_number text;
+  v_data jsonb := coalesce(p_data, '{}'::jsonb);
+begin
+  if v_user_id is null
+    or p_id is null
+    or p_id !~ '^[A-Za-z0-9_-]{1,120}$' then
+    return;
+  end if;
+
+  select * into v_existing
+  from public.order_auto_contracts
+  where id = p_id and user_id = v_user_id
+  for update;
+  v_exists := found;
+
+  if v_exists and btrim(coalesce(v_existing.data->>'estimateNo', '')) <> '' then
+    v_document_number := v_existing.data->>'estimateNo';
+  else
+    insert into public.order_auto_document_counters (
+      owner_user_id,
+      issue_date,
+      last_value,
+      updated_at
+    ) values (
+      v_user_id,
+      v_issue_date,
+      1,
+      now()
+    )
+    on conflict (owner_user_id, issue_date)
+    do update set
+      last_value = public.order_auto_document_counters.last_value + 1,
+      updated_at = now()
+    returning last_value into v_sequence;
+
+    if v_sequence > 99 then
+      raise exception 'Daily document number limit exceeded';
+    end if;
+
+    v_document_number := to_char(v_issue_date, 'YYMMDD') || lpad(v_sequence::text, 2, '0');
+  end if;
+
+  v_data := jsonb_set(v_data, '{estimateNo}', to_jsonb(v_document_number), true);
+
+  if v_exists then
+    update public.order_auto_contracts
+    set
+      buyer_name = p_buyer_name,
+      buyer_email = p_buyer_email,
+      vehicle_name = p_vehicle_name,
+      total_price = p_total_price,
+      status = coalesce(nullif(p_status, ''), '下書き'),
+      document_type = coalesce(nullif(p_document_type, ''), '契約書'),
+      data = v_data
+    where id = p_id and user_id = v_user_id;
+  else
+    insert into public.order_auto_contracts (
+      id,
+      user_id,
+      buyer_name,
+      buyer_email,
+      vehicle_name,
+      total_price,
+      status,
+      document_type,
+      data
+    ) values (
+      p_id,
+      v_user_id,
+      p_buyer_name,
+      p_buyer_email,
+      p_vehicle_name,
+      p_total_price,
+      coalesce(nullif(p_status, ''), '下書き'),
+      coalesce(nullif(p_document_type, ''), '契約書'),
+      v_data
+    );
+  end if;
+
+  return query
+  select * from public.order_auto_contracts
+  where id = p_id and user_id = v_user_id;
+end;
+$$;
 
 create index if not exists order_auto_remote_contracts_owner_updated_idx
 on public.order_auto_remote_contracts (owner_user_id, updated_at desc);
@@ -394,6 +509,7 @@ end;
 $$;
 
 revoke all privileges on table public.order_auto_contracts from anon, authenticated;
+revoke all privileges on table public.order_auto_document_counters from anon, authenticated;
 revoke all privileges on table public.order_auto_remote_contracts from anon, authenticated;
 revoke all privileges on table public.order_auto_remote_events from anon, authenticated;
 
@@ -402,10 +518,12 @@ grant select, delete on table public.order_auto_remote_contracts to authenticate
 grant select on table public.order_auto_remote_events to authenticated;
 
 revoke all privileges on function public.set_order_auto_updated_at() from public, anon, authenticated;
+revoke all privileges on function public.save_order_auto_contract(text, text, text, text, text, text, text, jsonb) from public, anon, authenticated;
 revoke all privileges on function public.create_order_auto_remote_contract(text, text, text, timestamptz) from public, anon, authenticated;
 revoke all privileges on function public.read_order_auto_remote_contract(text, text) from public, anon, authenticated;
 revoke all privileges on function public.complete_order_auto_remote_contract(text, text, text, jsonb, text) from public, anon, authenticated;
 
 grant execute on function public.create_order_auto_remote_contract(text, text, text, timestamptz) to authenticated;
+grant execute on function public.save_order_auto_contract(text, text, text, text, text, text, text, jsonb) to authenticated;
 grant execute on function public.read_order_auto_remote_contract(text, text) to anon, authenticated;
 grant execute on function public.complete_order_auto_remote_contract(text, text, text, jsonb, text) to anon, authenticated;

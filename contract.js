@@ -117,6 +117,7 @@ setDefaultDate();
 setupDateFields();
 setupBirthdaySelects();
 setupYearSelects();
+setupDocumentNumberField();
 setupPostalAddressLookup();
 setupPhoneNumberFields();
 renderSalesOptionRows(1);
@@ -425,6 +426,21 @@ function setupYearSelects() {
   });
 }
 
+function setupDocumentNumberField() {
+  const field = form?.elements.estimateNo;
+  if (!field) {
+    return;
+  }
+  field.readOnly = true;
+  field.inputMode = "numeric";
+  field.placeholder = "クラウド保存時に自動発行";
+  field.title = "最初のクラウド保存時に8桁の番号を自動発行します。";
+  const label = field.closest("label")?.querySelector(":scope > span");
+  if (label) {
+    label.textContent = "契約番号・見積番号（自動）";
+  }
+}
+
 function formatJapaneseEra(year) {
   if (year >= 2019) {
     return `令和${year === 2019 ? "元" : year - 2018}年`;
@@ -612,6 +628,14 @@ function setContractRecordId(recordId) {
   }
 }
 
+function setDocumentNumber(documentNumber) {
+  if (!form?.elements.estimateNo) {
+    return;
+  }
+  form.elements.estimateNo.value = String(documentNumber || "");
+  saveDraft();
+}
+
 function exposeContractToolApi() {
   window.contractTool = {
     getRecordPayload: getContractRecordPayload,
@@ -622,6 +646,7 @@ function exposeContractToolApi() {
     newRecord: startNewContract,
     validateFor: validateContract,
     setRecordId: setContractRecordId,
+    setDocumentNumber,
   };
 }
 
@@ -814,7 +839,7 @@ function validateContract(mode = "draft", options = {}) {
   const errors = [];
   form.querySelectorAll('[aria-invalid="true"]').forEach((field) => field.removeAttribute("aria-invalid"));
   const requiredFields = mode === "complete"
-    ? ["estimateNo", "buyerName", "buyerAddress", "vehicleName", "vehicleVin", "basePrice"]
+    ? ["buyerName", "buyerAddress", "vehicleName", "vehicleVin", "basePrice"]
     : mode === "estimate" || mode === "document"
       ? ["buyerName", "vehicleName", "basePrice"]
       : [];
