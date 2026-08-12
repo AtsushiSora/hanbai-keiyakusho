@@ -593,10 +593,6 @@ body.pdf-capture-mode .pdf-capture-value.month-count {
   text-align: left;
 }
 
-.tpl-field.template-value-mask {
-  background: #fff;
-}
-
 .tpl-field.amount,
 .tpl-output.amount {
   text-align: right;
@@ -794,9 +790,6 @@ body.preview-embed .tpl-field {
     background: transparent;
   }
 
-  .tpl-field.template-value-mask {
-    background: #fff;
-  }
 }
 
 @media screen and (max-width: 900px) {

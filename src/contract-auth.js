@@ -1,4 +1,4 @@
-import { SUPABASE_CONFIG, isSupabaseConfigured, supabase } from "./supabase-client.js";
+import { SUPABASE_CONFIG, supabase } from "./supabase-client.js";
 
 const draftStorageKey = "orderAutoContractDraft";
 const tableName = SUPABASE_CONFIG.tableName || "order_auto_contracts";
