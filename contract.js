@@ -1,4 +1,8 @@
 const form = document.querySelector("#contractForm");
+const creationDocumentType = new URLSearchParams(window.location.search).get("type") === "estimate"
+  ? "見積書"
+  : "契約書";
+const isEstimateCreationMode = creationDocumentType === "見積書";
 const printContractButton = document.querySelector("#printContractButton");
 const savePdfButton = document.querySelector("#savePdfButton");
 const saveRecordButton = document.querySelector("#saveRecordButton");
@@ -19,6 +23,9 @@ const buyerBirthYear = document.querySelector("#buyerBirthYear");
 const buyerBirthMonth = document.querySelector("#buyerBirthMonth");
 const buyerBirthDay = document.querySelector("#buyerBirthDay");
 const contractValidationSummary = document.querySelector("#contractValidationSummary");
+const editorTitle = document.querySelector("#editorTitle");
+const saveServerContractButton = document.querySelector("#saveServerContractButton");
+const saveEstimateButton = document.querySelector("#saveEstimateButton");
 const postalCodeApiUrl = "https://zipcloud.ibsnet.co.jp/api/search";
 const salesTemplateImportKey = "orderAutoSalesTemplateImport";
 const companyContact = [
@@ -125,6 +132,7 @@ setupMoneyFields();
 setupMeasurementFields();
 setupPdfPreviewFit();
 restoreDraft();
+setupCreationMode();
 exposeContractToolApi();
 
 form?.addEventListener("input", handleFormInput);
@@ -600,11 +608,41 @@ function startNewContract() {
   updateSalesPriceTotal();
   syncPaymentTotal();
   setDefaultDate();
-  setDocumentType("契約書");
-  setContractStatus("下書き");
+  setDocumentType(creationDocumentType);
+  setContractStatus(isEstimateCreationMode ? "見積保存" : "下書き");
   clearValidationState();
   saveDraft();
-  updateSaveStatus("新規作成を開始しました。");
+  updateSaveStatus(isEstimateCreationMode ? "新しい見積書の作成を開始しました。" : "新規作成を開始しました。");
+}
+
+function setupCreationMode() {
+  if (!isEstimateCreationMode) {
+    return;
+  }
+
+  setDocumentType("見積書");
+  setContractStatus("見積保存");
+  document.title = "見積作成｜オーダーオート";
+  document.body.classList.add("estimate-create-page");
+  if (editorTitle) {
+    editorTitle.textContent = "新規見積作成";
+  }
+  if (saveRecordButton) {
+    saveRecordButton.textContent = "見積下書き保存";
+  }
+  if (saveServerContractButton) {
+    saveServerContractButton.hidden = true;
+  }
+  if (saveEstimateButton) {
+    saveEstimateButton.textContent = "見積書をクラウド保存";
+  }
+  if (savePdfButton) {
+    savePdfButton.textContent = "見積書PDF保存";
+  }
+  if (printContractButton) {
+    printContractButton.textContent = "見積書PDF印刷";
+  }
+  updateSaveStatus("見積内容を入力してください。見積書として保存・PDF作成できます。");
 }
 
 function getContractRecordPayload() {

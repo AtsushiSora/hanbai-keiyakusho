@@ -1713,6 +1713,17 @@ pre {
   font-size: 1.4rem;
 }
 
+.top-estimate-card {
+  background: #fffaf0;
+  border-color: rgba(197, 139, 21, 0.42);
+}
+
+.top-estimate-card:hover,
+.top-estimate-card:focus-visible {
+  border-color: #c58b15;
+  box-shadow: 0 10px 24px rgba(156, 105, 11, 0.12);
+}
+
 .contract-list-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
