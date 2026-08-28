@@ -1724,6 +1724,63 @@ pre {
   box-shadow: 0 10px 24px rgba(156, 105, 11, 0.12);
 }
 
+.admin-notification-panel {
+  display: grid;
+  gap: 14px;
+  padding-top: 22px;
+  border-top: 1px solid #dfe5df;
+}
+
+.admin-notification-head,
+.admin-notification-item {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.admin-notification-head h3 {
+  margin: 0;
+  color: #17211f;
+  font-size: 1.18rem;
+}
+
+.admin-notification-actions,
+.admin-notification-item-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.admin-notification-list {
+  display: grid;
+  gap: 10px;
+}
+
+.admin-notification-item {
+  padding: 14px 16px;
+  background: #f7fbf8;
+  border: 1px solid rgba(15, 122, 77, 0.2);
+  border-radius: var(--radius);
+}
+
+.admin-notification-item.is-unread {
+  background: #fffaf0;
+  border-left: 5px solid var(--contract-amber);
+}
+
+.admin-notification-item p,
+.admin-notification-item small {
+  margin: 4px 0 0;
+  color: #5d6a66;
+}
+
+.management-list-card small {
+  color: #69756f;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
 .contract-list-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
@@ -2552,6 +2609,48 @@ pre {
   border-top: 1px solid var(--line);
 }
 
+.customer-entry-section form,
+.customer-entry-section > div {
+  display: grid;
+  gap: 12px;
+}
+
+.customer-entry-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.customer-entry-grid label {
+  display: grid;
+  gap: 7px;
+  min-width: 0;
+  color: #243430;
+  font-weight: 900;
+}
+
+.customer-entry-grid label span {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.customer-entry-grid label em {
+  color: #b72d2d;
+  font-size: 0.72rem;
+  font-style: normal;
+}
+
+.customer-entry-grid input {
+  width: 100%;
+  min-width: 0;
+  min-height: 48px;
+}
+
+.customer-entry-wide {
+  grid-column: 1 / -1;
+}
+
 .consent-summary dl {
   display: grid;
   gap: 8px;
@@ -2890,6 +2989,26 @@ pre {
   .consent-summary dl div {
     grid-template-columns: 1fr;
     gap: 4px;
+  }
+
+  .customer-entry-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .customer-entry-wide {
+    grid-column: auto;
+  }
+
+  .admin-notification-head,
+  .admin-notification-item {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .admin-notification-actions,
+  .admin-notification-item-actions {
+    display: grid;
+    grid-template-columns: 1fr;
   }
 
   .contract-header-actions {

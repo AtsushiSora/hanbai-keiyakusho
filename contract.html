@@ -6,7 +6,7 @@
     <title>契約書メニュー｜オーダーオート</title>
     <meta name="description" content="オーダーオートの車両販売契約書を入力フォームからPDF保存・印刷・メール・LINE送信用に作成できる契約作成システムです。" />
     <meta name="robots" content="noindex, nofollow" />
-    <link rel="stylesheet" href="styles.css?v=contract33" />
+    <link rel="stylesheet" href="styles.css?v=contract38" />
   </head>
   <body class="admin-page contract-page sales-contract-system contract-home-page auth-loading">
     <header class="site-header admin-header">
@@ -81,11 +81,35 @@
               <span>対面電子署名</span>
               <small>保存済み契約を選び、タブレットでその場で署名</small>
             </a>
+            <a class="top-action-card" href="contract-list.html?view=customers">
+              <span>顧客一覧</span>
+              <small>お客様情報・契約履歴・連絡先を確認</small>
+            </a>
+            <a class="top-action-card" href="contract-list.html?view=vehicles">
+              <span>販売車両一覧</span>
+              <small>販売車両・契約履歴・買主情報を確認</small>
+            </a>
           </div>
+
+          <section class="admin-notification-panel" aria-labelledby="adminNotificationTitle">
+            <div class="admin-notification-head">
+              <div>
+                <p class="section-kicker">Notifications</p>
+                <h3 id="adminNotificationTitle">管理画面内通知</h3>
+              </div>
+              <div class="admin-notification-actions">
+                <button class="secondary-button compact" type="button" id="refreshNotificationsButton">更新</button>
+                <button class="secondary-button compact danger" type="button" id="deleteReadNotificationsButton">確認済みを削除</button>
+              </div>
+            </div>
+            <div class="admin-notification-list" id="adminNotificationList" aria-live="polite">
+              <p class="contract-list-empty">通知を読み込んでいます。</p>
+            </div>
+          </section>
         </div>
       </section>
     </main>
 
-    <script type="module" src="src/contract-auth.js?v=supabase17"></script>
+    <script type="module" src="src/contract-auth.js?v=supabase18"></script>
   </body>
 </html>

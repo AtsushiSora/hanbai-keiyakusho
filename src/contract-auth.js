@@ -11,6 +11,9 @@ const pageParams = new URLSearchParams(window.location.search);
 const isInPersonMode = pageParams.get("mode") === "in-person";
 const isRemoteSignatureMode = pageParams.get("mode") === "remote";
 const isSignatureSelectionMode = isInPersonMode || isRemoteSignatureMode;
+const activeManagementView = pageParams.get("view") || "";
+const isCustomerListMode = activeManagementView === "customers";
+const isVehicleListMode = activeManagementView === "vehicles";
 
 const loginPanel = document.querySelector("#loginPanel");
 const loginForm = document.querySelector("#adminLoginForm");
@@ -30,6 +33,9 @@ const importContractsFile = document.querySelector("#importContractsFile");
 const contractListKicker = document.querySelector("#contractListKicker");
 const contractListTitle = document.querySelector("#contractListTitle");
 const contractListDescription = document.querySelector("#contractListDescription");
+const adminNotificationList = document.querySelector("#adminNotificationList");
+const refreshNotificationsButton = document.querySelector("#refreshNotificationsButton");
+const deleteReadNotificationsButton = document.querySelector("#deleteReadNotificationsButton");
 
 let currentUser = null;
 let cloudContracts = [];
@@ -67,6 +73,9 @@ async function initAdminAuth() {
   exportContractsButton?.addEventListener("click", exportContractsJson);
   importContractsButton?.addEventListener("click", () => importContractsFile?.click());
   importContractsFile?.addEventListener("change", importContractsJson);
+  refreshNotificationsButton?.addEventListener("click", loadAdminNotifications);
+  deleteReadNotificationsButton?.addEventListener("click", deleteReadNotifications);
+  adminNotificationList?.addEventListener("click", handleNotificationAction);
 
   if (!supabase) {
     applyLoggedOutState("Supabase設定が未入力です。src/supabase-config.js にProject URLとPublishable keyを設定してください。");
@@ -214,6 +223,7 @@ async function activateCloudLogin() {
   }
   setAuthStatus("");
   await loadCloudContracts();
+  await loadAdminNotifications();
 }
 
 function applyLoggedOutState(message) {
@@ -256,6 +266,14 @@ async function loadCloudContracts() {
 }
 
 function renderCloudContracts(selectedId = "") {
+  if (isCustomerListMode) {
+    renderCustomerCards();
+    return;
+  }
+  if (isVehicleListMode) {
+    renderVehicleCards();
+    return;
+  }
   renderContractCards(selectedId);
 }
 
@@ -512,6 +530,33 @@ function handleContractCardAction(event) {
 }
 
 function setupContractListMode() {
+  if (isCustomerListMode || isVehicleListMode) {
+    document.body.classList.add("management-list-mode");
+    const pageCopy = isCustomerListMode
+      ? {
+        title: "顧客一覧",
+        kicker: "CUSTOMERS",
+        description: "クラウド保存された契約から、お客様情報と契約履歴をまとめて表示します。",
+        search: "氏名・電話番号・メールアドレス・住所",
+      }
+      : {
+        title: "販売車両一覧",
+        kicker: "SOLD VEHICLES",
+        description: "クラウド保存された契約から、販売車両と買主情報をまとめて表示します。",
+        search: "車名・車台番号・登録番号・買主名",
+      };
+    document.title = `${pageCopy.title}｜オーダーオート`;
+    if (contractListKicker) contractListKicker.textContent = pageCopy.kicker;
+    if (contractListTitle) contractListTitle.textContent = pageCopy.title;
+    if (contractListDescription) {
+      contractListDescription.hidden = false;
+      contractListDescription.textContent = pageCopy.description;
+    }
+    if (contractListSearch) contractListSearch.placeholder = pageCopy.search;
+    document.querySelector(".backup-actions")?.setAttribute("hidden", "");
+    contractStatusTabs?.setAttribute("hidden", "");
+    return;
+  }
   if (!isSignatureSelectionMode) {
     return;
   }
@@ -538,6 +583,170 @@ function setupContractListMode() {
     contractListDescription.hidden = false;
     contractListDescription.textContent = pageCopy.description;
   }
+}
+
+function renderCustomerCards() {
+  if (!contractCardList) return;
+  const groups = new Map();
+  cloudContracts.map(toDisplayContract).forEach((contract) => {
+    const data = contract.data || {};
+    const key = normalizeLookupValue(data.buyerEmail)
+      || normalizeLookupValue(data.buyerPhone)
+      || normalizeLookupValue(data.buyerMobile)
+      || normalizeLookupValue(contract.buyerName)
+      || `unknown-${contract.id}`;
+    const current = groups.get(key) || { latest: contract, contracts: [] };
+    current.contracts.push(contract);
+    if (new Date(contract.updatedAt || 0) > new Date(current.latest.updatedAt || 0)) current.latest = contract;
+    groups.set(key, current);
+  });
+  const customers = Array.from(groups.values()).filter(({ latest, contracts }) => {
+    const data = latest.data || {};
+    const haystack = [
+      latest.buyerName,
+      data.buyerKana,
+      data.buyerPhone,
+      data.buyerMobile,
+      data.buyerEmail,
+      data.buyerAddress,
+      ...contracts.map((item) => item.vehicleName),
+    ].join(" ").toLowerCase();
+    return !activeSearchTerm || haystack.includes(activeSearchTerm);
+  });
+  if (!customers.length) {
+    contractCardList.innerHTML = '<div class="contract-list-empty">表示できる顧客はありません。</div>';
+    return;
+  }
+  contractCardList.innerHTML = customers.map(({ latest, contracts }) => {
+    const data = latest.data || {};
+    const contact = [data.buyerPhone || data.buyerMobile, data.buyerEmail].filter(Boolean).join(" / ") || "連絡先未入力";
+    const address = data.buyerAddress || "住所未入力";
+    return `
+      <article class="contract-list-card management-list-card">
+        <div class="contract-card-main">
+          <strong>${escapeHtml(latest.buyerName || "氏名未入力")}</strong>
+          <span>${escapeHtml(contact)}</span>
+          <small>${escapeHtml(address)} / 契約・見積 ${contracts.length}件</small>
+        </div>
+        <div class="contract-card-actions">
+          <button class="secondary-button compact" type="button" data-contract-action="edit" data-contract-id="${escapeHtml(latest.id)}">最新書類を開く</button>
+        </div>
+      </article>`;
+  }).join("");
+}
+
+function renderVehicleCards() {
+  if (!contractCardList) return;
+  const groups = new Map();
+  cloudContracts.map(toDisplayContract).forEach((contract) => {
+    const data = contract.data || {};
+    const key = normalizeLookupValue(data.vehicleVin)
+      || normalizeLookupValue(data.vehiclePlate)
+      || normalizeLookupValue(`${contract.vehicleName}-${data.vehicleYear || ""}`)
+      || `unknown-${contract.id}`;
+    const current = groups.get(key) || { latest: contract, contracts: [] };
+    current.contracts.push(contract);
+    if (new Date(contract.updatedAt || 0) > new Date(current.latest.updatedAt || 0)) current.latest = contract;
+    groups.set(key, current);
+  });
+  const vehicles = Array.from(groups.values()).filter(({ latest, contracts }) => {
+    const data = latest.data || {};
+    const haystack = [
+      latest.vehicleName,
+      data.vehicleGrade,
+      data.vehicleYear,
+      data.vehicleVin,
+      data.vehiclePlate,
+      latest.buyerName,
+      ...contracts.map((item) => item.buyerName),
+    ].join(" ").toLowerCase();
+    return !activeSearchTerm || haystack.includes(activeSearchTerm);
+  });
+  if (!vehicles.length) {
+    contractCardList.innerHTML = '<div class="contract-list-empty">表示できる販売車両はありません。</div>';
+    return;
+  }
+  contractCardList.innerHTML = vehicles.map(({ latest, contracts }) => {
+    const data = latest.data || {};
+    const vehicle = [latest.vehicleName, data.vehicleGrade].filter(Boolean).join(" ") || "車両未入力";
+    const identity = [data.vehicleYear, data.vehicleVin, data.vehiclePlate].filter(Boolean).join(" / ") || "車両番号未入力";
+    return `
+      <article class="contract-list-card management-list-card">
+        <div class="contract-card-main">
+          <strong>${escapeHtml(vehicle)}</strong>
+          <span>${escapeHtml(identity)}</span>
+          <small>買主: ${escapeHtml(latest.buyerName || "未入力")} / 関連書類 ${contracts.length}件</small>
+        </div>
+        <div class="contract-card-actions">
+          <button class="secondary-button compact" type="button" data-contract-action="edit" data-contract-id="${escapeHtml(latest.id)}">最新書類を開く</button>
+        </div>
+      </article>`;
+  }).join("");
+}
+
+function normalizeLookupValue(value) {
+  return String(value || "").trim().toLowerCase().replace(/[\s-]/g, "");
+}
+
+async function loadAdminNotifications() {
+  if (!adminNotificationList || !supabase || !currentUser) return;
+  adminNotificationList.innerHTML = '<p class="contract-list-empty">通知を読み込んでいます。</p>';
+  const { data, error } = await supabase
+    .from("order_auto_admin_notifications")
+    .select("*")
+    .eq("owner_user_id", currentUser.id)
+    .order("created_at", { ascending: false })
+    .limit(50);
+  if (error) {
+    adminNotificationList.innerHTML = '<p class="contract-list-empty">通知機能のSupabase設定を確認してください。</p>';
+    return;
+  }
+  const notifications = data || [];
+  if (!notifications.length) {
+    adminNotificationList.innerHTML = '<p class="contract-list-empty">新しい通知はありません。</p>';
+    return;
+  }
+  adminNotificationList.innerHTML = notifications.map((notification) => {
+    const unreadClass = notification.read_at ? "" : " is-unread";
+    const readButton = notification.read_at ? "" : `<button class="secondary-button compact" type="button" data-notification-action="read" data-notification-id="${notification.id}">確認済みにする</button>`;
+    return `
+      <article class="admin-notification-item${unreadClass}">
+        <div>
+          <strong>${escapeHtml(notification.title || "契約通知")}</strong>
+          <p>${escapeHtml(notification.message || "")}</p>
+          <small>${escapeHtml(formatDateTime(notification.created_at))}</small>
+        </div>
+        <div class="admin-notification-item-actions">
+          ${readButton}
+          <button class="secondary-button compact danger" type="button" data-notification-action="delete" data-notification-id="${notification.id}">削除</button>
+        </div>
+      </article>`;
+  }).join("");
+}
+
+async function handleNotificationAction(event) {
+  const button = event.target.closest("[data-notification-action]");
+  if (!button || !supabase || !currentUser) return;
+  const id = button.dataset.notificationId;
+  const action = button.dataset.notificationAction;
+  button.disabled = true;
+  if (action === "read") {
+    await supabase.from("order_auto_admin_notifications").update({ read_at: new Date().toISOString() }).eq("id", id).eq("owner_user_id", currentUser.id);
+  } else if (action === "delete") {
+    await supabase.from("order_auto_admin_notifications").delete().eq("id", id).eq("owner_user_id", currentUser.id);
+  }
+  await loadAdminNotifications();
+}
+
+async function deleteReadNotifications() {
+  if (!supabase || !currentUser) return;
+  await supabase.from("order_auto_admin_notifications").delete().eq("owner_user_id", currentUser.id).not("read_at", "is", null);
+  await loadAdminNotifications();
+}
+
+function formatDateTime(value) {
+  const date = value ? new Date(value) : null;
+  return date && !Number.isNaN(date.getTime()) ? date.toLocaleString("ja-JP") : "";
 }
 
 async function startInPersonSignature(contractId) {

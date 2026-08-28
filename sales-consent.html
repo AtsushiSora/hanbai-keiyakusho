@@ -6,7 +6,7 @@
     <title>販売書類の確認｜オーダーオート</title>
     <meta name="description" content="オーダーオートの車両販売契約書・見積書を安全に確認するページです。" />
     <meta name="robots" content="noindex, nofollow" />
-    <link rel="stylesheet" href="styles.css?v=contract37" />
+    <link rel="stylesheet" href="styles.css?v=contract38" />
   </head>
   <body class="contract-page sales-contract-system consent-page">
     <header class="site-header admin-header">
@@ -45,6 +45,52 @@
 
           <p class="contract-save-status warning" id="consentError" hidden>書類データを読み込めませんでした。</p>
 
+          <section class="consent-summary customer-entry-section" id="customerEntrySection" hidden>
+            <div>
+              <p class="section-kicker">Customer Information</p>
+              <h2>1. お客様情報を入力</h2>
+              <p>契約書へ記載する情報を入力してください。入力後、契約内容と重要事項をご確認いただけます。</p>
+            </div>
+            <form id="customerEntryForm" novalidate>
+              <div class="customer-entry-grid">
+                <label>
+                  <span>氏名 <em>必須</em></span>
+                  <input name="buyerName" autocomplete="name" required />
+                </label>
+                <label>
+                  <span>フリガナ</span>
+                  <input name="buyerKana" autocomplete="off" />
+                </label>
+                <label>
+                  <span>生年月日</span>
+                  <input name="buyerBirthday" type="date" autocomplete="bday" />
+                </label>
+                <label>
+                  <span>郵便番号 <em>必須</em></span>
+                  <input name="buyerZip" inputmode="numeric" autocomplete="postal-code" placeholder="例）731-5124" required />
+                </label>
+                <label class="customer-entry-wide">
+                  <span>住所 <em>必須</em></span>
+                  <input name="buyerAddress" autocomplete="street-address" required />
+                </label>
+                <label>
+                  <span>電話番号 <em>必須</em></span>
+                  <input name="buyerPhone" type="tel" inputmode="tel" autocomplete="tel" placeholder="例）090-0000-0000" required />
+                </label>
+                <label>
+                  <span>メールアドレス</span>
+                  <input name="buyerEmail" type="email" autocomplete="email" />
+                </label>
+                <label class="customer-entry-wide">
+                  <span>勤務先</span>
+                  <input name="buyerWorkplace" autocomplete="organization" />
+                </label>
+              </div>
+              <p class="field-error-message" id="customerEntryError" hidden>必須項目と入力形式を確認してください。</p>
+              <button class="primary-link" type="submit">入力内容を反映して契約確認へ</button>
+            </form>
+          </section>
+
           <section class="consent-summary" id="consentSummary" hidden>
             <h2 id="consentSummaryTitle">1. 契約内容を確認</h2>
             <dl id="summaryList"></dl>
@@ -69,7 +115,7 @@
           </section>
 
           <section class="consent-summary" id="consentChecks" hidden>
-            <h2>2. 確認項目にチェック</h2>
+            <h2 id="consentChecksTitle">2. 確認項目にチェック</h2>
             <p>契約内容と重要事項を確認し、すべての項目にチェックを入れてください。</p>
             <div class="consent-check-list">
               <label><input type="checkbox" name="customerConsent" value="契約内容と重要事項を確認しました" />契約内容と重要事項を確認しました</label>
@@ -81,7 +127,7 @@
           </section>
 
           <section class="consent-summary" id="customerSignSection" hidden>
-            <h2>3. ご署名</h2>
+            <h2 id="customerSignTitle">3. ご署名</h2>
             <p>確認項目にすべてチェックした後、氏名を確認して署名欄へご署名ください。</p>
             <label>
               <span>氏名</span>
@@ -97,7 +143,7 @@
           </section>
 
           <section class="consent-summary signed-document-actions" id="signedDocumentActions" hidden>
-            <h2>4. 契約完了・完了メール送信</h2>
+            <h2 id="signedDocumentTitle">4. 契約完了・完了メール送信</h2>
             <p>ご署名が完了しました。「完了メールを作成」を押してメールを開き、そのまま送信してください。</p>
             <div class="remote-action-grid">
               <button class="secondary-button" type="button" id="viewSignedContractButton">署名済み契約書を表示</button>
@@ -109,6 +155,6 @@
       </section>
     </main>
 
-    <script type="module" src="sales-consent.js?v=supabase6"></script>
+    <script type="module" src="sales-consent.js?v=supabase7"></script>
   </body>
 </html>

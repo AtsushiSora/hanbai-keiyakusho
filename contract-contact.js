@@ -162,9 +162,6 @@ async function generateConsentUrl() {
 
 function getRemoteContractValidationError(data) {
   const missing = [];
-  if (!String(data.buyerName || "").trim()) {
-    missing.push("氏名");
-  }
   if (!String(data.vehicleName || "").trim()) {
     missing.push("車種名");
   }
@@ -351,12 +348,13 @@ function getDocumentCopy(data = {}) {
     pageTitle: "メール・LINEで契約",
     pageKicker: "Remote Contract",
     amountLabel: "総支払額",
-    emailIntroduction: "車両販売契約の内容確認をお願いいたします。",
-    lineIntroduction: "車両販売契約の内容確認をお願いします。",
+    emailIntroduction: "車両販売契約のお手続きをお願いいたします。お客様情報は確認画面でご入力いただけます。",
+    lineIntroduction: "車両販売契約のお手続きをお願いします。お客様情報は確認画面でご入力いただけます。",
     customerFlowTitle: "【ご契約手続きの流れ】",
     customerFlowDescription: "契約内容と重要事項の確認後、チェックとご署名を行い、完了メールを送信します。",
     customerSteps: [
       "確認URLを開き、別途届いた8桁の開封パスコードを入力します。",
+      "氏名・住所・電話番号などのお客様情報を入力します。",
       "契約内容と重要事項をご確認ください。",
       "確認・同意項目のすべてにチェックを入れます。",
       "氏名とご署名を入力し、「署名を完了」を押します。",

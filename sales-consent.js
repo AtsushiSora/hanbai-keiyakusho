@@ -8,6 +8,8 @@ const consentProgress = document.querySelector("#consentProgress");
 const consentProgressSteps = document.querySelector("#consentProgressSteps");
 const consentDocumentSection = document.querySelector("#consentDocumentSection");
 const consentDocumentPreview = document.querySelector("#consentDocumentPreview");
+const customerEntrySection = document.querySelector("#customerEntrySection");
+const customerEntryForm = document.querySelector("#customerEntryForm");
 
 let loadedContract = null;
 let isDrawing = false;
@@ -23,6 +25,9 @@ document.querySelector("#clearSignatureButton")?.addEventListener("click", clear
 document.querySelector("#viewSignedContractButton")?.addEventListener("click", () => openSignedContract(false));
 document.querySelector("#printSignedContractButton")?.addEventListener("click", () => openSignedContract(true));
 document.querySelector("#completionEmailButton")?.addEventListener("click", openCompletionEmail);
+customerEntryForm?.addEventListener("submit", applyCustomerEntry);
+customerEntryForm?.elements.buyerZip?.addEventListener("input", formatCustomerPostalCode);
+customerEntryForm?.elements.buyerPhone?.addEventListener("input", formatCustomerPhone);
 document.querySelector("#consentChecks")?.addEventListener("focusin", () => setConsentProgress(2));
 document.querySelector("#customerSignSection")?.addEventListener("focusin", () => setConsentProgress(3));
 document.querySelector("#customerSignSection")?.addEventListener("pointerdown", () => setConsentProgress(3));
@@ -107,12 +112,34 @@ function renderContract() {
   const data = loadedContract?.data || {};
   const isEstimate = isEstimateDocument(data);
   updateConsentPageCopy(isEstimate);
+  fillCustomerEntryForm(data);
+  document.querySelector("#consentUnlock").hidden = true;
+  document.querySelector("#consentError").hidden = true;
+  if (consentProgress) consentProgress.hidden = false;
+
+  if (!isInPersonMode && !isEstimate) {
+    customerEntrySection.hidden = false;
+    hideContractReview();
+    setConsentProgress(1);
+    customerEntryForm?.elements.buyerName?.focus();
+    return;
+  }
+
+  customerEntrySection.hidden = true;
+  showContractReview(data, isEstimate);
+}
+
+function showContractReview(data, isEstimate) {
   document.querySelector("#customerName").value = data.buyerName || "";
   const summaryRows = [
     summaryRow("買主氏名", data.buyerName),
+    summaryRow("フリガナ", data.buyerKana),
+    summaryRow("生年月日", data.buyerBirthday),
+    summaryRow("郵便番号", data.buyerZip),
     summaryRow("電話番号", data.buyerPhone),
     summaryRow("メール", data.buyerEmail),
     summaryRow("住所", data.buyerAddress),
+    summaryRow("勤務先", data.buyerWorkplace),
     summaryRow("車名", [data.vehicleName, data.vehicleGrade].filter(Boolean).join(" ")),
     summaryRow("年式", data.vehicleYear),
     summaryRow("車台番号", data.vehicleVin),
@@ -135,8 +162,6 @@ function renderContract() {
   }
   document.querySelector("#summaryList").innerHTML = summaryRows.join("");
 
-  document.querySelector("#consentUnlock").hidden = true;
-  document.querySelector("#consentError").hidden = true;
   document.querySelector("#consentSummary").hidden = false;
   if (consentDocumentSection) {
     consentDocumentSection.hidden = false;
@@ -153,11 +178,81 @@ function renderContract() {
     completeButton.disabled = true;
     completeButton.hidden = false;
   }
-  if (consentProgress) {
-    consentProgress.hidden = false;
-  }
-  setConsentProgress(1);
+  setConsentProgress(!isInPersonMode && !isEstimate ? 2 : 1);
   updateConsentDocumentPreview();
+}
+
+function hideContractReview() {
+  [
+    "#consentSummary",
+    "#consentDocumentSection",
+    "#estimateNotice",
+    "#consentChecks",
+    "#customerSignSection",
+    "#signedDocumentActions",
+  ].forEach((selector) => {
+    const element = document.querySelector(selector);
+    if (element) element.hidden = true;
+  });
+}
+
+function fillCustomerEntryForm(data) {
+  if (!customerEntryForm) return;
+  ["buyerName", "buyerKana", "buyerBirthday", "buyerZip", "buyerAddress", "buyerPhone", "buyerEmail", "buyerWorkplace"]
+    .forEach((name) => {
+      if (customerEntryForm.elements[name]) customerEntryForm.elements[name].value = data[name] || "";
+    });
+}
+
+function applyCustomerEntry(event) {
+  event.preventDefault();
+  const customerData = getCustomerEntryData();
+  const error = validateCustomerEntry(customerData);
+  const errorElement = document.querySelector("#customerEntryError");
+  if (errorElement) {
+    errorElement.hidden = !error;
+    errorElement.textContent = error || "";
+  }
+  if (error) return;
+
+  loadedContract.data = { ...loadedContract.data, ...customerData };
+  customerEntrySection.hidden = true;
+  showContractReview(loadedContract.data, false);
+  document.querySelector("#consentSummary")?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function getCustomerEntryData() {
+  const formData = new FormData(customerEntryForm);
+  return Object.fromEntries(
+    ["buyerName", "buyerKana", "buyerBirthday", "buyerZip", "buyerAddress", "buyerPhone", "buyerEmail", "buyerWorkplace"]
+      .map((name) => [name, String(formData.get(name) || "").trim()]),
+  );
+}
+
+function validateCustomerEntry(data) {
+  const postalDigits = data.buyerZip.replace(/\D/g, "");
+  const phoneDigits = data.buyerPhone.replace(/\D/g, "");
+  if (!data.buyerName || !data.buyerAddress || !data.buyerPhone || !data.buyerZip) {
+    return "氏名・郵便番号・住所・電話番号は必須です。";
+  }
+  if (postalDigits.length !== 7) return "郵便番号は7桁で入力してください。";
+  if (phoneDigits.length < 10 || phoneDigits.length > 11) return "電話番号を正しく入力してください。";
+  if (data.buyerEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.buyerEmail)) return "メールアドレスを正しく入力してください。";
+  return "";
+}
+
+function formatCustomerPostalCode(event) {
+  const field = event.currentTarget;
+  const digits = field.value.replace(/\D/g, "").slice(0, 7);
+  field.value = digits.length > 3 ? `${digits.slice(0, 3)}-${digits.slice(3)}` : digits;
+}
+
+function formatCustomerPhone(event) {
+  const field = event.currentTarget;
+  const digits = field.value.replace(/\D/g, "").slice(0, 11);
+  if (digits.length <= 3) field.value = digits;
+  else if (digits.length <= 7) field.value = `${digits.slice(0, 3)}-${digits.slice(3)}`;
+  else field.value = `${digits.slice(0, 3)}-${digits.slice(3, digits.length - 4)}-${digits.slice(-4)}`;
 }
 
 function handleConsentPreviewMessage(event) {
@@ -192,7 +287,8 @@ function updateConsentProgressFromChecks() {
   if (completeButton) {
     completeButton.disabled = !allChecked;
   }
-  setConsentProgress(allChecked ? 3 : 2);
+  const stepOffset = !isInPersonMode ? 1 : 0;
+  setConsentProgress(allChecked ? 3 + stepOffset : 2 + stepOffset);
 }
 
 function setConsentProgress(currentStep) {
@@ -218,6 +314,7 @@ async function completeConsent() {
     return;
   }
   const customerName = document.querySelector("#customerName")?.value.trim();
+  const customerData = { ...getCustomerEntryData(), buyerName: customerName };
   const checks = Array.from(document.querySelectorAll("[name='customerConsent']"));
   const allChecked = checks.length && checks.every((item) => item.checked);
   const hasError = !customerName || !allChecked || !hasSignature;
@@ -225,7 +322,7 @@ async function completeConsent() {
   document.querySelector("#consentChecksError").hidden = allChecked;
   document.querySelector("#signatureError").hidden = !hasError;
   if (hasError) {
-    setConsentProgress(allChecked ? 3 : 2);
+    setConsentProgress(allChecked ? (isInPersonMode ? 3 : 4) : (isInPersonMode ? 2 : 3));
     return;
   }
 
@@ -237,13 +334,18 @@ async function completeConsent() {
   completeButton.disabled = true;
   showCompletionStatus("署名を保存しています。");
   try {
-    const { data: completed, error } = await supabase.rpc("complete_order_auto_remote_contract", {
+    const completionArgs = {
       p_access_token: remoteAccessToken,
       p_passcode: remotePasscode,
       p_signer_name: customerName,
       p_consent_items: consentItems,
       p_signature_data_url: signatureDataUrl,
-    });
+    };
+    if (!isInPersonMode) completionArgs.p_customer_data = customerData;
+    const functionName = isInPersonMode
+      ? "complete_order_auto_remote_contract"
+      : "complete_order_auto_remote_contract_v2";
+    const { data: completed, error } = await supabase.rpc(functionName, completionArgs);
     if (error || completed !== true) {
       throw new Error("Remote contract completion failed");
     }
@@ -255,6 +357,7 @@ async function completeConsent() {
   }
   showCompletionStatus("署名と同意内容を保存し、契約を完了しました。");
 
+  loadedContract.data = { ...loadedContract.data, ...customerData };
   const data = loadedContract?.data || {};
   completedSignature = {
     signerName: customerName,
@@ -274,7 +377,7 @@ async function completeConsent() {
   ].join("\n");
   lockCompletedConsent();
   document.querySelector("#signedDocumentActions").hidden = false;
-  setConsentProgress(4);
+  setConsentProgress(isInPersonMode ? 4 : 5);
   showCompletionStatus("署名と同意内容を保存し、契約を完了しました。完了メールを作成して送信してください。");
 }
 
@@ -319,6 +422,9 @@ function lockCompletedConsent() {
   if (customerName) {
     customerName.readOnly = true;
   }
+  customerEntryForm?.querySelectorAll("input").forEach((input) => {
+    input.readOnly = true;
+  });
   const clearButton = document.querySelector("#clearSignatureButton");
   const completeButton = document.querySelector("#completeConsentButton");
   if (clearButton) {
@@ -429,10 +535,10 @@ function updateConsentPageCopy(isEstimate) {
       kicker: "Agreement",
       pageTitle: "契約内容の確認",
       introduction: "メール・LINEで届いた確認URLと、別途案内された開封パスコードを使って契約内容を確認してください。",
-      summaryTitle: "1. 契約内容を確認",
+      summaryTitle: "2. 契約内容を確認",
       documentTitle: "契約書・重要事項",
       documentDescription: "1ページ目の契約内容と、2ページ目の特約事項を最後までご確認ください。",
-      progressSteps: ["内容確認", "重要事項・チェック", "ご署名", "完了"],
+      progressSteps: ["お客様情報", "内容確認", "重要事項・チェック", "ご署名", "完了"],
       browserTitle: "販売契約内容の確認｜オーダーオート",
     };
   document.querySelector("#consentBrandTitle").textContent = copy.brandTitle;
@@ -442,6 +548,9 @@ function updateConsentPageCopy(isEstimate) {
   document.querySelector("#consentSummaryTitle").textContent = copy.summaryTitle;
   document.querySelector("#consentDocumentTitle").textContent = copy.documentTitle;
   document.querySelector("#consentDocumentDescription").textContent = copy.documentDescription;
+  document.querySelector("#consentChecksTitle").textContent = isInPersonMode || isEstimate ? "2. 確認項目にチェック" : "3. 確認項目にチェック";
+  document.querySelector("#customerSignTitle").textContent = isInPersonMode || isEstimate ? "3. ご署名" : "4. ご署名";
+  document.querySelector("#signedDocumentTitle").textContent = isInPersonMode || isEstimate ? "4. 契約完了・完了メール送信" : "5. 契約完了・完了メール送信";
   if (consentProgressSteps) {
     consentProgressSteps.style.setProperty("--flow-step-count", copy.progressSteps.length);
     consentProgressSteps.innerHTML = copy.progressSteps
