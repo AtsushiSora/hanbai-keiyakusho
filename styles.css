@@ -1781,6 +1781,11 @@ pre {
   line-height: 1.5;
 }
 
+.management-list-mode .backup-actions,
+.management-list-mode #contractStatusTabs {
+  display: none;
+}
+
 .contract-list-layout {
   display: grid;
   grid-template-columns: minmax(0, 1fr);
