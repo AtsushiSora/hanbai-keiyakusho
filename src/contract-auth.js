@@ -21,6 +21,7 @@ const authStatus = document.querySelector("#authStatus");
 const adminUserLabel = document.querySelector("#adminUserLabel");
 const logoutButton = document.querySelector("#adminLogoutButton");
 const saveServerContractButton = document.querySelector("#saveServerContractButton");
+const saveAndOpenRemoteButton = document.querySelector("#saveAndOpenRemoteButton");
 const saveEstimateButton = document.querySelector("#saveEstimateButton");
 const convertEstimateButton = document.querySelector("#convertEstimateButton");
 const serverContractStatus = document.querySelector("#serverContractStatus") || document.querySelector("#contractSaveStatus");
@@ -52,6 +53,7 @@ async function initAdminAuth() {
   loginForm?.addEventListener("submit", handleLoginSubmit);
   logoutButton?.addEventListener("click", handleLogout);
   saveServerContractButton?.addEventListener("click", () => saveCloudContract());
+  saveAndOpenRemoteButton?.addEventListener("click", saveAndOpenRemote);
   saveEstimateButton?.addEventListener("click", () => saveCloudContract("見積書"));
   convertEstimateButton?.addEventListener("click", convertCurrentEstimateToContract);
   contractListSearch?.addEventListener("input", () => {
@@ -279,14 +281,14 @@ function renderCloudContracts(selectedId = "") {
 
 async function saveCloudContract(requestedDocumentType = "") {
   if (isSavingCloud) {
-    return;
+    return null;
   }
   isSavingCloud = true;
   setCloudSaveButtonsDisabled(true);
   setStoredStatus(`${requestedDocumentType || "契約書"}の入力内容を確認しています。`);
   try {
     await new Promise((resolve) => requestAnimationFrame(resolve));
-    await persistCloudContract(requestedDocumentType);
+    return await persistCloudContract(requestedDocumentType);
   } finally {
     isSavingCloud = false;
     setCloudSaveButtonsDisabled(false);
@@ -296,7 +298,7 @@ async function saveCloudContract(requestedDocumentType = "") {
 async function persistCloudContract(requestedDocumentType = "") {
   if (!window.contractTool) {
     setStoredStatus("契約書作成ページで保存してください。");
-    return;
+    return null;
   }
 
   const currentPayload = window.contractTool.getRecordPayload();
@@ -307,7 +309,7 @@ async function persistCloudContract(requestedDocumentType = "") {
       : "draft";
   if (!window.contractTool.validateFor(validationMode)) {
     setStoredStatus("入力内容を確認してから保存してください。");
-    return;
+    return null;
   }
 
   if (requestedDocumentType === "見積書") {
@@ -325,7 +327,7 @@ async function persistCloudContract(requestedDocumentType = "") {
 
   if (!supabase || !currentUser) {
     setStoredStatus("Supabaseログイン後に保存できます。");
-    return;
+    return null;
   }
 
   setStoredStatus(`${documentType}をクラウド保存しています。`);
@@ -346,7 +348,7 @@ async function persistCloudContract(requestedDocumentType = "") {
 
   if (error) {
     setStoredStatus(`${documentType}をクラウド保存できませんでした。契約番号の自動発行設定を確認してください。`);
-    return;
+    return null;
   }
 
   await loadCloudContracts();
@@ -356,6 +358,16 @@ async function persistCloudContract(requestedDocumentType = "") {
   window.contractTool.setDocumentNumber?.(documentNumber);
   renderCloudContracts(savedId);
   setStoredStatus(`${documentType}をクラウド保存しました。番号: ${documentNumber}`);
+  return cloudContracts.find((contract) => contract.id === savedId) || (data ? fromSupabaseRecord(data) : record);
+}
+
+async function saveAndOpenRemote() {
+  const payload = window.contractTool?.getRecordPayload();
+  const requestedDocumentType = payload?.data?.documentType === "見積書" ? "見積書" : "";
+  const savedContract = await saveCloudContract(requestedDocumentType);
+  if (savedContract) {
+    transferContractToPage(savedContract, "contract-contact.html");
+  }
 }
 
 async function convertCurrentEstimateToContract() {
@@ -1193,6 +1205,9 @@ function setCloudSaveButtonsDisabled(disabled) {
   }
   if (saveEstimateButton) {
     saveEstimateButton.disabled = disabled;
+  }
+  if (saveAndOpenRemoteButton) {
+    saveAndOpenRemoteButton.disabled = disabled;
   }
 }
 

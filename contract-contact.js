@@ -12,6 +12,7 @@ const contractDraftKey = "orderAutoContractDraft";
 const remoteSelectedContract = document.querySelector("#remoteSelectedContract");
 const consentUrlField = document.querySelector("#consentUrl");
 const consentPasscodeField = document.querySelector("#consentPasscode");
+const remoteRecipientEmail = document.querySelector("#remoteRecipientEmail");
 const emailBody = document.querySelector("#emailBody");
 const contactStatus = document.querySelector("#contactStatus");
 const generateConsentUrlButton = document.querySelector("#generateConsentUrlButton");
@@ -24,6 +25,7 @@ const remoteCustomerFlowDescription = document.querySelector("#remoteCustomerFlo
 const remoteCustomerFlowSteps = document.querySelector("#remoteCustomerFlowSteps");
 
 renderSelectedContract();
+initializeRecipientEmail();
 buildEmailBody();
 
 generateConsentUrlButton?.addEventListener("click", generateConsentUrl);
@@ -31,6 +33,7 @@ copyConsentUrlButton?.addEventListener("click", copyConsentUrl);
 copyConsentPasscodeButton?.addEventListener("click", copyConsentPasscode);
 copyLineMessageButton?.addEventListener("click", copyLineMessage);
 openEmailButton?.addEventListener("click", openEmail);
+remoteRecipientEmail?.addEventListener("input", persistRecipientEmail);
 
 function getContractData() {
   try {
@@ -42,6 +45,20 @@ function getContractData() {
 
 function hasContractData(data = getContractData()) {
   return Object.values(data || {}).some((value) => String(value || "").trim());
+}
+
+function initializeRecipientEmail() {
+  if (!remoteRecipientEmail) {
+    return;
+  }
+  const data = getContractData();
+  remoteRecipientEmail.value = data.remoteRecipientEmail || data.buyerEmail || "";
+}
+
+function persistRecipientEmail() {
+  const data = getContractData();
+  data.remoteRecipientEmail = remoteRecipientEmail?.value.trim() || "";
+  sessionStorage.setItem(contractDraftKey, JSON.stringify(data));
 }
 
 function renderSelectedContract() {
@@ -257,10 +274,23 @@ async function openEmail() {
     return;
   }
 
-  buildEmailBody();
   const data = getContractData();
+  const recipient = remoteRecipientEmail?.value.trim() || "";
+  if (!recipient) {
+    remoteRecipientEmail?.focus();
+    setStatus("送信先メールアドレスを入力してください。LINEで送る場合は「LINE文面コピー」を使用してください。");
+    return;
+  }
+  if (!remoteRecipientEmail.checkValidity()) {
+    remoteRecipientEmail.focus();
+    setStatus("送信先メールアドレスの形式を確認してください。");
+    return;
+  }
+
+  persistRecipientEmail();
+  buildEmailBody();
   const copy = getDocumentCopy(data);
-  const href = `mailto:${encodeURIComponent(data.buyerEmail || "")}?subject=${encodeURIComponent(copy.emailSubject)}&body=${encodeURIComponent(emailBody?.value || "")}`;
+  const href = `mailto:${encodeURIComponent(recipient)}?subject=${encodeURIComponent(copy.emailSubject)}&body=${encodeURIComponent(emailBody?.value || "")}`;
   window.location.href = href;
   setStatus("メール作成画面を開きました。パスコードは別送してください。");
 }

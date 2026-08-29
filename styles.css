@@ -2509,6 +2509,13 @@ pre {
   font-weight: 900;
 }
 
+.remote-send-panel label small {
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 700;
+  line-height: 1.5;
+}
+
 .remote-send-panel input,
 .remote-send-panel textarea,
 .consent-card input:not([type="checkbox"]) {
