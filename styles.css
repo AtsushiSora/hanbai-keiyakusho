@@ -2130,6 +2130,42 @@ pre {
   border-color: #9a6b00;
 }
 
+.remote-draft-shortcut {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  padding: 16px;
+  border: 1px solid rgba(15, 122, 77, 0.28);
+  border-radius: var(--radius);
+  background: #f7fbf8;
+}
+
+.remote-draft-shortcut > div {
+  display: grid;
+  gap: 5px;
+}
+
+.remote-draft-shortcut strong {
+  color: var(--contract-green-dark, #0a4f35);
+  font-size: 1.05rem;
+}
+
+.remote-draft-shortcut p {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.88rem;
+  font-weight: 700;
+  line-height: 1.6;
+}
+
+.remote-draft-shortcut .primary-link {
+  flex: 0 0 min(360px, 42%);
+  min-height: 54px;
+  padding-inline: 22px;
+  text-align: center;
+}
+
 .auth-card,
 .server-contract-panel,
 .contract-editor-panel,
@@ -3053,13 +3089,41 @@ pre {
 
   .contract-editor-actions {
     display: grid;
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 6px;
   }
 
   .contract-editor-actions .primary-link,
   .contract-editor-actions .secondary-button {
     width: 100%;
     min-width: 0;
+    min-height: 46px;
+    padding: 7px 4px;
+    font-size: 0.72rem;
+    line-height: 1.25;
+    text-align: center;
+    white-space: normal;
+  }
+
+  .contract-editor-actions #printContractButton {
+    grid-column: 1 / -1;
+    min-height: 48px;
+    font-size: 0.84rem;
+  }
+
+  .remote-draft-shortcut {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
+    padding: 14px;
+  }
+
+  .remote-draft-shortcut .primary-link {
+    flex: 0 0 auto;
+    width: 100%;
+    min-height: 56px;
+    padding: 12px 16px;
+    font-size: 1rem;
   }
 
   legend.fieldset-summary {
