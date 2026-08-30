@@ -87,7 +87,6 @@ const measurementFieldUnits = {
   tradeMileage: "km",
 };
 const contractSectionOrder = [
-  "customer",
   "vehicle",
   "price",
   "expenses",
@@ -97,6 +96,8 @@ const contractSectionOrder = [
   "warranty",
   "payment",
   "recycle",
+  "remote",
+  "customer",
   "notes",
 ];
 const validationFieldLabels = {
