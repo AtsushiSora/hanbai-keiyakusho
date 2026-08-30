@@ -83,13 +83,6 @@
             <input name="downPayment" type="hidden" />
             <input name="dealerOptionPrice" type="hidden" />
             <input name="makerOptionPrice" type="hidden" />
-            <div class="remote-draft-shortcut">
-              <div>
-                <strong>メール・LINEで契約</strong>
-                <p>お客様情報は送信先の確認画面でご本人に入力していただけます。車両・金額・契約条件を入力してから進んでください。</p>
-              </div>
-              <button class="primary-link" type="button" id="saveAndOpenRemoteButton">保存してメール・LINEへ</button>
-            </div>
             <fieldset data-contract-section="basic">
               <legend>基本情報</legend>
               <div class="form-grid">
@@ -119,53 +112,6 @@
                     <option>中古車</option>
                     <option>新車</option>
                   </select>
-                </label>
-              </div>
-            </fieldset>
-
-            <fieldset data-contract-section="customer">
-              <legend>お客様情報</legend>
-              <div class="form-grid">
-                <label>
-                  <span>氏名</span>
-                  <input name="buyerName" type="text" placeholder="例）山田 太郎" />
-                </label>
-                <label>
-                  <span>フリガナ</span>
-                  <input name="buyerKana" type="text" />
-                </label>
-                <label>
-                  <span>郵便番号</span>
-                  <input name="buyerZip" type="text" placeholder="例）731-0000" />
-                </label>
-                <label class="form-grid-wide">
-                  <span>住所</span>
-                  <input name="buyerAddress" type="text" placeholder="例）広島県広島市..." />
-                </label>
-                <div class="form-field">
-                  <span>生年月日</span>
-                  <div class="date-select-row" role="group" aria-label="生年月日">
-                    <select id="buyerBirthYear" aria-label="生年月日の年"></select>
-                    <select id="buyerBirthMonth" aria-label="生年月日の月"></select>
-                    <select id="buyerBirthDay" aria-label="生年月日の日"></select>
-                  </div>
-                  <input name="buyerBirthday" type="hidden" />
-                </div>
-                <label>
-                  <span>電話番号</span>
-                  <input name="buyerPhone" type="tel" placeholder="例）090-0000-0000" />
-                </label>
-                <label>
-                  <span>携帯番号</span>
-                  <input name="buyerMobile" type="tel" />
-                </label>
-                <label>
-                  <span>メールアドレス</span>
-                  <input name="buyerEmail" type="email" placeholder="例）buyer@example.com" />
-                </label>
-                <label>
-                  <span>勤務先</span>
-                  <input name="buyerWorkplace" type="text" />
                 </label>
               </div>
             </fieldset>
@@ -628,6 +574,61 @@
                 <label>
                   <span>リサイクル合計</span>
                   <input name="depositTotal" inputmode="numeric" type="text" placeholder="未入力なら自動計算" />
+                </label>
+              </div>
+            </fieldset>
+
+            <div class="remote-draft-shortcut">
+              <div>
+                <strong>メール・LINEで契約</strong>
+                <p>お客様情報は送信先の確認画面でご本人に入力していただけます。車両・金額・契約条件を入力してから進んでください。</p>
+              </div>
+              <button class="primary-link" type="button" id="saveAndOpenRemoteButton">保存してメール・LINEへ</button>
+            </div>
+
+            <fieldset data-contract-section="customer">
+              <legend>お客様情報</legend>
+              <div class="form-grid">
+                <label>
+                  <span>氏名</span>
+                  <input name="buyerName" type="text" placeholder="例）山田 太郎" />
+                </label>
+                <label>
+                  <span>フリガナ</span>
+                  <input name="buyerKana" type="text" />
+                </label>
+                <label>
+                  <span>郵便番号</span>
+                  <input name="buyerZip" type="text" placeholder="例）731-0000" />
+                </label>
+                <label class="form-grid-wide">
+                  <span>住所</span>
+                  <input name="buyerAddress" type="text" placeholder="例）広島県広島市..." />
+                </label>
+                <div class="form-field">
+                  <span>生年月日</span>
+                  <div class="date-select-row" role="group" aria-label="生年月日">
+                    <select id="buyerBirthYear" aria-label="生年月日の年"></select>
+                    <select id="buyerBirthMonth" aria-label="生年月日の月"></select>
+                    <select id="buyerBirthDay" aria-label="生年月日の日"></select>
+                  </div>
+                  <input name="buyerBirthday" type="hidden" />
+                </div>
+                <label>
+                  <span>電話番号</span>
+                  <input name="buyerPhone" type="tel" placeholder="例）090-0000-0000" />
+                </label>
+                <label>
+                  <span>携帯番号</span>
+                  <input name="buyerMobile" type="tel" />
+                </label>
+                <label>
+                  <span>メールアドレス</span>
+                  <input name="buyerEmail" type="email" placeholder="例）buyer@example.com" />
+                </label>
+                <label>
+                  <span>勤務先</span>
+                  <input name="buyerWorkplace" type="text" />
                 </label>
               </div>
             </fieldset>
