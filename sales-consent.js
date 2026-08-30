@@ -1,6 +1,6 @@
 import { isSupabaseConfigured, supabase } from "./src/supabase-client.js";
 
-const ORDER_AUTO_EMAIL = "sora29128616@gmail.com";
+const ORDER_AUTO_EMAIL = "info@order-auto.com";
 const salesTemplateImportKey = "orderAutoSalesTemplateImport";
 const inPersonPasscodeKey = "orderAutoInPersonPasscode";
 const isInPersonMode = new URLSearchParams(window.location.search).get("inperson") === "1";
