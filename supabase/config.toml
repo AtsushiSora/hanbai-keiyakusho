@@ -1,0 +1,10 @@
+project_id = "otvjoshfxcrdhvqvpsbz"
+
+[functions.submit-sales-consent]
+verify_jwt = false
+
+[functions.confirm-sales-contract]
+verify_jwt = false
+
+[functions.download-sales-contract]
+verify_jwt = false

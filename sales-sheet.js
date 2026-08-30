@@ -10,6 +10,7 @@ const feeExtraRows = document.querySelector("#feeExtraRows");
 const pageParams = new URLSearchParams(window.location.search);
 const isPreviewMode = pageParams.get("preview") === "1";
 const isSignedMode = pageParams.get("signed") === "1";
+const isPdfCaptureMode = pageParams.get("capture") === "1";
 
 const storageKey = "orderAutoSalesSheetRecords";
 const draftKey = "orderAutoSalesSheetDraft";
@@ -26,6 +27,9 @@ let isGeneratingPdf = false;
 if (isPreviewMode) {
   document.body.classList.add("preview-embed");
 }
+if (isPdfCaptureMode) {
+  document.body.classList.add("pdf-generator-embed");
+}
 
 createRepeatingRows();
 setDefaultValues();
@@ -38,6 +42,7 @@ if (isSignedMode) {
   setupSignedDocumentMode();
 }
 setupPreviewBridge();
+setupPdfCaptureBridge();
 if (importedContract?.autoPrint) {
   schedulePrint();
 }
@@ -78,6 +83,50 @@ function setupPreviewBridge() {
     calculateTotals();
   });
   window.parent.postMessage({ type: "order-auto-preview-ready" }, window.location.origin);
+}
+
+function setupPdfCaptureBridge() {
+  if (!isPdfCaptureMode || window.parent === window) {
+    return;
+  }
+  window.addEventListener("message", async (event) => {
+    if (
+      event.origin !== window.location.origin
+      || event.source !== window.parent
+      || event.data?.type !== "order-auto-generate-signed-pdf"
+      || !event.data.rawContractData
+    ) {
+      return;
+    }
+    const requestId = String(event.data.requestId || "");
+    try {
+      const templateData = mapRawContractToTemplate(event.data.rawContractData);
+      form.reset();
+      setDefaultValues();
+      applyFormData({
+        ...templateData,
+        signatureDataUrl: event.data.signatureDataUrl || "",
+        signerName: event.data.signerName || "",
+        signedAt: event.data.signedAt || "",
+      });
+      calculateTotals();
+      await new Promise((resolve) => requestAnimationFrame(() => requestAnimationFrame(resolve)));
+      const { pdf, pageCount } = await buildPrintablePdf();
+      window.parent.postMessage({
+        type: "order-auto-signed-pdf-ready",
+        requestId,
+        pageCount,
+        dataUrl: pdf.output("datauristring"),
+      }, window.location.origin);
+    } catch (error) {
+      console.error("PDF capture bridge failed", error);
+      window.parent.postMessage({
+        type: "order-auto-signed-pdf-error",
+        requestId,
+      }, window.location.origin);
+    }
+  });
+  window.parent.postMessage({ type: "order-auto-pdf-generator-ready" }, window.location.origin);
 }
 
 function createRepeatingRows() {
@@ -532,63 +581,10 @@ async function openPrintablePdf() {
   setStatus("印刷用PDFを作成しています...");
 
   try {
-    await waitForPdfAssets();
-    fitTemplateFields();
-
-    const sheets = [document.querySelector('[data-pdf-page="front"]')];
-    const termsSheet = document.querySelector('[data-pdf-page="terms"]');
-    if (termsSheet && !termsSheet.hidden) {
-      sheets.push(termsSheet);
-    }
-
-    const { jsPDF } = window.jspdf;
-    const pdf = new jsPDF({
-      orientation: "portrait",
-      unit: "mm",
-      format: "a4",
-      compress: true,
-    });
-    const data = getFormData();
-    const documentName = data.documentType === "見積書"
-      ? "お見積書"
-      : isSignedMode
-        ? "署名済み販売契約書"
-        : "販売契約書";
-    pdf.setProperties({
-      title: `${documentName} | オーダーオート`,
-      subject: documentName,
-      author: "オーダーオート",
-      creator: "オーダーオート 契約作成システム",
-    });
-
-    for (const [index, sheet] of sheets.entries()) {
-      if (!sheet) {
-        continue;
-      }
-      if (index > 0) {
-        pdf.addPage("a4", "portrait");
-      }
-
-      const canvas = await window.html2canvas(sheet, {
-        backgroundColor: "#ffffff",
-        scale: 2,
-        useCORS: true,
-        logging: false,
-        windowWidth: 1200,
-        windowHeight: 1600,
-        onclone(clonedDocument) {
-          clonedDocument.body.classList.add("pdf-capture-mode");
-          prepareClonedPdfFields(clonedDocument, data);
-          fitClonedTermsPage(clonedDocument);
-        },
-      });
-      addCanvasToA4Page(pdf, canvas);
-      canvas.width = 1;
-      canvas.height = 1;
-    }
+    const { pdf, pageCount } = await buildPrintablePdf();
 
     const blobUrl = URL.createObjectURL(pdf.output("blob"));
-    setStatus(`${sheets.length}ページのPDFを開きます。`);
+    setStatus(`${pageCount}ページのPDFを開きます。`);
     window.location.assign(blobUrl);
   } catch (error) {
     console.error("PDF generation failed", error);
@@ -600,6 +596,62 @@ async function openPrintablePdf() {
       printButton.removeAttribute("aria-busy");
     }
   }
+}
+
+async function buildPrintablePdf() {
+  if (!window.html2canvas || !window.jspdf?.jsPDF) {
+    throw new Error("PDF runtime is unavailable");
+  }
+  await waitForPdfAssets();
+  fitTemplateFields();
+
+  const sheets = [document.querySelector('[data-pdf-page="front"]')];
+  const termsSheet = document.querySelector('[data-pdf-page="terms"]');
+  if (termsSheet && !termsSheet.hidden) {
+    sheets.push(termsSheet);
+  }
+
+  const { jsPDF } = window.jspdf;
+  const pdf = new jsPDF({
+    orientation: "portrait",
+    unit: "mm",
+    format: "a4",
+    compress: true,
+  });
+  const data = getFormData();
+  const documentName = data.documentType === "見積書"
+    ? "お見積書"
+    : isSignedMode
+      ? "署名済み販売契約書"
+      : "販売契約書";
+  pdf.setProperties({
+    title: `${documentName} | オーダーオート`,
+    subject: documentName,
+    author: "オーダーオート",
+    creator: "オーダーオート 契約作成システム",
+  });
+
+  for (const [index, sheet] of sheets.entries()) {
+    if (!sheet) continue;
+    if (index > 0) pdf.addPage("a4", "portrait");
+    const canvas = await window.html2canvas(sheet, {
+      backgroundColor: "#ffffff",
+      scale: 2,
+      useCORS: true,
+      logging: false,
+      windowWidth: 1200,
+      windowHeight: 1600,
+      onclone(clonedDocument) {
+        clonedDocument.body.classList.add("pdf-capture-mode");
+        prepareClonedPdfFields(clonedDocument, data);
+        fitClonedTermsPage(clonedDocument);
+      },
+    });
+    addCanvasToA4Page(pdf, canvas);
+    canvas.width = 1;
+    canvas.height = 1;
+  }
+  return { pdf, pageCount: sheets.length };
 }
 
 function prepareClonedPdfFields(clonedDocument, sourceData = {}) {

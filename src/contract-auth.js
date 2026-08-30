@@ -529,6 +529,8 @@ function handleContractCardAction(event) {
     convertStoredEstimateToContract(id);
   } else if (action === "signed-pdf") {
     openSignedPdfById(id);
+  } else if (action === "confirm") {
+    confirmSalesContract(id, button);
   } else if (action === "in-person") {
     button.disabled = true;
     startInPersonSignature(id)
@@ -538,6 +540,40 @@ function handleContractCardAction(event) {
       });
   } else if (action === "delete") {
     deleteContractById(id);
+  }
+}
+
+async function confirmSalesContract(contractId, button) {
+  const selected = cloudContracts.find((contract) => contract.id === contractId);
+  const display = selected ? toDisplayContract(selected) : null;
+  if (!display || display.status !== "確認待ち") {
+    setStoredStatus("確認待ちの契約を読み込めませんでした。");
+    return;
+  }
+  const email = selected.data?.buyerEmail || selected.buyerEmail || "お客様のメールアドレス";
+  if (!window.confirm(`契約内容と署名済みPDFを確認済みにし、${email}へ契約完了メールを送信します。よろしいですか？`)) {
+    return;
+  }
+  const originalLabel = button.textContent;
+  button.disabled = true;
+  button.textContent = "送信中";
+  setStoredStatus("契約完了メールを送信しています。");
+  try {
+    const { data, error } = await supabase.functions.invoke("confirm-sales-contract", {
+      body: { contractId },
+    });
+    if (error || !data?.ok || data.emailStatus !== "sent") {
+      throw new Error("Completion email was not accepted");
+    }
+    setStoredStatus("契約完了メールとお客様控えPDFのURLを送信しました。");
+    await Promise.all([loadCloudContracts(), loadAdminNotifications()]);
+  } catch (error) {
+    console.error(error);
+    setStoredStatus("契約完了メールを送信できませんでした。メールアドレスと通信状態を確認してください。");
+    await loadCloudContracts();
+    window.alert("送信できませんでした。契約は確認待ちのままです。");
+    button.disabled = false;
+    button.textContent = originalLabel;
   }
 }
 
@@ -772,8 +808,10 @@ async function startInPersonSignature(contractId) {
     setStoredStatus("見積書には署名できません。先に契約書へ変換してください。");
     return;
   }
-  if (display.status === "完了") {
-    setStoredStatus("この契約は署名完了済みです。");
+  if (["確認待ち", "完了"].includes(display.status)) {
+    setStoredStatus(display.status === "確認待ち"
+      ? "この契約は管理者の確認待ちです。"
+      : "この契約は署名完了済みです。");
     return;
   }
   const validationError = getInPersonValidationError(display.data || {});
@@ -855,7 +893,7 @@ async function openSignedPdfById(contractId) {
     .select("contract_data, signer_name, signature_data_url, completed_at")
     .eq("contract_id", contractId)
     .eq("owner_user_id", currentUser.id)
-    .eq("status", "完了")
+    .in("status", ["確認待ち", "完了"])
     .order("completed_at", { ascending: false })
     .limit(1);
   const signedRecord = data?.[0];
@@ -908,20 +946,30 @@ function renderContractCards(selectedId = "") {
     const convertButton = contract.documentType === "見積書"
       ? `<button class="secondary-button compact convert-contract-button" type="button" data-contract-action="convert" data-contract-id="${escapeHtml(contract.id)}">契約書に変換</button>`
       : "";
-    const signedPdfButton = contract.documentType !== "見積書" && contract.status === "完了"
+    const isPendingReview = contract.status === "確認待ち";
+    const signedPdfButton = contract.documentType !== "見積書" && ["確認待ち", "完了"].includes(contract.status)
       ? `<button class="secondary-button compact" type="button" data-contract-action="signed-pdf" data-contract-id="${escapeHtml(contract.id)}">署名済みPDF</button>`
       : "";
-    const standardActions = `
+    const confirmationActions = `
+      ${signedPdfButton}
+      <button class="primary-link compact" type="button" data-contract-action="confirm" data-contract-id="${escapeHtml(contract.id)}">確認完了・メール送信</button>
+    `;
+    const editableActions = `
       ${convertButton}
       ${signedPdfButton}
       <button class="secondary-button compact" type="button" data-contract-action="remote" data-contract-id="${escapeHtml(contract.id)}">${remoteButtonLabel}</button>
       <button class="secondary-button compact" type="button" data-contract-action="edit" data-contract-id="${escapeHtml(contract.id)}">編集</button>
       <button class="secondary-button compact danger" type="button" data-contract-action="delete" data-contract-id="${escapeHtml(contract.id)}">削除</button>
     `;
-    const inPersonActions = contract.status === "完了"
+    const standardActions = isPendingReview ? confirmationActions : editableActions;
+    const inPersonActions = isPendingReview
+      ? confirmationActions
+      : contract.status === "完了"
       ? signedPdfButton || '<span class="completed-signature-label">署名完了済み</span>'
       : `<button class="primary-link compact" type="button" data-contract-action="in-person" data-contract-id="${escapeHtml(contract.id)}">この契約に署名</button>`;
-    const remoteSelectionActions = contract.status === "完了"
+    const remoteSelectionActions = isPendingReview
+      ? confirmationActions
+      : contract.status === "完了"
       ? signedPdfButton || '<span class="completed-signature-label">署名完了済み</span>'
       : `<button class="primary-link compact" type="button" data-contract-action="remote" data-contract-id="${escapeHtml(contract.id)}">メール・LINEで送る</button>`;
     const selectionActions = isInPersonMode
@@ -1046,6 +1094,9 @@ function fromSupabaseRecord(record) {
     totalPrice: record.total_price,
     status: record.status,
     documentType: record.document_type,
+    buyerEmail: record.buyer_email || "",
+    customerPdfPath: record.customer_pdf_path || "",
+    confirmationEmailStatus: record.confirmation_email_status || "",
     data: record.data || {},
   });
 }
@@ -1065,6 +1116,9 @@ function normalizeContractRecord(record) {
   normalized.totalPrice = record.totalPrice || display.totalPrice;
   normalized.status = record.status || display.status;
   normalized.documentType = record.documentType || display.documentType;
+  normalized.buyerEmail = record.buyerEmail || data.buyerEmail || "";
+  normalized.customerPdfPath = record.customerPdfPath || "";
+  normalized.confirmationEmailStatus = record.confirmationEmailStatus || "";
   return normalized;
 }
 
@@ -1077,6 +1131,9 @@ function toDisplayContract(record) {
     totalPrice: record.totalPrice || formatPrice(data.totalPrice || calculateTotal(data)) || "",
     status: record.status || data.remoteStatus || data.contractStatus || "下書き",
     documentType: record.documentType || data.documentType || "契約書",
+    buyerEmail: record.buyerEmail || data.buyerEmail || "",
+    customerPdfPath: record.customerPdfPath || "",
+    confirmationEmailStatus: record.confirmationEmailStatus || "",
     updatedAt: record.updatedAt || record.savedAt || "",
     data,
   };

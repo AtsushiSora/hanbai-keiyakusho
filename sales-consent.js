@@ -261,12 +261,12 @@ function getCustomerEntryData() {
 function validateCustomerEntry(data) {
   const postalDigits = data.buyerZip.replace(/\D/g, "");
   const phoneDigits = data.buyerPhone.replace(/\D/g, "");
-  if (!data.buyerLastName || !data.buyerFirstName || !data.buyerAddress || !data.buyerPhone || !data.buyerZip) {
-    return "名字・名前・郵便番号・住所・電話番号は必須です。";
+  if (!data.buyerLastName || !data.buyerFirstName || !data.buyerAddress || !data.buyerPhone || !data.buyerZip || !data.buyerEmail) {
+    return "名字・名前・郵便番号・住所・電話番号・メールアドレスは必須です。";
   }
   if (postalDigits.length !== 7) return "郵便番号は7桁で入力してください。";
   if (phoneDigits.length < 10 || phoneDigits.length > 11) return "電話番号を正しく入力してください。";
-  if (data.buyerEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.buyerEmail)) return "メールアドレスを正しく入力してください。";
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.buyerEmail)) return "メールアドレスを正しく入力してください。";
   return "";
 }
 
@@ -425,33 +425,52 @@ async function completeConsent() {
   const consentItems = checks.map((item) => item.value);
   const canvas = document.querySelector("#customerSignature");
   const signatureDataUrl = canvas.toDataURL("image/png");
-  const completedAt = new Date().toISOString();
+  let completedAt = new Date().toISOString();
   const completeButton = document.querySelector("#completeConsentButton");
   completeButton.disabled = true;
-  showCompletionStatus("署名を保存しています。");
+  showCompletionStatus(isInPersonMode ? "署名を保存しています。" : "署名済み契約書PDFを作成しています。");
   try {
-    const completionArgs = {
-      p_access_token: remoteAccessToken,
-      p_passcode: remotePasscode,
-      p_signer_name: customerName,
-      p_consent_items: consentItems,
-      p_signature_data_url: signatureDataUrl,
-    };
-    if (!isInPersonMode) completionArgs.p_customer_data = customerData;
-    const functionName = isInPersonMode
-      ? "complete_order_auto_remote_contract"
-      : "complete_order_auto_remote_contract_v2";
-    const { data: completed, error } = await supabase.rpc(functionName, completionArgs);
-    if (error || completed !== true) {
-      throw new Error("Remote contract completion failed");
+    if (isInPersonMode) {
+      const { data: completed, error } = await supabase.rpc("complete_order_auto_remote_contract", {
+        p_access_token: remoteAccessToken,
+        p_passcode: remotePasscode,
+        p_signer_name: customerName,
+        p_consent_items: consentItems,
+        p_signature_data_url: signatureDataUrl,
+      });
+      if (error || completed !== true) throw new Error("In-person completion failed");
+    } else {
+      const customerPdfDataUrl = await createSignedCustomerPdf({
+        rawContractData: { ...loadedContract.data, ...customerData },
+        signerName: customerName,
+        signatureDataUrl,
+        signedAt: completedAt,
+      });
+      showCompletionStatus("電子署名と契約書PDFをクラウド保存しています。");
+      const { data: submitted, error } = await supabase.functions.invoke("submit-sales-consent", {
+        body: {
+          accessToken: remoteAccessToken,
+          passcode: remotePasscode,
+          signerName: customerName,
+          consentItems,
+          signatureDataUrl,
+          customerData,
+          customerPdfDataUrl,
+        },
+      });
+      if (error || !submitted?.ok) throw new Error("Remote consent submission failed");
+      completedAt = submitted.completedAt || completedAt;
     }
-  } catch {
+  } catch (error) {
+    console.error(error);
     completeButton.disabled = false;
     showCompletionStatus("");
-    showError("契約を完了できませんでした。URLの有効期限を確認し、もう一度お試しください。");
+    showError("電子署名と契約書を保存できませんでした。通信状態とURLの有効期限を確認し、もう一度お試しください。");
     return;
   }
-  showCompletionStatus("署名と同意内容を保存し、契約を完了しました。");
+  showCompletionStatus(isInPersonMode
+    ? "署名と同意内容を保存し、契約を完了しました。"
+    : "電子署名を受け付けました。オーダーオートの確認待ちです。");
 
   loadedContract.data = { ...loadedContract.data, ...customerData };
   const data = loadedContract?.data || {};
@@ -461,20 +480,88 @@ async function completeConsent() {
     signedAt: completedAt,
   };
   completionEmailBody = [
-    "販売契約の確認が完了しました。",
+    isInPersonMode ? "販売契約の確認が完了しました。" : "販売契約の電子署名が完了しました。",
     "",
     `買主氏名: ${customerName}`,
     `車両: ${[data.vehicleName, data.vehicleGrade].filter(Boolean).join(" ") || "未入力"}`,
     `総支払額: ${formatYen(data.totalPrice || calculateTotal(data)) || "未入力"}`,
-    `確認日時: ${new Date().toLocaleString("ja-JP")}`,
+    `署名日時: ${new Date(completedAt).toLocaleString("ja-JP")}`,
     "",
     "確認項目:",
     ...consentItems.map((item) => `・${item}`),
+    ...(!isInPersonMode ? ["", "管理画面で契約内容と署名済みPDFを確認し、「確認完了・メール送信」を押してください。"] : []),
   ].join("\n");
   lockCompletedConsent();
   document.querySelector("#signedDocumentActions").hidden = false;
   setConsentProgress(isInPersonMode ? 4 : 5);
-  showCompletionStatus("署名と同意内容を保存し、契約を完了しました。完了メールを送信してください。");
+  configureCompletionActions();
+}
+
+function createSignedCustomerPdf(payload) {
+  return new Promise((resolve, reject) => {
+    const requestId = window.crypto?.randomUUID?.() || `${Date.now()}-${Math.random()}`;
+    const iframe = document.createElement("iframe");
+    const timeoutId = window.setTimeout(() => finish(new Error("PDF generation timed out")), 60000);
+    function finish(error, dataUrl = "") {
+      window.clearTimeout(timeoutId);
+      window.removeEventListener("message", handleMessage);
+      iframe.remove();
+      if (error) reject(error);
+      else resolve(dataUrl);
+    }
+    function handleMessage(event) {
+      if (event.origin !== window.location.origin || event.source !== iframe.contentWindow) return;
+      if (event.data?.type === "order-auto-pdf-generator-ready") {
+        iframe.contentWindow.postMessage({
+          type: "order-auto-generate-signed-pdf",
+          requestId,
+          ...payload,
+        }, window.location.origin);
+        return;
+      }
+      if (event.data?.requestId !== requestId) return;
+      if (event.data?.type === "order-auto-signed-pdf-error") {
+        finish(new Error("PDF generation failed"));
+      } else if (event.data?.type === "order-auto-signed-pdf-ready") {
+        const dataUrl = String(event.data.dataUrl || "");
+        if (!dataUrl.startsWith("data:application/pdf")) {
+          finish(new Error("Generated PDF is invalid"));
+          return;
+        }
+        finish(null, dataUrl);
+      }
+    }
+    window.addEventListener("message", handleMessage);
+    iframe.title = "署名済み契約書PDF作成";
+    iframe.src = "sales-template.html?signed=1&capture=1&v=confirmation1";
+    Object.assign(iframe.style, {
+      position: "fixed",
+      left: "-15000px",
+      top: "0",
+      width: "1200px",
+      height: "1600px",
+      border: "0",
+      opacity: "0.01",
+      pointerEvents: "none",
+    });
+    document.body.append(iframe);
+  });
+}
+
+function configureCompletionActions() {
+  const title = document.querySelector("#signedDocumentTitle");
+  const description = document.querySelector("#signedDocumentDescription");
+  const emailButton = document.querySelector("#completionEmailButton");
+  if (isInPersonMode) {
+    if (title) title.textContent = "4. 契約完了";
+    if (description) description.textContent = "ご署名が完了し、契約を保存しました。署名済み契約書を表示またはPDF保存できます。";
+    if (emailButton) emailButton.hidden = true;
+    return;
+  }
+  if (title) title.textContent = "5. 電子署名受付・確認依頼";
+  if (description) description.textContent = "電子署名を受け付けました。確認依頼メールを送信してください。オーダーオートの確認後、契約完了メールとお客様控えPDFのURLをお送りします。";
+  if (emailButton) emailButton.textContent = "確認依頼メールを送信";
+  showCompletionStatus("署名と契約書PDFを保存し、オーダーオートの確認待ちになりました。");
 }
 
 function openSignedContract(autoPrint) {
@@ -507,7 +594,8 @@ function openCompletionEmail() {
     showError("先に電子署名を完了してください。");
     return;
   }
-  window.location.href = `mailto:${ORDER_AUTO_EMAIL}?subject=${encodeURIComponent("販売契約確認完了")}&body=${encodeURIComponent(completionEmailBody)}`;
+  const subject = isInPersonMode ? "販売契約確認完了" : "【要確認】販売契約の電子署名完了";
+  window.location.href = `mailto:${ORDER_AUTO_EMAIL}?subject=${encodeURIComponent(subject)}&body=${encodeURIComponent(completionEmailBody)}`;
 }
 
 function lockCompletedConsent() {
@@ -646,7 +734,7 @@ function updateConsentPageCopy(isEstimate) {
   document.querySelector("#consentDocumentDescription").textContent = copy.documentDescription;
   document.querySelector("#consentChecksTitle").textContent = isInPersonMode || isEstimate ? "2. 確認項目にチェック" : "3. 確認項目にチェック";
   document.querySelector("#customerSignTitle").textContent = isInPersonMode || isEstimate ? "3. ご署名" : "4. ご署名";
-  document.querySelector("#signedDocumentTitle").textContent = isInPersonMode || isEstimate ? "4. 契約完了・完了メール送信" : "5. 契約完了・完了メール送信";
+  document.querySelector("#signedDocumentTitle").textContent = isInPersonMode || isEstimate ? "4. 契約完了" : "5. 電子署名受付・確認依頼";
   if (consentProgressSteps) {
     consentProgressSteps.style.setProperty("--flow-step-count", copy.progressSteps.length);
     consentProgressSteps.innerHTML = copy.progressSteps
