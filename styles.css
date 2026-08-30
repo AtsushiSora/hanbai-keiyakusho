@@ -2163,7 +2163,17 @@ pre {
   flex: 0 0 min(360px, 42%);
   min-height: 54px;
   padding-inline: 22px;
+  color: #fff;
+  background: var(--contract-green, #0f7a4d);
+  border-color: var(--contract-green, #0f7a4d);
+  box-shadow: 0 12px 24px rgba(15, 122, 77, 0.2);
   text-align: center;
+}
+
+.remote-draft-shortcut .primary-link:hover,
+.remote-draft-shortcut .primary-link:focus-visible {
+  background: var(--contract-green-dark, #0a4f35);
+  border-color: var(--contract-green-dark, #0a4f35);
 }
 
 .auth-card,
