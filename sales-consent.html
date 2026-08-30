@@ -54,8 +54,12 @@
             <form id="customerEntryForm" novalidate>
               <div class="customer-entry-grid">
                 <label>
-                  <span>氏名 <em>必須</em></span>
-                  <input name="buyerName" autocomplete="name" required />
+                  <span>名字 <em>必須</em></span>
+                  <input name="buyerLastName" autocomplete="family-name" required />
+                </label>
+                <label>
+                  <span>名前 <em>必須</em></span>
+                  <input name="buyerFirstName" autocomplete="given-name" required />
                 </label>
                 <label>
                   <span>フリガナ</span>
@@ -155,6 +159,6 @@
       </section>
     </main>
 
-    <script type="module" src="sales-consent.js?v=supabase7"></script>
+    <script type="module" src="sales-consent.js?v=supabase8"></script>
   </body>
 </html>

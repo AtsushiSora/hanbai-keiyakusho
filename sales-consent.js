@@ -121,7 +121,7 @@ function renderContract() {
     customerEntrySection.hidden = false;
     hideContractReview();
     setConsentProgress(1);
-    customerEntryForm?.elements.buyerName?.focus();
+    customerEntryForm?.elements.buyerLastName?.focus();
     return;
   }
 
@@ -198,10 +198,26 @@ function hideContractReview() {
 
 function fillCustomerEntryForm(data) {
   if (!customerEntryForm) return;
-  ["buyerName", "buyerKana", "buyerBirthday", "buyerZip", "buyerAddress", "buyerPhone", "buyerEmail", "buyerWorkplace"]
+  const [buyerLastName, buyerFirstName] = splitBuyerName(data);
+  customerEntryForm.elements.buyerLastName.value = buyerLastName;
+  customerEntryForm.elements.buyerFirstName.value = buyerFirstName;
+  ["buyerKana", "buyerBirthday", "buyerZip", "buyerAddress", "buyerPhone", "buyerEmail", "buyerWorkplace"]
     .forEach((name) => {
       if (customerEntryForm.elements[name]) customerEntryForm.elements[name].value = data[name] || "";
     });
+}
+
+function splitBuyerName(data = {}) {
+  const storedLastName = String(data.buyerLastName || "").trim();
+  const storedFirstName = String(data.buyerFirstName || "").trim();
+  if (storedLastName || storedFirstName) {
+    return [storedLastName, storedFirstName];
+  }
+
+  const parts = String(data.buyerName || "").trim().split(/\s+/).filter(Boolean);
+  return parts.length > 1
+    ? [parts[0], parts.slice(1).join(" ")]
+    : [parts[0] || "", ""];
 }
 
 function applyCustomerEntry(event) {
@@ -223,17 +239,25 @@ function applyCustomerEntry(event) {
 
 function getCustomerEntryData() {
   const formData = new FormData(customerEntryForm);
-  return Object.fromEntries(
-    ["buyerName", "buyerKana", "buyerBirthday", "buyerZip", "buyerAddress", "buyerPhone", "buyerEmail", "buyerWorkplace"]
+  const buyerLastName = String(formData.get("buyerLastName") || "").trim();
+  const buyerFirstName = String(formData.get("buyerFirstName") || "").trim();
+  const customerData = Object.fromEntries(
+    ["buyerKana", "buyerBirthday", "buyerZip", "buyerAddress", "buyerPhone", "buyerEmail", "buyerWorkplace"]
       .map((name) => [name, String(formData.get(name) || "").trim()]),
   );
+  return {
+    buyerLastName,
+    buyerFirstName,
+    buyerName: [buyerLastName, buyerFirstName].filter(Boolean).join(" "),
+    ...customerData,
+  };
 }
 
 function validateCustomerEntry(data) {
   const postalDigits = data.buyerZip.replace(/\D/g, "");
   const phoneDigits = data.buyerPhone.replace(/\D/g, "");
-  if (!data.buyerName || !data.buyerAddress || !data.buyerPhone || !data.buyerZip) {
-    return "氏名・郵便番号・住所・電話番号は必須です。";
+  if (!data.buyerLastName || !data.buyerFirstName || !data.buyerAddress || !data.buyerPhone || !data.buyerZip) {
+    return "名字・名前・郵便番号・住所・電話番号は必須です。";
   }
   if (postalDigits.length !== 7) return "郵便番号は7桁で入力してください。";
   if (phoneDigits.length < 10 || phoneDigits.length > 11) return "電話番号を正しく入力してください。";
