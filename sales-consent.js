@@ -474,7 +474,7 @@ async function completeConsent() {
   lockCompletedConsent();
   document.querySelector("#signedDocumentActions").hidden = false;
   setConsentProgress(isInPersonMode ? 4 : 5);
-  showCompletionStatus("署名と同意内容を保存し、契約を完了しました。完了メールを作成して送信してください。");
+  showCompletionStatus("署名と同意内容を保存し、契約を完了しました。完了メールを送信してください。");
 }
 
 function openSignedContract(autoPrint) {
