@@ -10,6 +10,8 @@ const consentDocumentSection = document.querySelector("#consentDocumentSection")
 const consentDocumentPreview = document.querySelector("#consentDocumentPreview");
 const customerEntrySection = document.querySelector("#customerEntrySection");
 const customerEntryForm = document.querySelector("#customerEntryForm");
+const customerPostalLookupStatus = document.querySelector("#customerPostalLookupStatus");
+const postalCodeApiUrl = "https://zipcloud.ibsnet.co.jp/api/search";
 
 let loadedContract = null;
 let isDrawing = false;
@@ -18,6 +20,9 @@ let remoteAccessToken = "";
 let remotePasscode = "";
 let completedSignature = null;
 let completionEmailBody = "";
+let customerPostalLookupController = null;
+let lastCustomerPostalCode = "";
+let lastCustomerAutoAddress = "";
 
 document.querySelector("#unlockConsentButton")?.addEventListener("click", unlockConsent);
 document.querySelector("#completeConsentButton")?.addEventListener("click", completeConsent);
@@ -269,6 +274,73 @@ function formatCustomerPostalCode(event) {
   const field = event.currentTarget;
   const digits = field.value.replace(/\D/g, "").slice(0, 7);
   field.value = digits.length > 3 ? `${digits.slice(0, 3)}-${digits.slice(3)}` : digits;
+  if (digits.length !== 7) {
+    customerPostalLookupController?.abort();
+    lastCustomerPostalCode = "";
+    setCustomerPostalLookupStatus("");
+    return;
+  }
+  lookupCustomerAddress(digits);
+}
+
+async function lookupCustomerAddress(postalCode) {
+  if (postalCode === lastCustomerPostalCode) return;
+
+  customerPostalLookupController?.abort();
+  customerPostalLookupController = new AbortController();
+  const currentController = customerPostalLookupController;
+  lastCustomerPostalCode = postalCode;
+  setCustomerPostalLookupStatus("住所を検索しています。");
+
+  try {
+    const response = await fetch(`${postalCodeApiUrl}?zipcode=${encodeURIComponent(postalCode)}`, {
+      signal: currentController.signal,
+      headers: { Accept: "application/json" },
+    });
+    if (!response.ok) throw new Error(`Postal lookup failed: ${response.status}`);
+
+    const payload = await response.json();
+    const result = Array.isArray(payload.results) ? payload.results[0] : null;
+    if (!result || currentController.signal.aborted) {
+      lastCustomerPostalCode = "";
+      setCustomerPostalLookupStatus("住所が見つかりませんでした。住所を入力してください。");
+      return;
+    }
+
+    const postalCodeField = customerEntryForm?.elements.buyerZip;
+    const addressField = customerEntryForm?.elements.buyerAddress;
+    const currentPostalCode = String(postalCodeField?.value || "").replace(/\D/g, "");
+    if (!addressField || currentPostalCode !== postalCode) return;
+
+    const address = [result.address1, result.address2, result.address3].filter(Boolean).join("");
+    const currentAddress = String(addressField.value || "").trim();
+    if (!address) {
+      setCustomerPostalLookupStatus("住所が見つかりませんでした。住所を入力してください。");
+      return;
+    }
+    if (currentAddress && currentAddress !== lastCustomerAutoAddress) {
+      setCustomerPostalLookupStatus("住所は入力済みのため変更していません。");
+      return;
+    }
+
+    addressField.value = address;
+    lastCustomerAutoAddress = address;
+    addressField.dispatchEvent(new Event("input", { bubbles: true }));
+    setCustomerPostalLookupStatus("住所を自動入力しました。番地以降を入力してください。");
+  } catch (error) {
+    if (error.name !== "AbortError") {
+      lastCustomerPostalCode = "";
+      setCustomerPostalLookupStatus("住所を検索できませんでした。住所を入力してください。");
+    }
+  } finally {
+    if (customerPostalLookupController === currentController) {
+      customerPostalLookupController = null;
+    }
+  }
+}
+
+function setCustomerPostalLookupStatus(message) {
+  if (customerPostalLookupStatus) customerPostalLookupStatus.textContent = message;
 }
 
 function formatCustomerPhone(event) {

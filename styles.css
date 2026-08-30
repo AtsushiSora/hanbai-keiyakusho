@@ -2679,6 +2679,14 @@ pre {
   gap: 14px;
 }
 
+.customer-postal-lookup-status {
+  min-height: 1.4em;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 700;
+  line-height: 1.45;
+}
+
 .customer-entry-grid label {
   display: grid;
   gap: 7px;

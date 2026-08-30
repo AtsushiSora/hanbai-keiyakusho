@@ -6,7 +6,7 @@
     <title>販売書類の確認｜オーダーオート</title>
     <meta name="description" content="オーダーオートの車両販売契約書・見積書を安全に確認するページです。" />
     <meta name="robots" content="noindex, nofollow" />
-    <link rel="stylesheet" href="styles.css?v=contract39" />
+    <link rel="stylesheet" href="styles.css?v=contract43" />
   </head>
   <body class="contract-page sales-contract-system consent-page">
     <header class="site-header admin-header">
@@ -72,6 +72,7 @@
                 <label>
                   <span>郵便番号 <em>必須</em></span>
                   <input name="buyerZip" inputmode="numeric" autocomplete="postal-code" placeholder="例）731-5124" required />
+                  <small class="customer-postal-lookup-status" id="customerPostalLookupStatus" aria-live="polite"></small>
                 </label>
                 <label class="customer-entry-wide">
                   <span>住所 <em>必須</em></span>
@@ -159,6 +160,6 @@
       </section>
     </main>
 
-    <script type="module" src="sales-consent.js?v=supabase8"></script>
+    <script type="module" src="sales-consent.js?v=supabase9"></script>
   </body>
 </html>
