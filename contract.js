@@ -188,6 +188,8 @@ function consumeManagementHandoff() {
     basePrice: Number.isFinite(amount) && amount >= 0 ? String(Math.trunc(amount)) : "",
     totalPrice: Number.isFinite(amount) && amount >= 0 ? String(Math.trunc(amount)) : "",
     paymentMethod,
+    __managementAssignmentId: text(payload.assignmentId, 80),
+    __managementCompletionToken: /^[0-9a-f]{64}$/.test(payload.completionToken || "") ? payload.completionToken : "",
     contractStatus: "下書き",
     remoteStatus: "下書き",
   });

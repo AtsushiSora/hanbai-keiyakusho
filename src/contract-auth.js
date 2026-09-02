@@ -7,6 +7,8 @@ const salesTemplateImportKey = "orderAutoSalesTemplateImport";
 const inPersonPasscodeKey = "orderAutoInPersonPasscode";
 const maxSalesOptionRows = 14;
 const authRequestTimeoutMs = 15000;
+const managementCompletionEndpoint = "https://wlinebwdmbnbjbyvqrig.supabase.co/rest/v1/rpc/complete_contract_handoff";
+const managementPublishableKey = "sb_publishable_298gkO4cyTqi21SwRtLnWQ_1-c5FTJe";
 const pageParams = new URLSearchParams(window.location.search);
 const isInPersonMode = pageParams.get("mode") === "in-person";
 const isRemoteSignatureMode = pageParams.get("mode") === "remote";
@@ -263,8 +265,32 @@ async function loadCloudContracts() {
   }
 
   cloudContracts = (data || []).map(fromSupabaseRecord);
+  void notifyManagementOfCompletedContracts(cloudContracts);
   renderCloudContracts(getCurrentRecordId());
   setStoredStatus(cloudContracts.length ? `${cloudContracts.length}件の契約を読み込みました。` : "保存済み契約はありません。");
+}
+
+async function notifyManagementOfCompletedContracts(contracts) {
+  const completed = contracts.filter((contract) => {
+    const status = toDisplayContract(contract).status;
+    return status === "完了" && /^[0-9a-f]{64}$/.test(contract.data?.__managementCompletionToken || "");
+  });
+
+  await Promise.allSettled(completed.map(async (contract) => {
+    const response = await fetch(managementCompletionEndpoint, {
+      method: "POST",
+      headers: {
+        apikey: managementPublishableKey,
+        Authorization: `Bearer ${managementPublishableKey}`,
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({
+        p_completion_token: contract.data.__managementCompletionToken,
+        p_external_contract_id: contract.id,
+      }),
+    });
+    if (!response.ok) throw new Error(await response.text());
+  }));
 }
 
 function renderCloudContracts(selectedId = "") {
