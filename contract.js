@@ -28,6 +28,7 @@ const saveServerContractButton = document.querySelector("#saveServerContractButt
 const saveEstimateButton = document.querySelector("#saveEstimateButton");
 const postalCodeApiUrl = "https://zipcloud.ibsnet.co.jp/api/search";
 const salesTemplateImportKey = "orderAutoSalesTemplateImport";
+const managementHandoffPrefix = "orderAutoContractHandoff:";
 const companyContact = [
   "オーダーオート",
   "代表者　空 篤志",
@@ -134,6 +135,7 @@ setupMeasurementFields();
 setupPdfPreviewFit();
 restoreDraft();
 setupCreationMode();
+consumeManagementHandoff();
 exposeContractToolApi();
 
 form?.addEventListener("input", handleFormInput);
@@ -147,6 +149,51 @@ shopCopyButton?.addEventListener("click", () => setPreviewCopy("店控え"));
 completeContractButton?.addEventListener("click", completeContract);
 contractPdfPreview?.addEventListener("load", updatePdfPreview);
 window.addEventListener("message", handlePdfPreviewMessage);
+
+function consumeManagementHandoff() {
+  const url = new URL(window.location.href);
+  const token = url.searchParams.get("handoff") || "";
+  if (!/^[0-9a-f]{8}-[0-9a-f-]{27}$/i.test(token)) return;
+
+  const storageKey = `${managementHandoffPrefix}${token}`;
+  let envelope;
+  try {
+    envelope = JSON.parse(sessionStorage.getItem(storageKey) || "null");
+  } catch {
+    envelope = null;
+  }
+  sessionStorage.removeItem(storageKey);
+  url.searchParams.delete("handoff");
+  history.replaceState(null, "", `${url.pathname}${url.search}${url.hash}`);
+
+  if (envelope?.version !== 1 || envelope?.target !== "sale" || Date.parse(envelope.expiresAt || "") <= Date.now()) {
+    updateSaveStatus("管理システムからの引き継ぎは期限切れです。管理システムからもう一度開いてください。");
+    return;
+  }
+
+  const payload = envelope.payload || {};
+  const text = (value, maxLength = 160) => String(value ?? "").trim().slice(0, maxLength);
+  const amount = Number(payload.amount);
+  const paymentMethod = payload.paymentMethod === "振込"
+    ? "銀行振込"
+    : payload.paymentMethod === "ローン会社"
+      ? "ローン"
+      : payload.paymentMethod === "現金" ? "現金" : "その他";
+  applyContractData({
+    buyerName: text(payload.customerName),
+    contractDate: text(payload.contractDate, 10),
+    controlNo: text(payload.managementNumber, 40),
+    vehicleName: text(payload.vehicleName),
+    vehicleVin: text(payload.chassisNumber, 80),
+    basePrice: Number.isFinite(amount) && amount >= 0 ? String(Math.trunc(amount)) : "",
+    totalPrice: Number.isFinite(amount) && amount >= 0 ? String(Math.trunc(amount)) : "",
+    paymentMethod,
+    contractStatus: "下書き",
+    remoteStatus: "下書き",
+  });
+  saveDraft();
+  updateSaveStatus("管理システムから販売契約の入力を引き継ぎました。内容を確認してから保存・署名へ進んでください。");
+}
 
 function setupPostalAddressLookup() {
   const postalCodeField = form?.elements.buyerZip;
