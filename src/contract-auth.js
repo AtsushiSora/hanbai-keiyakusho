@@ -289,7 +289,10 @@ async function notifyManagementOfCompletedContracts(contracts) {
         p_external_contract_id: contract.id,
       }),
     });
-    if (!response.ok) throw new Error(await response.text());
+    const result = await response.json().catch(() => null);
+    if (!response.ok || result?.success !== true) {
+      throw new Error("管理システムへ契約完了を反映できませんでした。");
+    }
   }));
 }
 
