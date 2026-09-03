@@ -173,6 +173,11 @@ function consumeManagementHandoff() {
 
   const payload = envelope.payload || {};
   const text = (value, maxLength = 160) => String(value ?? "").trim().slice(0, maxLength);
+  const vehicleMaker = text(payload.vehicleMaker, 80);
+  const inventoryVehicleName = text(payload.vehicleName);
+  const vehicleName = vehicleMaker && !inventoryVehicleName.includes(vehicleMaker)
+    ? `${vehicleMaker} ${inventoryVehicleName}`.trim()
+    : inventoryVehicleName;
   const amount = Number(payload.amount);
   const paymentMethod = payload.paymentMethod === "振込"
     ? "銀行振込"
@@ -183,8 +188,13 @@ function consumeManagementHandoff() {
     buyerName: text(payload.customerName),
     contractDate: text(payload.contractDate, 10),
     controlNo: text(payload.managementNumber, 40),
-    vehicleName: text(payload.vehicleName),
+    vehicleName,
+    vehicleGrade: text(payload.vehicleGrade, 120),
+    vehicleYear: text(payload.vehicleYear, 20),
     vehicleVin: text(payload.chassisNumber, 80),
+    vehicleMileage: text(payload.vehicleMileage, 30),
+    vehicleColor: text(payload.vehicleColor, 80),
+    inspectionDate: text(payload.inspectionDate, 30),
     basePrice: Number.isFinite(amount) && amount >= 0 ? String(Math.trunc(amount)) : "",
     totalPrice: Number.isFinite(amount) && amount >= 0 ? String(Math.trunc(amount)) : "",
     paymentMethod,
