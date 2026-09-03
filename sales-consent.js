@@ -3,6 +3,8 @@ import { isSupabaseConfigured, supabase } from "./src/supabase-client.js";
 const ORDER_AUTO_EMAIL = "info@order-auto.com";
 const salesTemplateImportKey = "orderAutoSalesTemplateImport";
 const inPersonPasscodeKey = "orderAutoInPersonPasscode";
+const managementCompletionEndpoint = "https://wlinebwdmbnbjbyvqrig.supabase.co/rest/v1/rpc/complete_contract_handoff";
+const managementPublishableKey = "sb_publishable_298gkO4cyTqi21SwRtLnWQ_1-c5FTJe";
 const isInPersonMode = new URLSearchParams(window.location.search).get("inperson") === "1";
 const consentProgress = document.querySelector("#consentProgress");
 const consentProgressSteps = document.querySelector("#consentProgressSteps");
@@ -468,8 +470,19 @@ async function completeConsent() {
     showError("電子署名と契約書を保存できませんでした。通信状態とURLの有効期限を確認し、もう一度お試しください。");
     return;
   }
+  let managementSynced = true;
+  if (isInPersonMode) {
+    try {
+      await notifyManagementOfCompletedContract();
+    } catch (error) {
+      console.error(error);
+      managementSynced = false;
+    }
+  }
   showCompletionStatus(isInPersonMode
-    ? "署名と同意内容を保存し、契約を完了しました。"
+    ? managementSynced
+      ? "署名と同意内容を保存し、契約を完了しました。管理システムにも反映しました。"
+      : "署名と同意内容を保存し、契約を完了しました。管理システムへの反映は契約一覧を開いた時に再試行します。"
     : "電子署名を受け付けました。オーダーオートの確認待ちです。");
 
   loadedContract.data = { ...loadedContract.data, ...customerData };
@@ -495,6 +508,28 @@ async function completeConsent() {
   document.querySelector("#signedDocumentActions").hidden = false;
   setConsentProgress(isInPersonMode ? 4 : 5);
   configureCompletionActions();
+}
+
+async function notifyManagementOfCompletedContract() {
+  const completionToken = loadedContract?.data?.__managementCompletionToken || "";
+  if (!/^[0-9a-f]{64}$/.test(completionToken)) return;
+
+  const response = await fetch(managementCompletionEndpoint, {
+    method: "POST",
+    headers: {
+      apikey: managementPublishableKey,
+      Authorization: `Bearer ${managementPublishableKey}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({
+      p_completion_token: completionToken,
+      p_external_contract_id: loadedContract.contractId,
+    }),
+  });
+  const result = await response.json().catch(() => null);
+  if (!response.ok || result?.success !== true) {
+    throw new Error("管理システムへ契約完了を反映できませんでした。");
+  }
 }
 
 function createSignedCustomerPdf(payload) {
