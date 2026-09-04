@@ -3,7 +3,7 @@ import { isSupabaseConfigured, supabase } from "./src/supabase-client.js";
 const COMPANY = {
   name: "オーダーオート",
   representative: "空 篤志",
-  phone: "080-2912-8616",
+  phone: "070-8996-6421",
   address: "広島県広島市佐伯区皆賀1-10-20",
 };
 

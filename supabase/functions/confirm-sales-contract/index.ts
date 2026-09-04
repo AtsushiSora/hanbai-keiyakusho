@@ -72,7 +72,7 @@ async function sendCustomerEmail(details: {
         "",
         "オーダーオート",
         "広島県広島市佐伯区皆賀11-10-20",
-        "TEL 080-2912-8616",
+        "TEL 070-8996-6421",
       ].join("\n"),
     }),
   });
