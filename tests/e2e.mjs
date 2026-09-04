@@ -61,7 +61,7 @@ try {
   let cloudContracts = [];
   let managementCompletionPayload = null;
 
-  await context.route("https://wlinebwdmbnbjbyvqrig.supabase.co/**", async (route) => {
+  await context.route("https://qdzdskryxwjjwtwigztl.supabase.co/**", async (route) => {
     const request = route.request();
     const url = new URL(request.url());
 
