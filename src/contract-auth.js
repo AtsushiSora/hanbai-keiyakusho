@@ -7,7 +7,7 @@ const salesTemplateImportKey = "orderAutoSalesTemplateImport";
 const inPersonPasscodeKey = "orderAutoInPersonPasscode";
 const maxSalesOptionRows = 14;
 const authRequestTimeoutMs = 15000;
-const managementCompletionEndpoint = "https://qdzdskryxwjjwtwigztl.supabase.co/rest/v1/rpc/complete_contract_handoff";
+const managementCompletionEndpoint = "https://qdzdskryxwjjwtwigztl.supabase.co/rest/v1/rpc/complete_contract_handoff_v2";
 const managementPublishableKey = "sb_publishable_NoQM4G6viEmlS3H_XIqFNw_zuXyzR96";
 const pageParams = new URLSearchParams(window.location.search);
 const isInPersonMode = pageParams.get("mode") === "in-person";
@@ -277,6 +277,8 @@ async function notifyManagementOfCompletedContracts(contracts) {
   });
 
   await Promise.allSettled(completed.map(async (contract) => {
+    const display = toDisplayContract(contract);
+    const contractData = contract.data || {};
     const response = await fetch(managementCompletionEndpoint, {
       method: "POST",
       headers: {
@@ -287,6 +289,12 @@ async function notifyManagementOfCompletedContracts(contracts) {
       body: JSON.stringify({
         p_completion_token: contract.data.__managementCompletionToken,
         p_external_contract_id: contract.id,
+        p_contract_data: {
+          customerLabel: display.buyerName || contractData.buyerName || "",
+          amount: String(toNumber(contractData.totalPrice || contractData.basePrice || display.totalPrice)),
+          contractedOn: contractData.contractDate || new Date().toISOString().slice(0, 10),
+          paymentMethod: contractData.paymentMethod || "銀行振込",
+        },
       }),
     });
     const result = await response.json().catch(() => null);

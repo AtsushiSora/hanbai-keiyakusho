@@ -3,7 +3,7 @@ import { isSupabaseConfigured, supabase } from "./src/supabase-client.js";
 const ORDER_AUTO_EMAIL = "info@order-auto.com";
 const salesTemplateImportKey = "orderAutoSalesTemplateImport";
 const inPersonPasscodeKey = "orderAutoInPersonPasscode";
-const managementCompletionEndpoint = "https://qdzdskryxwjjwtwigztl.supabase.co/rest/v1/rpc/complete_contract_handoff";
+const managementCompletionEndpoint = "https://qdzdskryxwjjwtwigztl.supabase.co/rest/v1/rpc/complete_contract_handoff_v2";
 const managementPublishableKey = "sb_publishable_NoQM4G6viEmlS3H_XIqFNw_zuXyzR96";
 const isInPersonMode = new URLSearchParams(window.location.search).get("inperson") === "1";
 const consentProgress = document.querySelector("#consentProgress");
@@ -524,6 +524,12 @@ async function notifyManagementOfCompletedContract() {
     body: JSON.stringify({
       p_completion_token: completionToken,
       p_external_contract_id: loadedContract.contractId,
+      p_contract_data: {
+        customerLabel: loadedContract.data?.buyerName || "",
+        amount: String(Number(String(loadedContract.data?.totalPrice || loadedContract.data?.basePrice || "0").replace(/[^\d.-]/g, "")) || 0),
+        contractedOn: loadedContract.data?.contractDate || new Date().toISOString().slice(0, 10),
+        paymentMethod: loadedContract.data?.paymentMethod || "銀行振込",
+      },
     }),
   });
   const result = await response.json().catch(() => null);

@@ -110,7 +110,7 @@ try {
       return;
     }
 
-    if (request.method() === "POST" && url.pathname === "/rest/v1/rpc/complete_contract_handoff") {
+    if (request.method() === "POST" && url.pathname === "/rest/v1/rpc/complete_contract_handoff_v2") {
       managementCompletionPayload = request.postDataJSON();
       await route.fulfill({
         status: 200,
@@ -182,6 +182,12 @@ try {
   assert.deepEqual(managementCompletionPayload, {
     p_completion_token: completionToken,
     p_external_contract_id: cloudContracts[0].id,
+    p_contract_data: {
+      customerLabel: "架空 販売太郎",
+      amount: "1280000",
+      contractedOn: "2026-09-03",
+      paymentMethod: "銀行振込",
+    },
   });
   logPass("販売契約の完了結果を管理システムへ通知");
 
