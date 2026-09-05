@@ -173,6 +173,8 @@ function consumeManagementHandoff() {
 
   const payload = envelope.payload || {};
   const text = (value, maxLength = 160) => String(value ?? "").trim().slice(0, maxLength);
+  const customerName = [text(payload.customerLastName, 80), text(payload.customerFirstName, 80)].filter(Boolean).join(" ")
+    || text(payload.customerName);
   const vehicleMaker = text(payload.vehicleMaker, 80);
   const inventoryVehicleName = text(payload.vehicleName);
   const vehicleName = vehicleMaker && !inventoryVehicleName.includes(vehicleMaker)
@@ -185,7 +187,13 @@ function consumeManagementHandoff() {
       ? "ローン"
       : payload.paymentMethod === "現金" ? "現金" : "その他";
   applyContractData({
-    buyerName: text(payload.customerName),
+    buyerName: customerName,
+    buyerKana: text(payload.customerKana),
+    buyerZip: text(payload.customerPostalCode, 12),
+    buyerAddress: text(payload.customerAddress, 300),
+    buyerBirthday: text(payload.customerBirthDate, 10),
+    buyerMobile: text(payload.customerPhone, 30),
+    buyerEmail: text(payload.customerEmail, 254),
     contractDate: text(payload.contractDate, 10),
     controlNo: text(payload.managementNumber, 40),
     vehicleName,

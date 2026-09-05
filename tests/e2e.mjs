@@ -134,6 +134,14 @@ try {
         assignmentId: null,
         completionToken: completion,
         customerName: "架空 販売太郎",
+        customerLastName: "架空",
+        customerFirstName: "販売太郎",
+        customerKana: "カクウ ハンバイタロウ",
+        customerBirthDate: "1990-01-02",
+        customerPostalCode: "731-5124",
+        customerAddress: "広島県広島市佐伯区皆賀1-10-20",
+        customerPhone: "070-8996-6421",
+        customerEmail: "customer@example.test",
         contractDate: "2026-09-03",
         vehicleName: "プリウス",
         vehicleMaker: "トヨタ",
@@ -153,6 +161,12 @@ try {
   await page.goto(`${baseUrl}/contract-create.html?handoff=${handoffToken}`);
   await page.waitForFunction(() => document.querySelector('[name="buyerName"]')?.value === "架空 販売太郎");
   assert.equal(await page.locator('[name="buyerName"]').inputValue(), "架空 販売太郎");
+  assert.equal(await page.locator('[name="buyerKana"]').inputValue(), "カクウ ハンバイタロウ");
+  assert.equal(await page.locator('[name="buyerZip"]').inputValue(), "731-5124");
+  assert.equal(await page.locator('[name="buyerAddress"]').inputValue(), "広島県広島市佐伯区皆賀1-10-20");
+  assert.equal(await page.locator('[name="buyerBirthday"]').inputValue(), "1990-01-02");
+  assert.equal(await page.locator('[name="buyerMobile"]').inputValue(), "070-8996-6421");
+  assert.equal(await page.locator('[name="buyerEmail"]').inputValue(), "customer@example.test");
   assert.equal(await page.locator('[name="contractDate"]').inputValue(), "2026-09-03");
   assert.equal(await page.locator('[name="controlNo"]').inputValue(), "26-0099");
   assert.equal(await page.locator('[name="vehicleName"]').inputValue(), "トヨタ プリウス");
